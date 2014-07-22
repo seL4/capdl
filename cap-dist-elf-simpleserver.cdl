@@ -1,0 +1,50 @@
+/*
+ * Copyright 2014, NICTA
+ *
+ * This software may be distributed and modified according to the terms of
+ * the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ * See "LICENSE_BSD2.txt" for details.
+ *
+ * @TAG(NICTA_BSD)
+ */
+
+arch ia32
+
+objects {
+
+cnode = cnode (4 bits)
+tcb = tcb (addr: 0x15000, ip: 0x00010000, sp: 0x00013000, elf: sel4_simpleserver, prio: 42, init:[10,15])
+pd1 = pd
+ap = asid_pool
+pt1 = pt
+frame[6] = frame (4k)
+ep = aep
+cnode2 = cnode (4 bits)
+}
+
+caps {
+
+cnode {
+  tcb
+  ep (RWG)
+  cnode (guard: 0, guard_size: 28)
+  frame[5] (RWG)
+}
+
+ap { pd1 }
+
+pd1 { 0: pt1 }
+
+pt1 {
+  0x10: frame[] (RWG)
+}
+
+cnode2 { 5: cnode (guard: 1, guard_size: 28) }
+
+tcb {
+  cspace: cnode2 (guard: 0, guard_size: 28)
+  vspace: pd1
+  ipc_buffer_slot: frame[5] (RWG)
+  fault_ep_slot: ep (RWG)
+}
+}

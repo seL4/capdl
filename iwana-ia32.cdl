@@ -1,0 +1,411 @@
+/*
+ * Copyright 2014, NICTA
+ *
+ * This software may be distributed and modified according to the terms of
+ * the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ * See "LICENSE_BSD2.txt" for details.
+ *
+ * @TAG(NICTA_BSD)
+ */
+
+arch ia32
+
+objects
+
+irq_table = cnode (8 bits)
+
+--
+-- objects set up by the kernel and passed to root task
+--
+
+-- initial cspace for root task setup by kernel
+boot_L1_cn = cnode (18 bits) 
+boot_L2_cn = cnode (8 bits) 
+
+-- initial frames for root task's vspace. setup by kernel
+init_frames_1[2] = frame (4k) -- for 8K space
+init_frames_2[1419] = frame (4k) -- for 5M space
+
+-- TCB for root task. setup by kernel
+boot_tcb = tcb
+
+-- PD for root task's vspace. setup by kernel
+boot_pd = pd
+
+-- Page tables used to build up the root task's vspace
+boot_pt[3] = pt
+
+-- the small untyped caps provided by the kernel
+small_ut[15] = ut (12 bits)
+
+-- according to bootinfo these are device caps. not sure how to handle them
+-- TODO
+device_frame[40] = frame (4k)
+
+-- the rest of the untyped caps as provided by the kernel
+large_ut_1 = ut (0x8 bits)
+large_ut_2 = ut (0x9 bits)
+large_ut_3 = ut (0xb bits)
+large_ut_4 = ut (0xc bits)
+large_ut_5 = ut (0xd bits)
+large_ut_6 = ut (0xe bits)
+large_ut_7 = ut (0xf bits)
+large_ut_8 = ut (0x10 bits)
+large_ut_9 = ut (0xc bits)
+large_ut_10 = ut (0xd bits)
+large_ut_11 = ut (0x11 bits)
+large_ut_12 = ut (0x12 bits)
+large_ut_13 = ut (0xc bits)
+large_ut_14 = ut (0xd bits)
+large_ut_15 = ut (0xf bits)
+large_ut_16 = ut (0x11 bits)
+large_ut_17 = ut (0x12 bits)
+large_ut_18 = ut (0x13 bits)
+large_ut_19 = ut (0x14 bits)
+large_ut_20 = ut (0xd bits)
+large_ut_21 = ut (0xe bits)
+large_ut_22 = ut (0x10 bits)
+large_ut_23 = ut (0x12 bits)
+large_ut_24 = ut (0x13 bits)
+large_ut_25 = ut (0x15 bits)
+large_ut_26 = ut (0xd bits)
+large_ut_27 = ut (0xf bits)
+large_ut_28 = ut (0x13 bits)
+large_ut_29 = ut (0x10 bits)
+large_ut_30 = ut (0x11 bits)
+large_ut_31 = ut (0x12 bits)
+large_ut_32 = ut (0x13 bits)
+large_ut_33 = ut (0x14 bits)
+large_ut_34 = ut (0x15 bits)
+large_ut_35 = ut (0x16 bits)
+large_ut_36 = ut (0x17 bits)
+large_ut_37 = ut (0x18 bits)
+large_ut_38 = ut (0x19 bits)
+large_ut_39 = ut (0x18 bits)
+large_ut_40 = ut (0x19 bits)
+large_ut_41 = ut (0xe bits)
+large_ut_42 = ut (0x10 bits)
+
+--
+-- objects created by the first stage loader
+--
+
+-- cnode for first-stage allocator, used to allocate resources needed for second stage
+allocator_cn = cnode (12 bits)
+
+-- second-stage cspace: for supervisor and iwana
+L1_cn = cnode (10 bits)
+L2_0_cn = cnode (10 bits)
+L2_1_cn = cnode (10 bits)
+
+-- tcb for second-stage
+bootstrap_tcb = tcb
+
+-- untyped caps created as a side effect of allocating objects?
+-- TODO: check this reasoning
+ut7[2] = ut (7 bits) 
+ut6[2] = ut (6 bits)
+ut5[2] = ut (5 bits)
+ut4[2] = ut (4 bits)
+
+-- end point for faults
+fault_ep = ep 
+
+-- frame for IPC buffer
+ipc_buffer_frame = frame (4k) 
+
+-- page table in which to map IPC buffer
+ipc_pt = pt 
+
+-- a bunch of untyped caps of different sizes
+-- these are side effects of creating 4K and 1M caps for iwana?
+-- TODO: check this reasoning
+ut14[9] = ut (0x14 bits)
+ut16[2] = ut (0x16 bits)
+ut15[2] = ut (0x15 bits)
+ut14_2[4] = ut (0x14 bits)
+ut15_2[2] = ut (0x15 bits)
+-- ...
+-- TODO: finish this list
+
+-- the 4K and 1M untyped cap pools used by iwana
+ut4k[79] = ut (0xc bits)
+ut1M[113] = ut (0x14 bits)
+
+
+-- 
+-- objects created by the second stage
+--
+
+-- none yet
+
+
+caps
+
+boot_tcb {
+   cspace: boot_L1_cn
+   vspace: <boot_pd_cap>
+--   ep: ?? -- TODO: does the root tcb have an ep?
+}
+
+boot_L1_cn {
+
+    0: boot_L2_cn (guard_size: 4, guard: 0, mask: RWG)
+    1: BL1_init_frames_1 = init_frames_1[] -- is this notation supported? TODO
+
+--  255: <BL2_allocator_cn> (guard_size: 0, guard: 0, mask: RWG) -- (derived from boot_L2_cn:111) is this notation supported? TODO
+  255: allocator_cn (guard_size: 0, guard: 0, mask: RWG) -- (derived from boot_L2_cn:111) is this notation supported? TODO
+
+ 2559: BL1_init_frames_2 = init_frames_2[] 
+
+}
+
+
+boot_L2_cn {
+
+    1: boot_tcb
+    2: boot_L1_cn_cap = boot_L1_cn (guard_size: 2, guard: 0, mask: RWG)
+    3: boot_pd_cap = boot_pd
+
+-- lsf: irq_control is one of the caps that points to nothing, it doesn't
+-- have an object. You can have an irq_control cap in capDL, it gives you
+-- authority to mint irq_handler caps from it.
+
+    4: irq_control_cap = irq_table 
+
+--  5: unknown -- TODO
+--  6: unknown -- TODO
+--  7: unknown -- TODO
+
+    9: BL2_boot_pt_caps = boot_pt[] -- is this notation supported? TODO
+
+   12: small_ut[]
+
+   28: device_frame[]
+
+   69: large_ut_1
+   70: large_ut_2
+   71: large_ut_3
+   72: large_ut_4
+   73: large_ut_5
+   74: large_ut_6
+   75: large_ut_7
+   76: large_ut_8
+   77: large_ut_9
+   78: large_ut_10
+   79: large_ut_11
+   80: large_ut_12
+   81: large_ut_13
+   82: large_ut_14
+   83: large_ut_15
+   84: large_ut_16
+   85: large_ut_17
+   86: large_ut_18
+   87: large_ut_19
+   88: large_ut_20
+   89: large_ut_21
+   90: large_ut_22
+   91: large_ut_23
+   92: large_ut_24
+   93: large_ut_25
+   94: large_ut_26
+   95: large_ut_27
+   96: large_ut_28
+   97: large_ut_29
+   98: large_ut_30
+   99: large_ut_31
+  100: large_ut_32
+  101: large_ut_33
+  102: large_ut_34
+  103: large_ut_35
+  104: large_ut_36
+  105: large_ut_37
+  106: large_ut_38
+  107: large_ut_39
+  108: large_ut_40
+  109: large_ut_41
+  110: large_ut_42
+
+  111: BL2_allocator_cn = allocator_cn (guard_size: 0, guard: 0, mask: RWG)
+
+}
+
+-- a word about pds and pts and frames
+-- a small frame is 12 bits, size 0x1000 or 4K
+-- a large frame is 22 bits, size 0x400000 or 4M
+-- a pd has 0x400 (1024) entries (is size 0x1000)
+-- a pt has 0x400 (1024) entries (is size 0x1000)
+-- each pt entry is 0 - 0xfff: a small frame 
+-- each pt covers addresses 0 - 0x3fffff (0x400 small frames)
+-- each pd entry covers 0 - 0x3fffff: either a pt or a large frame 
+
+boot_pd {
+--  0: <BL2_boot_pt_caps[0]> -- 0 - 0x3fffff -- TODO: is this notation supported?
+--  2: <BL2_boot_pt_caps[1]> -- 0x800000 - 0xbfffff -- TODO: is this notation supported?
+--  3: (boot_L2_cn, 11) -- 0xc00000 - 0xffffff -- TODO: is this notation supported?
+--  3: <BL2_boot_pt_caps[2]> -- 0xc00000 - 0xffffff -- TODO: is this notation supported?
+  832: <ipc_pt_cap> -- 0xd0000000
+}
+
+-- the following doesn't work, but needs to,
+-- boot_pt[0] {
+--  1: BL1_init_frames_1[0]  -- 0x1000 -- TODO: is this notation supported?
+--  2: BL1_init_frames_1[1]  -- 0x2000 -- TODO: is this notation supported?
+-- }
+
+-- boot_pt[1] {
+--  0x1FF: BL1_init_frames_2[0..512]  -- 0x9ff000 = 0x800000 + (0x1ff * 0x1000) -- TODO: is this notation supported?
+-- }
+
+-- boot_pt[2] {
+--  0: BL1_init_frames_2[513..1418] -- 0xc00000 - 0xf89000 -- TODO: is this notation supported?
+-- }
+
+-- are the device frames mapped anywhere?
+-- TODO: what to do with the device caps
+
+
+
+allocator_cn {
+
+    0: L1_cn_cap = L1_cn (guard_size: 0, guard: 0, mask: RWG)
+    1: L2_0_cn_cap = L2_0_cn (guard_size: 0, guard: 0, mask: RWG)
+    2: L2_1_cn_cap = L2_1_cn (guard_size: 0, guard: 0, mask: RWG)
+
+    3: bootstrap_tcb_cap = bootstrap_tcb
+
+    4: ut7[]
+    6: ut6[]
+    8: ut5[]
+   10: ut4[]
+
+   12: fault_ep_cap = fault_ep 
+   13: ipc_buffer_frame_cap = ipc_buffer_frame 
+   14: ipc_pt_cap = ipc_pt
+
+
+--   15: lots of uts
+-- TODO fill in the uts
+
+}
+
+ipc_pt {
+  0: <ipc_buffer_frame_cap>
+}
+
+bootstrap_tcb {
+   cspace: <L1_cn_cap>
+   vspace: <bootstrap_pd_cap>
+--   ep: fault_ep_cap
+}
+
+L1_cn {
+
+--    0: <L2_0_cn_cap> (guard_size: 0, guard: 0, mask: RWG) -- (copy)
+--    1: <L2_1_cn_cap> (guard_size: 0, guard: 0, mask: RWG) -- (copy)
+
+    0: L2_0_cn (guard_size: 0, guard: 0, mask: RWG) -- (copy)
+    1: L2_1_cn (guard_size: 0, guard: 0, mask: RWG) -- (copy)
+
+}
+
+L2_0_cn {
+
+    1: <bootstrap_tcb_cap>
+
+--    2: <L1_cn_cap> (guard_size: 0xc, guard: 0, mask: RWG) -- (derivation)
+    2: L1_cn (guard_size: 0xc, guard: 0, mask: RWG) -- (derivation)
+
+    3: bootstrap_pd_cap = <boot_pd_cap>
+
+--    5: -- copy of init data (?)
+--    6: -- copy init data (?)
+--    7: -- copy init data (?)
+
+   11: <fault_ep_cap>
+
+   20: ut4k[]
+  100: ut1M[]
+
+
+-- lsf: irq handlers currently are caps to the irq_table with 
+-- argument (irq: x). 
+
+  700: irq_handler_0 = irq_table (irq: 0)
+  701: irq_table (irq: 1)
+  702: irq_table (irq: 2)
+  703: irq_table (irq: 3)
+  704: irq_table (irq: 4)
+  705: irq_table (irq: 5)
+  706: irq_table (irq: 6)
+  707: irq_table (irq: 7)
+  708: irq_table (irq: 8)
+  709: irq_table (irq: 9)
+  710: irq_table (irq: 0xa)
+  711: irq_table (irq: 0xb)
+  712: irq_table (irq: 0xc)
+  713: irq_table (irq: 0xd)
+  714: irq_table (irq: 0xe)
+  715: irq_table (irq: 0xf)
+  716: irq_table (irq: 0x10)
+  717: irq_table (irq: 0x11)
+  718: irq_table (irq: 0x12)
+  719: irq_table (irq: 0x13)
+  720: irq_table (irq: 0x14)
+  721: irq_table (irq: 0x15)
+  722: irq_table (irq: 0x16)
+  723: irq_table (irq: 0x17)
+  724: irq_table (irq: 0x18)
+  725: irq_table (irq: 0x19)
+  726: irq_table (irq: 0x1a)
+  727: irq_table (irq: 0x1b)
+  728: irq_table (irq: 0x1c)
+  729: irq_table (irq: 0x1d)
+}
+
+
+L2_1_cn {
+    -- empty
+}
+
+
+
+-- irq handlers. not sure where or when these are created. or if capdl supports this
+
+-- lsf: irq handlers currently are caps to the irq_table with 
+-- argument (irq: x). The below would make sense as cap name abbreviations
+-- in the cap section, but that is currently not supported. I'm leaving these
+-- here so we can discuss them, but I'll insert the currently correct syntax
+-- in the cap tables.
+
+-- TODO: 
+-- irq_handler_0 = irq_handler (irq: 0x0)
+-- irq_handler_1 = irq_handler (irq: 0x1)
+-- irq_handler_2 = irq_handler (irq: 0x2)
+-- irq_handler_3 = irq_handler (irq: 0x3)
+-- irq_handler_4 = irq_handler (irq: 0x4)
+-- irq_handler_5 = irq_handler (irq: 0x5)
+-- irq_handler_6 = irq_handler (irq: 0x6)
+-- irq_handler_7 = irq_handler (irq: 0x7)
+-- irq_handler_8 = irq_handler (irq: 0x8)
+-- irq_handler_9 = irq_handler (irq: 0x9)
+-- irq_handler_a = irq_handler (irq: 0xa)
+-- irq_handler_b = irq_handler (irq: 0xb)
+-- irq_handler_c = irq_handler (irq: 0xc)
+-- irq_handler_d = irq_handler (irq: 0xd)
+-- irq_handler_e = irq_handler (irq: 0xe)
+-- irq_handler_f = irq_handler (irq: 0xf)
+-- irq_handler_10 = irq_handler (irq: 0x10)
+-- irq_handler_11 = irq_handler (irq: 0x11)
+-- irq_handler_12 = irq_handler (irq: 0x12)
+-- irq_handler_13 = irq_handler (irq: 0x13)
+-- irq_handler_14 = irq_handler (irq: 0x14)
+-- irq_handler_15 = irq_handler (irq: 0x15)
+-- irq_handler_16 = irq_handler (irq: 0x16)
+-- irq_handler_17 = irq_handler (irq: 0x17)
+-- irq_handler_18 = irq_handler (irq: 0x18)
+-- irq_handler_19 = irq_handler (irq: 0x19)
+-- irq_handler_1a = irq_handler (irq: 0x1a)
+-- irq_handler_1b = irq_handler (irq: 0x1b)
+-- irq_handler_1c = irq_handler (irq: 0x1c)
+-- irq_handler_1d = irq_handler (irq: 0x1d)

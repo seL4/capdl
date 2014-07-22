@@ -1,0 +1,15 @@
+syntax: glob
+
+*.hi
+*.o
+parse-capDL
+*.parse
+*.parse.x
+*.out
+*.dot
+*.png
+*.xml
+*.thy
+doc/capDL.pdf
+doc/capDL.aux
+doc/capDL.log

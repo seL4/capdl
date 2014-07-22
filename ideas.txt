@@ -1,0 +1,65 @@
+/*
+ * Copyright 2014, NICTA
+ *
+ * This software may be distributed and modified according to the terms of
+ * the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ * See "LICENSE_BSD2.txt" for details.
+ *
+ * @TAG(NICTA_BSD)
+ */
+
+Ideas/todos/features/issues with capDL
+
+- binary format spec
+- backend + frontend for binary format from Haskell
+
+- xml backend/frontend for Haskell [?]
+- backend to graphviz/dot or other graphing tool
+- graphical front-end/simulator/browser
+
+- make corresponding C model (Ihor)
+- implement binary format in C (file read/write + mem data structure)
+
+- foreign function interface Haskell/C:
+ - be able to walk/operate on Haskell model from C
+ - transfer between C and Haskell model representations online
+
+
+- cap operations on Haskel model (for simulations, dumps)
+
+
+- analysis on Haskell model:
+ - compute transitive closure, saturate dep graph, compute subsystems
+ - compute effective/de-facto rights 
+ - take known covert channels into account for above (sync ep channel)
+ 
+- implement complete seL4 API on model 
+ -> can replace real kernel, run as simulation tool
+ -> API match for refinement
+ 
+- potential intermediate refinement step:
+ - (auto-)translate model into Isabelle
+ - refine to abstract spec
+ - refine sec spec to capDL
+ 
+- generate capDL from CAmkES
+
+- run/simulate allocation algorithm on Model (in Haskell and C)
+
+- use capDL as debugging dump from kernel
+ - whole system [needs more book-keeping]
+ - for one thread [all reachable caps]
+ - be able to feed that into Haskell model and various backends
+
+- use binary capDL/capDL subset as bootinfo replacement and communication
+  mechanism between threads (e.g. init thread and subsystems, kernel and init
+  thread, anyone who needs to know how stuff is organised in one's
+  cspace/vspace)
+  
+- make above C part into a standard caps lib (together with alloc algorithms)
+
+
+Current issues/todos:
+- clean up Haskell implementation
+- implement all the cool stuff above
+
