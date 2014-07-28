@@ -202,17 +202,22 @@ This section describes the concrete syntax of capDL using the tokens defined abo
 
   object_type ::= 'ep'  | 'aep' | 'tcb' | 'cnode' | 'ut' | 'irq' |
                   'asid_pool' | 'pt' | 'pd' | 'frame' | 'io_ports' |
-                  'io_device' | 'io_pt' 
+                  'io_device' | 'io_pt' | 'vcpu'
 
   object_params ::= '(' (object_param (',' object_param)*)? ')'
 
   object_param   ::= obj_bit_size | obj_vm_size | io_pt_level | obj_ports_size |
-                     init_arguments
+                     init_arguments | tcb_dom | obj_paddr | domain_id |
+                     pci_device
   obj_bit_size   ::= number 'bits'
   obj_vm_size    ::= number ('k' | 'M')
   io_pt_level    ::= 'level' ':' number
   obj_ports_size ::= number 'k' 'ports'
   init_arguments ::= 'init' ':' '[' (number (',' number)*)? ']'
+  tcb_dom        ::= 'dom' ':' number
+  obj_paddr      ::= 'paddr' ':' number
+  domain_id      ::= 'domainID' ':' number
+  pci_device     ::= number ':' number '.' number
 
   opt_obj_decls ::= '{' ((obj_decl | name_ref) ','?)* '}'
 \end{verbatim}
@@ -246,6 +251,8 @@ This section describes the concrete syntax of capDL using the tokens defined abo
               | 'reply'
               | 'master_reply'
               | 'asid' ':' asid
+              | 'cached'
+              | 'uncached'
 
   right ::= 'R' | 'W' | 'G' | 'X'
   asid ::= '(' number ',' number ')'
@@ -261,9 +268,7 @@ This section describes the concrete syntax of capDL using the tokens defined abo
 \subsubsection{IRQ Declarations}
 
 \begin{verbatim}
-  irq_decls ::='irq_maps' '{' irq_decl* '}'
-
-  irq_decl ::= '{' (irq_mapping ';'?)* '}'
+  irq_decls ::='irq_maps' '{' (irq_mapping ';'?)* '}'
 
   irq_mapping ::= (number ':')? name_ref
 \end{verbatim}
@@ -315,7 +320,7 @@ the other hand, this latter information is crucial.
 We refer to objects by name. This name could be of any type; for convenience we either use a plain string or a string with an index. We use the \texttt{Maybe} type of Haskell to express this. 
 
 \begin{verbatim}
-types ObjID = (String, Maybe Int)
+types ObjID = (String, Maybe Word)
 \end{verbatim}
 
 With this the capability state of a system is fully described by a map from \texttt{ObjID} to \texttt{Object}. Since not all objects and capabilities are supported by seL4 on all machine architectures, we also store which architecture the system is intended for.
