@@ -8,17 +8,17 @@
 -- @TAG(NICTA_BSD)
 --
 
-module Matrix(
-             Matrix
-             ,isConnected
-             ,connect
-             ,newEmptyMatrix
-             ,printMatrix
-             ,printDotMatrix
-             ,showDotMatrix
-             ,getSize
-             ,disconnect
-             ) where
+module CapDL.Matrix(
+                    Matrix
+                   ,isConnected
+                   ,connect
+                   ,newEmptyMatrix
+                   ,printMatrix
+                   ,printDotMatrix
+                   ,showDotMatrix
+                   ,getSize
+                   ,disconnect
+                   ) where
 
 
 import Data.Array.IO

@@ -21,8 +21,8 @@ import CapDL.PrintDot
 import CapDL.PrintXml
 import CapDL.PrintIsabelle
 import CapDL.PrintC
-import Matrix
-import STCC
+import CapDL.Matrix
+import CapDL.STCC
 
 import System.Environment
 import System.IO

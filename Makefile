@@ -32,7 +32,7 @@ endif
 	@diff $*.parse $*.parse.x  || (echo "Self parse failed"; exit 1)
 	which xmllint && xmllint --noout --dtdvalid ./capdl.dtd $*.xml
 
-$(TARGET): Main.hs STCC.hs Matrix.hs CapDL/*.hs
+$(TARGET): Main.hs CapDL/*.hs
 	ghc -O2 --make Main.hs -o $(TARGET) \
         -cpp -DCONFIG_CAPDL_LOADER_MAX_IRQS=${CONFIG_CAPDL_LOADER_MAX_IRQS}
 

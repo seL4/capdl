@@ -8,13 +8,13 @@
 -- @TAG(NICTA_BSD)
 --
 
-module STCC(
-           somefn,
-           transitiveClosure,
-           leakMatrix
-           ) where
+module CapDL.STCC(
+                  somefn
+                 ,transitiveClosure
+                 ,leakMatrix
+                 ) where
 
-import Matrix
+import CapDL.Matrix
 import CapDL.Model
 
 import Control.Monad
