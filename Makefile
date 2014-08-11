@@ -50,5 +50,5 @@ ${BUILD_DIR}/src/capdl_spec.c: ${CAPDL_SPEC}
 	@echo " [GEN] $(notdir $@)"
 	${Q}mkdir -p "$(dir $@)"
 	${Q}$(if $^,,echo "No CapDL spec provided" >&2 ; exit 1)
-	${Q}$(if $(filter 1,$(words $^)),,echo "Multiple CapDL specs provided" >&2 ; exit 1)
+	${Q}$(if $(filter 1,$(words $^)),,echo "Error: multiple CapDL specs provided: $^" >&2 ; exit 1)
 	${Q}parse-capDL --code "$@" "$^"
