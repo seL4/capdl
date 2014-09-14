@@ -10,7 +10,7 @@
 
 apps-$(CONFIG_MODULE_CAPDL_LOADER) += capdl-loader-experimental
 
-capdl-loader-experimental-y = kernel_elf common libsel4 $(libc) libcpio libelf libsel4muslcsys libsel4platsupport libsel4simple libutils libsel4utils
+capdl-loader-experimental-y = kernel_elf common libsel4 $(libc) libcpio libelf libsel4muslcsys libplatsupport libsel4platsupport libsel4simple libutils libsel4utils
 
 ifdef CONFIG_KERNEL_STABLE
 capdl-loader-experimental-y += libsel4simple-stable

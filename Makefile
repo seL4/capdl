@@ -20,7 +20,7 @@ OFILES   := archive.o
 
 CFILES += ${BUILD_DIR}/src/capdl_spec.c
 
-LIBS := muslc sel4 elf cpio sel4muslcsys sel4platsupport sel4simple sel4utils utils
+LIBS := muslc sel4 elf cpio sel4muslcsys sel4platsupport platsupport sel4simple sel4utils utils
 ifdef CONFIG_KERNEL_STABLE
 LIBS += sel4simple-stable
 else
