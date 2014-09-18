@@ -40,7 +40,6 @@
 #include "capdl.h"
 
 #include "capdl_spec.h"
-#include <syscall_stubs_sel4.h>
 
 #define PD_SLOT(vaddr)   (vaddr >> (PT_SIZE + FRAME_SIZE))
 #define PT_SLOT(vaddr)   ((vaddr >> FRAME_SIZE) & ((1 << PT_SIZE) - 1))
@@ -81,8 +80,6 @@
 #if !defined(CONFIG_CAPDL_LOADER_VERIFIED)
     #define CAPDL_SHARED_FRAMES
 #endif /* !defined(CONFIG_CAPDL_LOADER_VERIFIED) */
-
-MUSLC_SYSCALL_TABLE;
 
 static seL4_CPtr capdl_to_sel4_orig[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 static seL4_CPtr capdl_to_sel4_copy[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
@@ -1503,7 +1500,6 @@ init_system(const CDL_Model *spec)
 int
 main(void)
 {
-    SET_MUSLC_SYSCALL_TABLE;
 #ifndef CONFIG_CAPDL_LOADER_VERIFIED
     /* Allow us to print via seL4_Debug_PutChar. */
     platsupport_serial_setup_bootinfo_failsafe();
