@@ -552,7 +552,7 @@ sort_untypeds(seL4_BootInfo *bootinfo)
 
     // Calculate the starting index for each untyped.
     seL4_Word total = 0;
-    for (seL4_Word size = 32; size != 0; size--) {
+    for (seL4_Word size = 32 - 1; size != 0; size--) {
         seL4_Word oldCount = count[size];
         count[size] = total;
         total += oldCount;
