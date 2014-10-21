@@ -8,8 +8,8 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef __CAPDL_SPEC_H__
-#define __CAPDL_SPEC_H__
+#ifndef CAPDL_SPEC_H__
+#define CAPDL_SPEC_H__
 
 #include "capdl.h"
 

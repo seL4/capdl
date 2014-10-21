@@ -8,8 +8,8 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef __CAPDL_H__
-#define __CAPDL_H__
+#ifndef CAPDL_H__
+#define CAPDL_H__
 
 #include <sel4/types.h>
 #include <autoconf.h>
