@@ -732,24 +732,6 @@ create_objects(const CDL_Model *spec, seL4_BootInfo *bootinfo)
         debug_printf("Creating object %s in slot %d, from untyped %x...\n", CDL_Obj_Name(obj), free_slot, untyped_cptr);
 #endif
 
-        // If object type is CDL_ASIDPool or CDL_Interrupt, don't make the object.
-        // Later versions wanting basic CDL_ASIDPool support could make an
-        /*
-        if (obj_type == CDL_ASIDPool) {
-            obj_type = CDL_Untyped;
-            obj_size = 12; // ASID pools are 4K.
-        }
-         ... create object as usual ...
-        if (CDL_Obj_Type(obj) == CDL_ASIDPool) {
-            // We need to special case ASID creation because it needs something beyond Untyped_Retype.
-            free_slot_index++;
-            seL4_CPtr asid_slot = free_slot_start + free_slot_index;
-            err = seL4_ASIDControl_MakePool(seL4_CapASIDControl, free_slot, seL4_CapInitThreadCNode, asid_slot, 32);
-            seL4_AssertSuccess(err);
-            free_slot = asid_slot;
-        }
-        */
-
 #if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_IA32)
         if (capdl_obj_type == CDL_IOPorts) {
             seL4_CPtr root = seL4_CapInitThreadCNode;
@@ -784,7 +766,9 @@ create_objects(const CDL_Model *spec, seL4_BootInfo *bootinfo)
             die("Failed to find device frame at paddr = %p\n", obj->paddr);
         }
 
+#if defined(CONFIG_CAPDL_LOADER_VERIFIED)
         assert (capdl_obj_type != CDL_ASIDPool);
+#endif
 
         // Never create Interrupt objects here
 #if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_IA32)
@@ -803,6 +787,11 @@ create_objects(const CDL_Model *spec, seL4_BootInfo *bootinfo)
             // as seL4 needs different types for different frame sizes.
             if (capdl_obj_type == CDL_Frame) {
                 obj_type = seL4_frame_type (obj_size);
+#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && !defined(CONFIG_KERNEL_STABLE)
+            } else if (capdl_obj_type == CDL_ASIDPool) {
+                obj_type = CDL_Untyped;
+                obj_size = 12;
+#endif
             } else {
                 obj_type = (seL4_ArchObjectType) capdl_obj_type;
             }
@@ -817,6 +806,15 @@ create_objects(const CDL_Model *spec, seL4_BootInfo *bootinfo)
             int err = retype_untyped(free_slot, untyped_cptr, obj_type, obj_size);
 
             if (err == seL4_NoError) {
+#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && !defined(CONFIG_KERNEL_STABLE)
+                if (capdl_obj_type == CDL_ASIDPool) {
+                    free_slot_index++;
+                    seL4_CPtr asid_slot = free_slot_start + free_slot_index;
+                    err = seL4_ASIDControl_MakePool(seL4_CapASIDControl, free_slot, seL4_CapInitThreadCNode, asid_slot, 32);
+                    seL4_AssertSuccess(err);
+                    free_slot = asid_slot;
+                }
+#endif
                 add_sel4_cap(obj_id, ORIG, free_slot);
 
                 obj_id_index++;
