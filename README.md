@@ -1,14 +1,15 @@
 capDL-tool
 ==========
 
-This tool is intended to be used to assist working with capDL textual specifications.
-In particular, it can parse input files into a variety of different output formats,
-including Isabelle theory files and C souce files that can be given to the capDL
-initialiser.
+This tool is intended to be used with capDL textual specifications. In
+particular, it can parse input files into a variety of different output
+formats, including Isabelle theory files and C source files that can be given
+to the capDL initialiser.
 
 For usage instructions run 'make' and then './parse-capDL'.
-For details of the Capability Distribution Language a specification is provided in
-the 'doc/' directory. Run 'make' in this directory to generate 'capDL.pdf'.
+
+For details of the Capability Distribution Language, see the specification in
+the 'doc/' directory. Run 'make' in that directory to generate 'capDL.pdf'.
 
 
 Repository overview
@@ -20,10 +21,10 @@ Repository overview
   * 'doc': Latex source of the capDL Specification
 
 
-Dependancies
+Dependencies
 -------------
 
-To build this tool the following Haskell modules are required; MissingH,
+To build this tool the following Haskell modules are required: MissingH,
 data-ordlist, split.
 
 
