@@ -1,4 +1,4 @@
-CapDL initializer for seL4
+CapDL initialiser for seL4
 ==========================
 
 This repository contains the capDL initialiser for seL4.
@@ -20,7 +20,7 @@ Repository overview
   * [`include/capdl.h`](include/capdl.h): The data structure for capDL.
 
 
-Dependancies
+Dependencies
 -------------
 
 The capDL loader uses `capDL-tool` to generate a data structure
