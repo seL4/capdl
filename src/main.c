@@ -1419,7 +1419,7 @@ init_cnode(const CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode)
     CDL_Object *cdl_cnode = get_spec_object(spec, cnode);
     for (unsigned int slot_index = 0; slot_index < CDL_Obj_NumSlots(cdl_cnode); slot_index++) {
         if (CDL_Obj_GetSlot(cdl_cnode, slot_index)->cap.type == CDL_IRQHandlerCap) {
-            CDL_IRQ irq = CDL_Obj_GetSlot(cdl_cnode, slot_index)->cap.irq;
+            CDL_IRQ UNUSED irq = CDL_Obj_GetSlot(cdl_cnode, slot_index)->cap.irq;
             debug_printf("  Populating slot %d with cap to IRQ %d, name %s...\n",
                          CDL_Obj_GetSlot(cdl_cnode, slot_index)->slot, irq,
                          CDL_Obj_Name(&spec->objects[spec->irqs[irq]]));
