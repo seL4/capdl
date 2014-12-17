@@ -235,7 +235,7 @@ showObject :: Map ObjID Int -> (ObjID, KernelObject Word) -> IRQMap -> CDT -> Ob
 showObject objs obj irqNode cdt ms =
     "{" +++
     indent
-      (".name = \"" ++ name ++ "\"," +++
+      ("#ifdef CONFIG_CAPDL_LOADER_PRINTF" +++ ".name = \"" ++ name ++ "\"," +++ "#endif" +++
        showObjectFields objs id (snd obj) irqNode cdt ms) +++
     "}"
     where
