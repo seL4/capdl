@@ -52,8 +52,8 @@ class ContainerObject(Object):
 
         return '%s {\n%s\n}' % \
             (self.name, \
-             '\n'.join(map(lambda x: '%s%s' % (slot_index(x[0]), x[1]), \
-                  filter(lambda y: y[1] is not None, self.slots.items()))))
+             '\n'.join(['%s%s' % (slot_index(x[0]), x[1]) \
+                for x in self.slots.items() if x[1] is not None]))
 
     def __contains__(self, key):
         return key in self.slots
