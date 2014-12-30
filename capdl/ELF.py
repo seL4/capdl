@@ -33,25 +33,20 @@ class ELF(object):
             f = elf
         self._elf = ELFFile(f)
         self.name = name
-        self.symtab = {}
+        self._symtab = None
 
     def get_entry_point(self):
         return self._elf['e_entry']
 
     def _get_symbol(self, symbol):
-        if symbol in self.symtab:
-            return self.symtab[symbol]
+        if self._symtab is None:
+            table = self._elf.get_section_by_name('.symtab')
+            if not table:
+                # This ELF file has been stripped.
+                raise Exception('No symbol table available')
+            self._symtab = dict([(s.name, s) for s in table.iter_symbols()])
 
-        table = self._elf.get_section_by_name('.symtab')
-        if not table:
-            # This ELF file has been stripped.
-            raise Exception('No symbol table available')
-
-        for s in table.iter_symbols():
-            self.symtab[s.name] = s
-            if s.name == symbol:
-                return s
-        return None
+        return self._symtab.get(symbol)
 
     def get_symbol_vaddr(self, symbol):
         sym = self._get_symbol(symbol)
