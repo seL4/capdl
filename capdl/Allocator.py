@@ -85,7 +85,9 @@ class ObjectAllocator(object):
         self.counter += 1
         if type == seL4_UntypedObject:
             size_bits = kwargs.get('size_bits', 12)
-            o = Untyped(name, size_bits)
+            paddr = kwargs.get('paddr', None)
+            assert(paddr != 0)
+            o = Untyped(name, size_bits, paddr)
         elif type == seL4_TCBObject:
             o = TCB(name)
         elif type == seL4_EndpointObject:
