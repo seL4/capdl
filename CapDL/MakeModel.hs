@@ -141,7 +141,7 @@ getUntypedCovers ns objs =
     foldl' (getUntypedCover ns objs)
 
 emptyUntyped :: KernelObject Word
-emptyUntyped = Untyped Nothing
+emptyUntyped = Untyped Nothing Nothing
 
 getUTObj :: ObjMap Word -> ObjID -> KernelObject Word
 getUTObj objs ut =
@@ -297,7 +297,7 @@ validObjPars (Obj TCB_T ps []) =
   subsetConstrs ps (replicate (numConstrs (Addr undefined)) (TCBExtraParam undefined) 
                     ++ [InitArguments undefined, Dom undefined])
 validObjPars (Obj CNode_T ps []) = subsetConstrs ps [BitSize undefined]
-validObjPars (Obj Untyped_T ps ds) = subsetConstrs ps [BitSize undefined]
+validObjPars (Obj Untyped_T ps ds) = subsetConstrs ps [BitSize undefined, Paddr undefined]
 validObjPars (Obj Frame_T ps []) =
   subsetConstrs ps [VMSize undefined, Paddr undefined] &&
   (not (containsConstr (Paddr undefined) ps) || containsConstr (VMSize undefined) ps)
@@ -314,7 +314,7 @@ objectOf n obj =
         Obj AsyncEndpoint_T [] [] -> AsyncEndpoint
         Obj TCB_T ps [] -> TCB Map.empty (getExtraInfo n ps) (getTCBDom ps) (getInitArguments ps)
         Obj CNode_T ps [] -> CNode Map.empty (getBitSize n ps)
-        Obj Untyped_T ps ds -> Untyped (getMaybeBitSize ps)
+        Obj Untyped_T ps ds -> Untyped (getMaybeBitSize ps) (getMaybePaddr ps)
         Obj ASIDPool_T ps [] -> ASIDPool Map.empty
         Obj PT_T ps [] -> PT Map.empty
         Obj PD_T ps [] -> PD Map.empty

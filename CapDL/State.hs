@@ -188,7 +188,7 @@ flatten' m objs (n, obj)
         let obj' = case obj of
                 Endpoint -> Endpoint
                 AsyncEndpoint -> AsyncEndpoint
-                Untyped msb -> Untyped msb
+                Untyped msb paddr-> Untyped msb paddr
                 Frame vms p -> Frame vms p
                 IOPorts sz -> IOPorts sz
         in Map.insert n obj' objs
@@ -485,7 +485,7 @@ checkUntyped :: Model Word -> ObjID -> Logger Bool
 checkUntyped m ref = do
     let valid =
             case object ref m of
-                Untyped _ -> True
+                Untyped _ _ -> True
                 _ -> False
     unless valid
               (tell $ text $ show ref ++ " covers objects but is not an untyped")
