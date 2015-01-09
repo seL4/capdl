@@ -204,9 +204,10 @@ showObjectFields objs obj_id (CNode slots sizeBits) irqNode cdt ms =
         -- a hack to assume that any 0-sized CNode is an interrupt, but this is
         -- an illegal size for a valid CNode so everything should work out.
         t = if sizeBits == 0 then "CDL_Interrupt" else "CDL_CNode"
-showObjectFields _ _ (Untyped size_bits) _ _ _ =
+showObjectFields _ _ (Untyped size_bits paddr) _ _ _ =
     ".type = CDL_Untyped," +++
-    ".size_bits = " ++ show sizeBits ++ ","
+    ".size_bits = " ++ show sizeBits ++ "," +++
+    ".paddr = (void*)" ++ hex (fromMaybe 0 paddr) ++ ","
     where
         sizeBits = case size_bits of {Just s -> s; _ -> -1}
 showObjectFields objs obj_id (PT slots) _ _ _ =
@@ -252,7 +253,7 @@ showObjects objs counter (x:xs) irqNode cdt ms =
 
 sizeOf :: Arch -> KernelObject Word -> Word
 sizeOf _ (Frame vmSz _) = vmSz
-sizeOf _ (Untyped (Just bSz)) = 2 ^ bSz
+sizeOf _ (Untyped (Just bSz) _) = 2 ^ bSz
 sizeOf _ (CNode _ bSz) = 16 * 2 ^ bSz
 sizeOf _ Endpoint = 16
 sizeOf _ AsyncEndpoint = 16

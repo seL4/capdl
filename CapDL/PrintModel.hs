@@ -65,7 +65,7 @@ getCover ut covers =
 
 prettyIndexedUntyped :: CoverMap -> [(ObjID, KernelObject a)] -> Doc
 prettyIndexedUntyped _ [] = empty
-prettyIndexedUntyped covers ((name, obj@(Untyped mbits)):xs) =
+prettyIndexedUntyped covers ((name, obj@(Untyped mbits paddr)):xs) =
     if Set.null cover
     then prettyIndexedUntyped covers xs
     else prettyNameRefr [name] <+> equals <+> prettyObjParams obj <+>
@@ -74,7 +74,7 @@ prettyIndexedUntyped covers ((name, obj@(Untyped mbits)):xs) =
     where cover = getCover name covers
 
 prettyUntyped :: CoverMap -> [(ObjID, KernelObject a)] -> Doc
-prettyUntyped covers list@((name, obj@(Untyped mbits)):_) =
+prettyUntyped covers list@((name, obj@(Untyped mbits paddr)):_) =
     if snd name == Nothing
     then prettyNameDecl name len <+> prettyObjParams obj <+>
         if Set.null cover

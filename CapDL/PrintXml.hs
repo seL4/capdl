@@ -85,7 +85,7 @@ showRights rights = readRight ++ writeRight ++ grantRight
 showObjectAttrs :: KernelObject a -> [(String, String)]
 showObjectAttrs (TCB _ _ domain _) = [("domain", show domain)]
 showObjectAttrs (CNode _ sz) = [("size", show sz)]
-showObjectAttrs (Untyped (Just sz)) = [("size", show sz)]
+showObjectAttrs (Untyped (Just sz) paddr) = [("size", show sz), ("paddr", show $ fromMaybe 0 paddr)]
 showObjectAttrs (Frame sz paddr) = [("size", show (logBase2 sz 0)), ("paddr", show $ fromMaybe 0 paddr)]
 showObjectAttrs (IOPorts sz) = [("size", show sz)]
 showObjectAttrs (IODevice _ dom pci) = [("domain", show dom), ("device", show pci)]

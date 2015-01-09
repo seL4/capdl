@@ -134,7 +134,8 @@ data KernelObject a
         slots :: CapMap a,
         sizeBits :: Word }
     | Untyped {
-        maybeSizeBits :: Maybe Word }
+        maybeSizeBits :: Maybe Word,
+        maybePaddr :: Maybe Word }
 
 -- arch specific objects, ARM11 and IA32 mixed
     | ASIDPool { slots :: CapMap a }

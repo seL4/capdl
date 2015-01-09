@@ -123,7 +123,7 @@ prettyObjParams obj = case obj of
         text "tcb" <+> maybeParensList [prettyExtraInfo extra, prettyDom dom, prettyInitArguments init]
     CNode _ 0 -> text "irq" --FIXME: This should check if the obj is in the irqNode
     CNode _ bits -> text "cnode" <+> maybeParensList [prettyBits bits]
-    Untyped mbits -> text "ut" <+> maybeParensList [prettyMBits mbits]
+    Untyped mbits paddr -> text "ut" <+> maybeParensList [prettyMBits mbits, prettyPaddr paddr]
 
     ASIDPool {} -> text "asid_pool"
     PT {} -> text "pt"
