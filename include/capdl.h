@@ -198,7 +198,7 @@ typedef struct {
 
     CDL_ObjMap covers; /* XXX: should this be in a separate coversMap? */
 
-    void *paddr; /* Physical address; only relevant for frames. */
+    void *paddr; /* Physical address; only relevant for frames and untyped objects. */
 } CDL_Object;
 
 /* CapDLModel: is described by a map from ObjectIDs (array index) to Objects */

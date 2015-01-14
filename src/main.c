@@ -645,6 +645,22 @@ static int find_device_frame(void *paddr, seL4_CPtr free_slot, CDL_ObjID obj_id,
     add_sel4_cap(obj_id, ORIG, free_slot);
     return 0;
 }
+static int find_device_untyped(void *paddr, int obj_size, seL4_CPtr free_slot, CDL_ObjID obj_id, seL4_BootInfo *bootinfo) {
+    seL4_CPtr untyped;
+    seL4_Word offset;
+    int error;
+    simple_stable_get_frame_info(bootinfo, paddr, obj_size, &untyped, &offset);
+
+    if (untyped == 0) {
+        /* Failed to find an untyped */
+        return -1;
+    }
+    error = seL4_Untyped_RetypeAtOffset(untyped, seL4_UntypedObject, offset, obj_size, seL4_CapInitThreadCNode, 0, 0, free_slot, 1);
+    if (error == seL4_NoError) {
+        add_sel4_cap(obj_id, ORIG, free_slot);
+    }
+    return error;
+}
 #else
 static int find_device_frame(void *paddr, seL4_CPtr free_slot, CDL_ObjID obj_id,
         seL4_BootInfo *bootinfo) {
@@ -796,7 +812,23 @@ create_objects(const CDL_Model *spec, seL4_BootInfo *bootinfo)
                 obj_type = (seL4_ArchObjectType) capdl_obj_type;
             }
         }
-        
+
+        if (capdl_obj_type == CDL_Untyped && obj->paddr != NULL) {
+            debug_printf(" device untyped, paddr = %p, size_bits = %d\n", obj->paddr, obj_size);
+
+#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(CONFIG_KERNEL_STABLE)
+            /* This is a device untyped. Look for it in bootinfo. */
+            if (find_device_untyped(obj->paddr, obj_size, free_slot, obj_id, bootinfo) == seL4_NoError) {
+                /* We found and added the frame. */
+                obj_id_index++;
+                free_slot_index++;
+                continue;
+            }
+#endif
+
+            die("Failed to find device untyped at paddr = %p, size_bits = %d\n", obj->paddr, obj_size);
+        }
+
         // Create object
 #if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_IA32)
         if (capdl_obj_type != CDL_Interrupt && capdl_obj_type != CDL_IOPorts && capdl_obj_type != CDL_IODevice) {
