@@ -70,6 +70,13 @@ class ContainerObject(Object):
     def __iter__(self):
         return self.slots.__iter__()
 
+# Hex does not produce porcelain output across architectures due to
+# difference between Int and Long types and tacking an L on the end in
+# such cases. We do not want a distinguishing letter at the end since
+# we have asked for a hex value
+def reliable_hex(val) :
+    return hex(val).rstrip('L')
+
 class Frame(Object):
     def __init__(self, name, size=4096, paddr=0):
         super(Frame, self).__init__(name)
@@ -77,12 +84,6 @@ class Frame(Object):
         self.paddr = paddr
 
     def __repr__(self):
-        # Hex does not produce porcelain output across architectures due to
-        # difference between Int and Long types and tacking an L on the end in
-        # such cases. We do not want a distinguishing letter at the end since
-        # we have asked for a hex value
-        def reliable_hex(val) :
-            return hex(val).rstrip('L')
         return '%(name)s = frame (%(size)s%(maybepaddr)s)' % {
             'name':self.name,
             'size':'4k' if self.size == 4096 else str(self.size) + 'k',
@@ -151,12 +152,17 @@ class TCB(ContainerObject):
         return s
 
 class Untyped(Object):
-    def __init__(self, name, size_bits=12):
+    def __init__(self, name, size_bits=12, paddr=None):
         super(Untyped, self).__init__(name)
         self.size_bits = size_bits
+        self.paddr = paddr
 
     def __repr__(self):
-        return '%(name)s = ut (%(size_bits)s bits)' % self.__dict__
+        return '%(name)s = ut (%(size_bits)s bits%(maybepaddr)s)' % {
+            'name': self.name,
+            'size_bits': self.size_bits,
+            'maybepaddr':(', paddr: %s' % reliable_hex(self.paddr)) if self.paddr else '',
+        }
 
 class IOPorts(Object):
     def __init__(self, name, size=65536): # 64k size is the default in CapDL spec.
