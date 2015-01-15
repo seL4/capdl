@@ -597,9 +597,6 @@ parse_bootinfo(seL4_BootInfo *bootinfo)
     debug_printf("  %d free cap slots, from %d to %d\n", free_slot_end - free_slot_start, free_slot_start, free_slot_end);
 
 #if CONFIG_CAPDL_LOADER_PRINT_UNTYPEDS
-    /* Uncomment this section if you want to dump untyped regions for debugging
-     * purposes.
-     */
     int num_untyped = bootinfo->untyped.end - bootinfo->untyped.start;
     debug_printf("  Untyped memory (%d)\n", num_untyped);
     for (int i = 0; i < num_untyped; i++) {
@@ -613,6 +610,17 @@ parse_bootinfo(seL4_BootInfo *bootinfo)
     debug_printf("Loader is running in domain %d\n", bootinfo->initThreadDomain);
 
 #if CONFIG_CAPDL_LOADER_PRINT_DEVICE_INFO
+#ifdef CONFIG_KERNEL_STABLE
+    int num_device_untyped = bootinfo->deviceUntyped.end - bootinfo->deviceUntyped.start;
+    int offset = bootinfo->untyped.end - bootinfo->untyped.start;
+    debug_printf("  Device untyped memory (%d)\n", num_device_untyped);
+    for (int i = 0; i < num_device_untyped; i++) {
+        uintptr_t ut_paddr = bootinfo->untypedPaddrList[i + offset];
+        uintptr_t ut_size = bootinfo->untypedSizeBitsList[i + offset];
+        debug_printf("    0x%08x - 0x%08x\n", (unsigned int) ut_paddr,
+                     (unsigned int) ut_paddr + (1 << ut_size));
+    }
+#else
     debug_printf("  Device memory (%d)\n", bootinfo->numDeviceRegions);
     for (unsigned int i = 0; i < bootinfo->numDeviceRegions; i++) {
         void *paddr = (void*)bootinfo->deviceRegions[i].basePaddr;
@@ -622,6 +630,7 @@ parse_bootinfo(seL4_BootInfo *bootinfo)
         debug_printf("    %p - %p (%d %d-bit frames)\n",
                      paddr, paddr + BIT(size) * frames, frames, size);
     }
+#endif
 #endif
 }
 
