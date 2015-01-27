@@ -16,12 +16,20 @@ all: $(TARGET)
 .PHONY: tests
 tests: example-arm.parse example-ia32.parse hello-dump.parse
 
+# Command-line options to pass to GHC.
+GHC_FLAGS ?=
+
 # The size of the IRQ array we emit (if using --code) needs to match the size
 # expected by the initialiser. If we're building within a project, try to
 # retrieve this from the current configuration.
 -include .config
 ifndef CONFIG_CAPDL_LOADER_MAX_IRQS
     CONFIG_CAPDL_LOADER_MAX_IRQS = 256
+endif
+
+# Enable parallel compilation if the available version of GHC supports it.
+ifneq ($(shell ghc --info | grep '"Support parallel --make","YES"'),)
+  GHC_FLAGS += -j
 endif
 
 %.parse: %.cdl %.right $(TARGET)
@@ -33,7 +41,7 @@ endif
 	which xmllint && xmllint --noout --dtdvalid ./capdl.dtd $*.xml
 
 $(TARGET): Main.hs CapDL/*.hs
-	ghc -O2 --make Main.hs -o $(TARGET) \
+	ghc -O2 --make ${GHC_FLAGS} Main.hs -o $(TARGET) \
         -cpp -DCONFIG_CAPDL_LOADER_MAX_IRQS=${CONFIG_CAPDL_LOADER_MAX_IRQS}
 
 .PHONY: clean
