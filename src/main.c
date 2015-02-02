@@ -406,11 +406,11 @@ void init_copy_frame(seL4_BootInfo *bootinfo)
         error = seL4_ARM_Page_Unify_Instruction(copy_addr_frame + i, 0, PAGE_SIZE_4K);
         seL4_AssertSuccess(error);
 #endif
-        error = seL4_Page_Unmap(copy_addr_frame + i);
+        error = seL4_ARCH_Page_Unmap(copy_addr_frame + i);
         seL4_AssertSuccess(error);
 
 	if ((i + 1) % (1 << PT_SIZE) == 0) {
-            error = seL4_PageTable_Unmap(copy_addr_pt + i / (1 << PT_SIZE));
+            error = seL4_ARCH_PageTable_Unmap(copy_addr_pt + i / (1 << PT_SIZE));
             seL4_AssertSuccess(error);
 	}
     }
@@ -453,14 +453,14 @@ elf_load_frames(char *elf_name, CDL_ObjID pd, const CDL_Model *spec, seL4_BootIn
             seL4_CPtr sel4_page_pt = get_frame_pt(pd, vaddr, spec);
             size_t sel4_page_size = get_frame_size(pd, vaddr, spec);
 
-            int error = seL4_Page_Map(sel4_page, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
-                                      seL4_AllRights, seL4_Default_VMAttributes);
+            int error = seL4_ARCH_Page_Map(sel4_page, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
+                                      seL4_AllRights, seL4_ARCH_Default_VMAttributes);
 	    if (error == seL4_FailedLookup) {
-                error = seL4_PageTable_Map(sel4_page_pt, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
-                                           seL4_Default_VMAttributes);
+                error = seL4_ARCH_PageTable_Map(sel4_page_pt, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
+                                           seL4_ARCH_Default_VMAttributes);
                 seL4_AssertSuccess(error);
-                error = seL4_Page_Map(sel4_page, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
-                                      seL4_AllRights, seL4_Default_VMAttributes);
+                error = seL4_ARCH_Page_Map(sel4_page, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
+                                      seL4_AllRights, seL4_ARCH_Default_VMAttributes);
 	    }
             seL4_AssertSuccess(error);
 
@@ -475,11 +475,11 @@ elf_load_frames(char *elf_name, CDL_ObjID pd, const CDL_Model *spec, seL4_BootIn
             error = seL4_ARM_Page_Unify_Instruction(sel4_page, 0, sel4_page_size);
             seL4_AssertSuccess(error);
 #endif
-            error = seL4_Page_Unmap(sel4_page);
+            error = seL4_ARCH_Page_Unmap(sel4_page);
             seL4_AssertSuccess(error);
 
 	    if (sel4_page_pt != 0) {
-	        error = seL4_PageTable_Unmap(sel4_page_pt);
+	        error = seL4_ARCH_PageTable_Unmap(sel4_page_pt);
                 seL4_AssertSuccess(error);
 	    }
 
@@ -829,7 +829,7 @@ create_objects(const CDL_Model *spec, seL4_BootInfo *bootinfo)
                 if (capdl_obj_type == CDL_ASIDPool) {
                     free_slot_index++;
                     seL4_CPtr asid_slot = free_slot_start + free_slot_index;
-                    err = seL4_ASIDControl_MakePool(seL4_CapASIDControl, free_slot, seL4_CapInitThreadCNode, asid_slot, 32);
+                    err = seL4_ARCH_ASIDControl_MakePool(seL4_CapASIDControl, free_slot, seL4_CapInitThreadCNode, asid_slot, 32);
                     seL4_AssertSuccess(err);
                     free_slot = asid_slot;
                 }
@@ -1018,8 +1018,8 @@ configure_thread(const CDL_Model *spec, CDL_ObjID tcb)
         /* FIXME: The above could actually fail messily if the user has given a
          * spec with stack pointers that point outside the ELF image.
          */
-        int error = seL4_Page_Map(frame, seL4_CapInitThreadPD, (seL4_Word)copy_addr_with_pt,
-                                  seL4_AllRights, seL4_Default_VMAttributes);
+        int error = seL4_ARCH_Page_Map(frame, seL4_CapInitThreadPD, (seL4_Word)copy_addr_with_pt,
+                                  seL4_AllRights, seL4_ARCH_Default_VMAttributes);
         seL4_AssertSuccess(error);
 
         /* Write all necessary arguments to the TCB's stack. */
@@ -1039,7 +1039,7 @@ configure_thread(const CDL_Model *spec, CDL_ObjID tcb)
         error = seL4_ARM_Page_Unify_Instruction(frame, 0, PAGE_SIZE_4K);
         seL4_AssertSuccess(error);
 #endif //ARCH_ARM
-        error = seL4_Page_Unmap(frame);
+        error = seL4_ARCH_Page_Unmap(frame);
         seL4_AssertSuccess(error);
 #endif //CONFIG_CAPDL_LOADER_CC_REGISTERS
     }
@@ -1188,7 +1188,7 @@ set_asid(const CDL_Model *spec UNUSED, CDL_ObjID page)
     debug_printf("(%s)\n", CDL_Obj_Name(&spec->objects[page]));
 
     seL4_CPtr sel4_page = orig_caps(page);
-    int error = seL4_ASIDPool_Assign(seL4_CapInitThreadASIDPool, sel4_page);
+    int error = seL4_ARCH_ASIDPool_Assign(seL4_CapInitThreadASIDPool, sel4_page);
     seL4_AssertSuccess(error);
 }
 #endif //!CONFIG_KERNEL_STABLE
@@ -1218,7 +1218,7 @@ init_pd_asids(const CDL_Model *spec)
 
 static void
 map_page(const CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
-         seL4_CapRights rights, seL4_Word page_vaddr, seL4_VMAttributes vm_attribs)
+         seL4_CapRights rights, seL4_Word page_vaddr, seL4_ARCH_VMAttributes vm_attribs)
 {
     CDL_ObjID page = CDL_Cap_ObjID(page_cap);
     debug_printf("(%s, %s, rights=%x, vaddr=%x, vm_attribs=%x)\n",
@@ -1231,7 +1231,7 @@ map_page(const CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
     seL4_CPtr sel4_pd = orig_caps(pd_id);
 
     if (CDL_Cap_Type(page_cap) == CDL_PTCap) {
-        int error = seL4_PageTable_Map(sel4_page, sel4_pd, page_vaddr, vm_attribs);
+        int error = seL4_ARCH_PageTable_Map(sel4_page, sel4_pd, page_vaddr, vm_attribs);
         seL4_AssertSuccess(error);
 
     } else if (CDL_Cap_Type(page_cap) == CDL_FrameCap) {
@@ -1256,7 +1256,7 @@ map_page(const CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
         }
 
         // FIXME: Add support for super-pages.
-        int error = seL4_Page_Map(sel4_page, sel4_pd, page_vaddr, rights, vm_attribs);
+        int error = seL4_ARCH_Page_Map(sel4_page, sel4_pd, page_vaddr, rights, vm_attribs);
         seL4_AssertSuccess(error);
     }
 }
@@ -1269,7 +1269,7 @@ map_page_directory_slot(const CDL_Model *spec UNUSED, CDL_ObjID pd, CDL_CapSlot 
 
     seL4_Word page_vaddr = CDL_CapSlot_Slot(pd_slot) << (PT_SIZE + FRAME_SIZE);
     seL4_CapRights page_rights = CDL_Cap_Rights(page_cap);
-    seL4_VMAttributes vm_attribs = CDL_Cap_VMAttributes(page_cap);
+    seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(page_cap);
 
     map_page(spec, page_cap, pd, page_rights, page_vaddr, vm_attribs);
 }
@@ -1296,7 +1296,7 @@ map_page_table_slot(const CDL_Model *spec UNUSED, CDL_ObjID pd, CDL_ObjID pt UNU
 
     seL4_Word page_vaddr = pt_vaddr + (CDL_CapSlot_Slot(pt_slot) << FRAME_SIZE);
     seL4_CapRights page_rights = CDL_Cap_Rights(page_cap);
-    seL4_VMAttributes vm_attribs = CDL_Cap_VMAttributes(page_cap);
+    seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(page_cap);
 
     map_page(spec, page_cap, pd, page_rights, page_vaddr, vm_attribs);
 }

@@ -12,6 +12,7 @@
 #define CAPDL_H__
 
 #include <sel4/types.h>
+#include <sel4utils/mapping.h>
 #include <autoconf.h>
 #include <stdbool.h>
 
@@ -24,15 +25,6 @@
 #endif
 #define FRAME_SIZE       12
 
-#define seL4_Page_Map               seL4_ARM_Page_Map
-#define seL4_PageTable_Map          seL4_ARM_PageTable_Map
-#define seL4_Page_Unmap             seL4_ARM_Page_Unmap
-#define seL4_PageTable_Unmap        seL4_ARM_PageTable_Unmap
-#define seL4_Default_VMAttributes   seL4_ARM_Default_VMAttributes
-#define seL4_ASIDPool_Assign        seL4_ARM_ASIDPool_Assign
-#define seL4_ASIDControl_MakePool   seL4_ARM_ASIDControl_MakePool
-#define seL4_VMAttributes           seL4_ARM_VMAttributes
-
 #define CDL_VM_CacheEnabled         seL4_ARM_PageCacheable
 #define CDL_VM_CacheDisabled        seL4_ARM_ParityEnabled
 #define CDL_VM_WriteThrough         0
@@ -41,15 +33,6 @@
 
 #define PT_SIZE          10
 #define FRAME_SIZE       12
-
-#define seL4_Page_Map               seL4_IA32_Page_Map
-#define seL4_PageTable_Map          seL4_IA32_PageTable_Map
-#define seL4_Page_Unmap             seL4_IA32_Page_Unmap
-#define seL4_PageTable_Unmap        seL4_IA32_PageTable_Unmap
-#define seL4_Default_VMAttributes   seL4_IA32_Default_VMAttributes
-#define seL4_ASIDPool_Assign        seL4_IA32_ASIDPool_Assign
-#define seL4_ASIDControl_MakePool   seL4_IA32_ASIDControl_MakePool
-#define seL4_VMAttributes           seL4_IA32_VMAttributes
 
 #define CDL_VM_CacheEnabled         0
 #define CDL_VM_CacheDisabled        seL4_IA32_CacheDisabled
@@ -119,7 +102,7 @@ typedef struct {
     CDL_CapData data;
     CDL_IRQ irq;
     bool is_orig;
-    seL4_VMAttributes vm_attribs;
+    seL4_ARCH_VMAttributes vm_attribs;
     seL4_CapRights rights;
 } CDL_Cap;
 
@@ -238,7 +221,7 @@ typedef struct {
 
 static inline CDL_CapType    CDL_Cap_Type(CDL_Cap *cap)                   { return cap->type; }
 static inline CDL_CapData    CDL_Cap_Data(CDL_Cap *cap)                   { return cap->data; }
-static inline seL4_VMAttributes CDL_Cap_VMAttributes(CDL_Cap *cap)        { return cap->vm_attribs; }
+static inline seL4_ARCH_VMAttributes CDL_Cap_VMAttributes(CDL_Cap *cap)   { return cap->vm_attribs; }
 static inline CDL_ObjID      CDL_Cap_ObjID(CDL_Cap *cap)                  { return cap->obj_id; }
 static inline CDL_CapRights  CDL_Cap_Rights(CDL_Cap *cap)                 { return cap->rights; }
 static inline CDL_IRQ        CDL_Cap_IRQ(CDL_Cap *cap)                    { return cap->irq; }
