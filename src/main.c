@@ -46,34 +46,12 @@
 
 #define ANSI_RESET "\033[0m"
 #define ANSI_GREEN   ANSI_RESET "\033[32m"
-#define ANSI_DARK        ANSI_RESET "\033[30;1m"
-#define ANSI_DARKBLUE    ANSI_RESET "\033[34;1m"
-
-/*
- * Debugging information (disabled on verified builds).
- *
- * debug_printf prints the function and line numbers.
- * debug_printf_ is just printf.
- * debug_printfn prints the function name (disabled on low verbosity settings)
- */
-
-#define verbose 1
 
 #if defined(CONFIG_CAPDL_LOADER_VERIFIED) || !defined(CONFIG_CAPDL_LOADER_PRINTF)
-    #define debug_printf(...)
-    #define debug_printf_(...)
-    #define debug_printfn(...)
+    #define debug_printf(...) do { } while (0)
 
 #else /* !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(CONFIG_CAPDL_LOADER_PRINTF) */
-    #define debug_printf(fmt, ...) printf(ANSI_DARK "%25s:%4d \t" ANSI_RESET fmt, __FUNCTION__, __LINE__, ##__VA_ARGS__)
-
-    #define debug_printf_(fmt, ...) printf(fmt, ##__VA_ARGS__)
-
-    #if verbose > 1
-        #define debug_printfn(fmt, ...) printf(ANSI_DARKBLUE "%25s:%4d \t" fmt ANSI_RESET, __FUNCTION__, __LINE__, ##__VA_ARGS__)
-    #else /* verbose < 1 */
-        #define debug_printfn(...)
-    #endif /* verbose > 1 */
+    #define debug_printf(args...) printf(args)
 
 #endif /* defined(CONFIG_CAPDL_LOADER_VERIFIED) || !defined(CONFIG_CAPDL_LOADER_PRINTF) */
 
@@ -462,13 +440,13 @@ elf_load_frames(char *elf_name, CDL_ObjID pd, const CDL_Model *spec, seL4_BootIn
 
         //Skip non loadable headers
         if(elf_getProgramHeaderType(elf_file, i) != PT_LOAD) {
-            debug_printf_("Skipping non loadable header\n");
+            debug_printf("Skipping non loadable header\n");
             continue;
         }
         uintptr_t vaddr = dest;
 
         while (vaddr < dest + f_len) {
-            debug_printf_(".");
+            debug_printf(".");
 
             /* map frame into the loader's address space so we can write to it */
             seL4_CPtr sel4_page = get_frame_cap(pd, vaddr, spec);
@@ -511,7 +489,7 @@ elf_load_frames(char *elf_name, CDL_ObjID pd, const CDL_Model *spec, seL4_BootIn
         /* This better be a 32-bit ELF for what we're about to do. */
         assert(((struct Elf32_Header*)elf_file)->e_ident[EI_CLASS] == ELFCLASS32);
 
-        debug_printf_(" Marking header as loaded\n");
+        debug_printf(" Marking header as loaded\n");
         /* Overwrite the section type so that next time this section is
          * encountered it will be skipped as it is not considered loadable. A
          * bit of a hack, but fine for now.
@@ -920,10 +898,6 @@ duplicate_cap(CDL_ObjID object_id, int free_slot)
     int src_index = orig_caps(object_id);
     int src_depth = 32;
 
-//    debug_printf(" Free slot %d...\n", free_slot);
-//    debug_printf(" dest_index %d...\n", dest_index);
-//    debug_printf(" src_index %d...\n", src_index);
-
     int error = seL4_CNode_Copy(dest_root, dest_index, dest_depth,
                                 src_root, src_index, src_depth, rights);
     seL4_AssertSuccess(error);
@@ -1092,12 +1066,12 @@ configure_thread(const CDL_Model *spec, CDL_ObjID tcb)
     };
     debug_printf("  Setting up _start(");
     for (int i = 0; i < argc; i++) {
-        debug_printf_("%p", (void*)argv[i]);
+        debug_printf("%p", (void*)argv[i]);
         if (i != argc - 1) {
-            debug_printf_(", ");
+            debug_printf(", ");
         }
     }
-    debug_printf_(")...\n");
+    debug_printf(")...\n");
     debug_printf("pc = %p\n", (void*)pc);
     debug_printf("sp = %p\n", (void*)sp);
 
@@ -1209,9 +1183,9 @@ init_irqs(const CDL_Model *spec)
 #ifndef CONFIG_KERNEL_STABLE
 /* Initialise virtual address spaces */
 static void
-set_asid(CDL_ObjID page)
+set_asid(const CDL_Model *spec UNUSED, CDL_ObjID page)
 {
-    debug_printfn("(%s)\n", CDL_Obj_Name(&spec->objects[page]));
+    debug_printf("(%s)\n", CDL_Obj_Name(&spec->objects[page]));
 
     seL4_CPtr sel4_page = orig_caps(page);
     int error = seL4_ASIDPool_Assign(seL4_CapInitThreadASIDPool, sel4_page);
@@ -1222,9 +1196,9 @@ set_asid(CDL_ObjID page)
 static void
 init_pd_asid(const CDL_Model *spec UNUSED, CDL_ObjID pd)
 {
-    debug_printfn("(%s)\n", CDL_Obj_Name(&spec->objects[pd]));
+    debug_printf("(%s)\n", CDL_Obj_Name(&spec->objects[pd]));
 #ifndef CONFIG_KERNEL_STABLE
-    set_asid(pd);
+    set_asid(spec, pd);
 #endif //!CONFIG_KERNEL_STABLE
 }
 
@@ -1243,11 +1217,11 @@ init_pd_asids(const CDL_Model *spec)
 }
 
 static void
-map_page(CDL_Cap *page_cap, CDL_ObjID pd_id,
+map_page(const CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
          seL4_CapRights rights, seL4_Word page_vaddr, seL4_VMAttributes vm_attribs)
 {
     CDL_ObjID page = CDL_Cap_ObjID(page_cap);
-    debug_printfn("(%s, %s, rights=%x, vaddr=%x, vm_attribs=%x)\n",
+    debug_printf("(%s, %s, rights=%x, vaddr=%x, vm_attribs=%x)\n",
                   CDL_Obj_Name(&spec->objects[page]),
                   CDL_Obj_Name(&spec->objects[pd_id]),
                   rights, page_vaddr, vm_attribs);
@@ -1290,20 +1264,20 @@ map_page(CDL_Cap *page_cap, CDL_ObjID pd_id,
 static void
 map_page_directory_slot(const CDL_Model *spec UNUSED, CDL_ObjID pd, CDL_CapSlot *pd_slot)
 {
-    debug_printfn("(%s, %d)\n", CDL_Obj_Name(&spec->objects[pd]), pd_slot->slot);
+    debug_printf("(%s, %d)\n", CDL_Obj_Name(&spec->objects[pd]), pd_slot->slot);
     CDL_Cap *page_cap = CDL_CapSlot_Cap(pd_slot);
 
     seL4_Word page_vaddr = CDL_CapSlot_Slot(pd_slot) << (PT_SIZE + FRAME_SIZE);
     seL4_CapRights page_rights = CDL_Cap_Rights(page_cap);
     seL4_VMAttributes vm_attribs = CDL_Cap_VMAttributes(page_cap);
 
-    map_page(page_cap, pd, page_rights, page_vaddr, vm_attribs);
+    map_page(spec, page_cap, pd, page_rights, page_vaddr, vm_attribs);
 }
 
 static void
 map_page_directory(const CDL_Model *spec, CDL_ObjID pd)
 {
-    debug_printfn("(%s)\n", CDL_Obj_Name(&spec->objects[pd]));
+    debug_printf("(%s)\n", CDL_Obj_Name(&spec->objects[pd]));
 
     CDL_Object *cdl_pd = get_spec_object(spec, pd);
 
@@ -1315,7 +1289,7 @@ static void
 map_page_table_slot(const CDL_Model *spec UNUSED, CDL_ObjID pd, CDL_ObjID pt UNUSED,
                     seL4_Word pt_vaddr, CDL_CapSlot *pt_slot)
 {
-    debug_printfn("(%s, %s, %x, %d)\n", CDL_Obj_Name(&spec->objects[pd]),
+    debug_printf("(%s, %s, %x, %d)\n", CDL_Obj_Name(&spec->objects[pd]),
                                         CDL_Obj_Name(&spec->objects[pt]),
                                         pt_vaddr, pt_slot->slot);
     CDL_Cap *page_cap = CDL_CapSlot_Cap(pt_slot);
@@ -1324,7 +1298,7 @@ map_page_table_slot(const CDL_Model *spec UNUSED, CDL_ObjID pd, CDL_ObjID pt UNU
     seL4_CapRights page_rights = CDL_Cap_Rights(page_cap);
     seL4_VMAttributes vm_attribs = CDL_Cap_VMAttributes(page_cap);
 
-    map_page(page_cap, pd, page_rights, page_vaddr, vm_attribs);
+    map_page(spec, page_cap, pd, page_rights, page_vaddr, vm_attribs);
 }
 
 static void
@@ -1434,23 +1408,23 @@ init_cnode_slot(const CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id,
 
     if ((mode == MOVE) && is_orig_cap) {
         if (is_ep_cap || is_irq_handler_cap) {
-            debug_printf_("moving...\n");
+            debug_printf("moving...\n");
             int error = seL4_CNode_Move(dest_root, dest_index, dest_depth,
                                         src_root, src_index, src_depth);
             seL4_AssertSuccess(error);
         } else {
-            debug_printf_("mutating (with badge/guard %p)...\n", (void*)target_cap_data.words[0]);
+            debug_printf("mutating (with badge/guard %p)...\n", (void*)target_cap_data.words[0]);
             int error = seL4_CNode_Mutate(dest_root, dest_index, dest_depth,
                                           src_root, src_index, src_depth, target_cap_data);
             seL4_AssertSuccess(error);
         }
     } else if ((mode == COPY) && !is_orig_cap) {
-        debug_printf_("minting (with badge/guard %p)...\n", (void*)target_cap_data.words[0]);
+        debug_printf("minting (with badge/guard %p)...\n", (void*)target_cap_data.words[0]);
         int error = seL4_CNode_Mint(dest_root, dest_index, dest_depth,
                                     src_root, src_index, src_depth, target_cap_rights, target_cap_data);
         seL4_AssertSuccess(error);
     } else {
-        debug_printf_("skiping\n");
+        debug_printf("skipping\n");
     }
 }
 

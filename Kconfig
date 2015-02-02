@@ -67,32 +67,32 @@ config CAPDL_LOADER_ALLOW_NO_CSPACE
         configured as such by the initialiser. Note that this requires a kernel
         that supports threads without CSpaces.
 
+config CAPDL_LOADER_PRINTF
+    bool "Enable printing"
+    default n
+    depends on MODULE_CAPDL_LOADER && !CAPDL_LOADER_VERIFIED
+    help
+        Enable printf of information while loading for the purposes of
+        debugging.
+
 config CAPDL_LOADER_PRINT_DEVICE_INFO
     bool "Print device frame info on startup"
     default n
-    depends on MODULE_CAPDL_LOADER && !CAPDL_LOADER_VERIFIED
+    depends on MODULE_CAPDL_LOADER && !CAPDL_LOADER_VERIFIED && CAPDL_LOADER_PRINTF
     help
         Dump device frame information on startup for the purposes of debugging.
 
 config CAPDL_LOADER_PRINT_UNTYPEDS
     bool "Print untyped object info on startup"
     default n
-    depends on MODULE_CAPDL_LOADER && !CAPDL_LOADER_VERIFIED
+    depends on MODULE_CAPDL_LOADER && !CAPDL_LOADER_VERIFIED && CAPDL_LOADER_PRINTF
     help
         Dump untyped object information on startup for the purposes of debugging.
 
 config CAPDL_LOAD_PRINT_CAPDL_OBJECTS
     bool "Print capDL objects as they are created"
-    default y
-    depends on MODULE_CAPDL_LOADER && !CAPDL_LOADER_VERIFIED
+    default n
+    depends on MODULE_CAPDL_LOADER && !CAPDL_LOADER_VERIFIED && CAPDL_LOADER_PRINTF
     help
         Display verbose capDL objects as they are created. Could help with debugging,
         but for large specs with lots of objects, this could slow things down significantly.
-
-config CAPDL_LOADER_PRINTF
-    bool "Enable printing"
-    default y
-    depends on MODULE_CAPDL_LOADER && !CAPDL_LOADER_VERIFIED
-    help
-        Enable printf of information while loading for the purposes of
-        debugging.
