@@ -118,7 +118,7 @@ showCap objs (FrameCap id rights _ cached) _ is_orig _ =
     "{.type = CDL_FrameCap, .obj_id = " ++ showObjID objs id ++
     ", .is_orig = " ++ is_orig ++
     ", .rights = " ++ showRights rights ++
-    ", .vm_attribs = " ++ (if cached then "seL4_Default_VMAttributes" else "CDL_VM_CacheDisabled") ++ "}"
+    ", .vm_attribs = " ++ (if cached then "seL4_ARCH_Default_VMAttributes" else "CDL_VM_CacheDisabled") ++ "}"
     -- FIXME: I feel like I should be doing something with the ASID data here...
 showCap objs (PTCap id _) _ is_orig _ =
     "{.type = CDL_PTCap, .obj_id = " ++ showObjID objs id ++
