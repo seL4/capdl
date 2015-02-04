@@ -15,6 +15,7 @@
 #include <sel4utils/mapping.h>
 #include <autoconf.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 #if defined(ARCH_ARM)
 
@@ -234,7 +235,14 @@ static inline CDL_Cap *      CDL_CapSlot_Cap(CDL_CapSlot *cap_slot)       { retu
 static inline seL4_Word      CDL_ObjSlot_Slot(CDL_ObjSlot *obj_slot)      { return obj_slot->slot; }
 static inline CDL_ObjID      CDL_ObjSlot_ObjID(CDL_ObjSlot *obj_slot)     { return obj_slot->id; }
 
-static inline char *         CDL_Obj_Name(CDL_Object *obj)                { return obj->name; }
+static inline char *CDL_Obj_Name(CDL_Object *obj) {
+    if (obj->name == NULL) {
+        return "<unnamed>";
+    } else {
+        return obj->name;
+    }
+}
+
 static inline CDL_ObjectType CDL_Obj_Type(CDL_Object *obj)                { return obj->type; }
 static inline seL4_Word      CDL_Obj_SizeBits(CDL_Object *obj)            { return obj->size_bits; }
 static inline seL4_Word      CDL_Obj_NumSlots(CDL_Object *obj)            { return obj->slots.num; }
