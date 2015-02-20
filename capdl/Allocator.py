@@ -154,6 +154,10 @@ class ObjectAllocator(object):
     def __iter__(self):
         return self.spec.__iter__()
 
+    def remove(self, o):
+        self.spec.objs.remove(o)
+        del self.name_to_object[o.name]
+
 class CSpaceAllocator(object):
     '''
     An offline CSpace allocator. Note that this is only capable of allocating
