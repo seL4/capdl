@@ -84,9 +84,15 @@ class Frame(Object):
         self.paddr = paddr
 
     def __repr__(self):
+        if self.size % (1024 * 1024) == 0:
+            size = '%dM' % (self.size / 1024 / 1024)
+        elif self.size % 1024 == 0:
+            size = '%dk' % (self.size / 1024)
+        else:
+            size = str(self.size)
         return '%(name)s = frame (%(size)s%(maybepaddr)s)' % {
             'name':self.name,
-            'size':'4k' if self.size == 4096 else str(self.size) + 'k',
+            'size':size,
             'maybepaddr':(', paddr: %s' % reliable_hex(self.paddr)) if self.paddr != 0 else '',
         }
 

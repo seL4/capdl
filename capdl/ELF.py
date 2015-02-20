@@ -16,9 +16,9 @@ without elftools installed by not importing this particular file.
 from elftools.elf.elffile import ELFFile
 from elftools.elf.constants import P_FLAGS
 from Object import TCB
-from util import PAGE_SIZE, round_down
+from util import PAGE_SIZE, round_down, page_sizes
 from PageCollection import PageCollection
-import re
+import os, re
 
 class ELF(object):
     def __init__(self, elf, name=''):
@@ -34,6 +34,12 @@ class ELF(object):
         self._elf = ELFFile(f)
         self.name = name
         self._symtab = None
+        # HACK: To derive page mappings to back an ELF file, we need to know the
+        # paging structures. These are slightly different when the kernel is
+        # running in HYP mode. Unfortunately the build system doesn't seem to
+        # export this as a proper config variable, but this non-standard one is
+        # defined.
+        self.hyp = os.environ.get('ARM_HYP', '') == '1'
 
     def get_entry_point(self):
         return self._elf['e_entry']
@@ -69,34 +75,94 @@ class ELF(object):
     def get_arch(self):
         return self._elf.get_machine_arch()
 
-    def get_pages(self, infer_asid=True, pd=None):
+    def get_pages(self, infer_asid=True, pd=None, use_large_frames=True):
         """
         Returns a dictionary of pages keyed on base virtual address, that are
         required to ELF load this file. Each dictionary entry is a dictionary
         containing booleans 'read', 'write' and 'execute' for the permissions
         of the page.
         """
-        pages = PageCollection(self._safe_name(), self.get_arch(), infer_asid, pd)
+        pages = PageCollection(self._safe_name(), self.get_arch(), infer_asid,
+            pd, self.hyp)
+
+        # Various CAmkES output sections we are expecting to see in the ELF.
+        TYPE = {"ignore": 1, "shared": 2, "persistent": 3, "guarded": 4}
+        regex = re.compile("^(ignore_|shared_|persistent_|guarded)");
+        sections = filter(lambda x: regex.match(x.name), self._elf.iter_sections())
+
         for seg in self._elf.iter_segments():
             if not seg['p_type'] == 'PT_LOAD':
                 continue
             if seg['p_memsz'] == 0:
                 continue
-            vaddr = round_down(int(seg['p_vaddr']))
+
+            regions = [{'addr': seg['p_vaddr'],
+                        'size': seg['p_memsz'],
+                        'type': 0}]
+            relevant_sections = filter(seg.section_in_segment, sections)
+            for sec in relevant_sections:
+                region = [x for x in regions if \
+                    sec['sh_addr'] in xrange(x['addr'], x['addr'] + x['size'])]
+                assert len(region) == 1
+                region = region[0]
+                orig_size = region['size']
+                # Shrink the region to the range preceding this section.
+                region['size'] = sec['sh_addr'] - region['addr']
+                # Append a region for this section itself and that following
+                # this section.
+                regions += [{'addr': sec['sh_addr'],
+                             'size': sec['sh_size'],
+                             'type': TYPE[sec.name.split('_')[0]]},
+                            {'addr': sec['sh_addr'] + sec['sh_size'],
+                             'size': orig_size - region['size'] - sec['sh_size'],
+                             'type': 0}]
+            # Remove empty regions.
+            regions[:] = [x for x in regions if x['size'] != 0]
+
             r = (seg['p_flags'] & P_FLAGS.PF_R) > 0
             w = (seg['p_flags'] & P_FLAGS.PF_W) > 0
             x = (seg['p_flags'] & P_FLAGS.PF_X) > 0
-            map(lambda y: pages.add_page(y, r, w, x),
-                xrange(vaddr, int(seg['p_vaddr']) + int(seg['p_memsz']),
-                    PAGE_SIZE))
+
+            # Allocate pages
+            for reg in regions:
+                if reg['type'] == 1:
+                    # Irrelevant, as this frame will be replaced later on. We
+                    # need an artificial frame present here though to ensure
+                    # the page collection later infers page table to cover this
+                    # region.
+                    pages.add_page(reg['addr'], r, w, x, reg['size'])
+                elif reg['type'] in [2, 3, 4]:
+                    # A range that must be backed by small pages.
+                    vaddr = round_down(reg['addr'])
+                    while vaddr < reg['addr'] + reg['size']:
+                        pages.add_page(vaddr, r, w, x)
+                        vaddr += PAGE_SIZE
+                else:
+                    # A range that is eligible for promotion.
+                    possible_pages = list(reversed(page_sizes(self.get_arch(),
+                        self.hyp)))
+                    vaddr = round_down(reg['addr'])
+                    remain = reg['addr'] + reg['size'] - vaddr
+                    while vaddr < reg['addr'] + reg['size']:
+                        size = PAGE_SIZE
+                        if use_large_frames:
+                            for p in possible_pages:
+                                if remain >= p and vaddr % p == 0:
+                                    size = p
+                                    break
+                        pages.add_page(vaddr, r, w, x, size)
+                        vaddr += size
+                        remain -= size
+
         return pages
 
-    def get_spec(self, infer_tcb=True, infer_asid=True, pd=None):
+    def get_spec(self, infer_tcb=True, infer_asid=True, pd=None,
+            use_large_frames=True):
         """
         Return a CapDL spec with as much information as can be derived from the
         ELF file in isolation.
         """
-        pages = self.get_pages(infer_asid, pd)
+        pages = self.get_pages(infer_asid, pd, use_large_frames)
         spec = pages.get_spec()
 
         if infer_tcb:

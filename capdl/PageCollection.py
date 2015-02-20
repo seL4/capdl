@@ -17,7 +17,7 @@ from Cap import Cap
 from Object import ASIDPool, PageDirectory, Frame, PageTable
 from Spec import Spec
 from util import page_table_vaddr, page_table_index, page_index, round_down, \
-    PAGE_SIZE
+    PAGE_SIZE, page_table_coverage
 import collections
 from weakref import ref
 
@@ -29,7 +29,7 @@ def consume(iterator):
     collections.deque(iterator, maxlen=0)
 
 class PageCollection(object):
-    def __init__(self, name='', arch='arm11', infer_asid=True, pd=None):
+    def __init__(self, name='', arch='arm11', infer_asid=True, pd=None, hyp=None):
         self.name = name
         self.arch = arch
         self._pages = {}
@@ -37,23 +37,27 @@ class PageCollection(object):
         self._asid = None
         self.infer_asid = infer_asid
         self._spec = lambda: None
+        self.hyp = hyp
 
-    def add_page(self, vaddr, read=False, write=False, execute=False):
+    def add_page(self, vaddr, read=False, write=False, execute=False, size=PAGE_SIZE):
         if vaddr not in self._pages:
             # Only create this page if we don't already have it.
             self._pages[vaddr] = {
-                'read':False, \
-                'write':False, \
-                'execute':False, \
+                'read':False,
+                'write':False,
+                'execute':False,
+                'size':PAGE_SIZE,
             }
         # Now upgrade this page's permissions to meet our current requirements.
         self._pages[vaddr]['read'] |= read
         self._pages[vaddr]['write'] |= write
         self._pages[vaddr]['execute'] |= execute
+        self._pages[vaddr]['size'] = size
 
     def add_pages(self, base, limit, read=False, write=False, execute=False):
         '''Optimised, batched version of calling add_page in a loop. Prefer
-        add_page unless you're doing something performance critical.'''
+        add_page unless you're doing something performance critical. Note this
+        is incapable of dealing with large frames.'''
         assert base % PAGE_SIZE == 0
         # Permissions to default to a page we haven't created yet.
         base_perm = {
@@ -117,21 +121,29 @@ class PageCollection(object):
         # Construct frames and infer page tables from the pages.
         pts = {}
         pt_counter = 0
-        for page_counter, page_vaddr in enumerate(self._pages):
-            frame = Frame('frame_%s_%s' % (self.name, page_counter))
+        for page_counter, (page_vaddr, page) in enumerate(self._pages.items()):
+            frame = Frame('frame_%s_%s' % (self.name, page_counter),
+                page['size'])
             spec.add_object(frame)
-            page_cap = Cap(frame, read=self._pages[page_vaddr]['read'], \
-                write=self._pages[page_vaddr]['write'], \
-                grant=self._pages[page_vaddr]['execute'])
-            pt_vaddr = page_table_vaddr(self.arch, page_vaddr)
-            if pt_vaddr not in pts:
-                pts[pt_vaddr] = PageTable('pt_%s_%s' % (self.name, pt_counter))
+            page_cap = Cap(frame, read=page['read'], write=page['write'],
+                grant=page['execute'])
+
+            pt_vaddr = page_table_vaddr(self.arch, page_vaddr, self.hyp)
+            pt_index = page_table_index(self.arch, pt_vaddr, self.hyp)
+            if page['size'] >= page_table_coverage(self.arch, self.hyp):
                 pt_counter += 1
-                pt = pts[pt_vaddr]
-                spec.add_object(pt)
-                pt_cap = Cap(pt)
-                pd[page_table_index(self.arch, pt_vaddr)] = pt_cap
-            pts[pt_vaddr][page_index(self.arch, page_vaddr)] = page_cap
+                pd[pt_index] = page_cap
+            else:
+                if pt_vaddr not in pts:
+                    pt = PageTable('pt_%s_%s' % (self.name, pt_counter))
+                    pt_counter += 1
+                    spec.add_object(pt)
+                    pt_cap = Cap(pt)
+                    pd[pt_index] = pt_cap
+                    pts[pt_vaddr] = pt
+                pt = pd[pt_index].referent
+                p_index = page_index(self.arch, page_vaddr, self.hyp)
+                pt[p_index] = page_cap
 
         # Cache the result for next time.
         assert self._spec() is None
