@@ -109,7 +109,7 @@ class ASIDPool(ContainerObject):
         return '%s = asid_pool' % self.name
 
 def calculate_size(cnode):
-    return int(math.floor(math.log(reduce(max, cnode.slots.keys(), 4), 2)) + 1)
+    return int(math.floor(math.log(reduce(max, cnode.slots.keys(), 2), 2)) + 1)
 
 class CNode(ContainerObject):
     def __init__(self, name, size_bits='auto'):
@@ -118,7 +118,7 @@ class CNode(ContainerObject):
 
     def finalise_size(self):
         if self.size_bits == 'auto':
-            # Minimum CNode size is 2 bits. Maximum size (28 bits) is not
+            # Minimum CNode size is 1 bit. Maximum size (28 bits) is not
             # checked.
             self.size_bits = calculate_size(self)
 
