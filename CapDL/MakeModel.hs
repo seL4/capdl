@@ -238,6 +238,7 @@ getBitSize n xs =
 
 getVMSize :: Name -> [ObjParam] -> Word
 getVMSize n [] = error ("Needs vmsize parameter: " ++ n)
+getVMSize n (VMSize 0 : xs) = error ("Cannot make a frame object that has size 0: " ++ n)
 getVMSize n (VMSize x : xs) = x
 getVMSize n (_ : xs) = getVMSize n xs
 
