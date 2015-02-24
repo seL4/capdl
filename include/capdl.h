@@ -200,14 +200,6 @@ typedef struct {
 
 /* helper functions ---------------------------------------------------------------------------- */
 
-#define CDL_R                       seL4_CanRead
-#define CDL_W                       seL4_CanWrite
-#define CDL_G                       seL4_CanGrant
-#define CDL_WG                      (CDL_W | CDL_G)
-#define CDL_RG                      (CDL_R | CDL_G)
-#define CDL_RW                      (CDL_R | CDL_W)
-#define CDL_RWG                     (CDL_R | CDL_W | CDL_G)
-
 #define CDL_TCB_CTable_Slot         0
 #define CDL_TCB_VTable_Slot         1
 #define CDL_TCB_Reply_Slot          2
