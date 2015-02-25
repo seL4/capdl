@@ -125,13 +125,7 @@ class ELF(object):
 
             # Allocate pages
             for reg in regions:
-                if reg['type'] == 1:
-                    # Irrelevant, as this frame will be replaced later on. We
-                    # need an artificial frame present here though to ensure
-                    # the page collection later infers page table to cover this
-                    # region.
-                    pages.add_page(reg['addr'], r, w, x, reg['size'])
-                elif reg['type'] in [2, 3, 4]:
+                if reg['type'] in [1, 2, 3, 4]:
                     # A range that must be backed by small pages.
                     vaddr = round_down(reg['addr'])
                     while vaddr < reg['addr'] + reg['size']:
