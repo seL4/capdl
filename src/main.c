@@ -1255,6 +1255,12 @@ map_page(const CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
             rights |= seL4_CanRead;
         }
 
+#ifdef ARCH_ARM
+        if (!(rights & seL4_CanGrant)) {
+            vm_attribs |= seL4_ARM_ExecuteNever;
+        }
+#endif
+
         // FIXME: Add support for super-pages.
         int error = seL4_ARCH_Page_Map(sel4_page, sel4_pd, page_vaddr, rights, vm_attribs);
         seL4_AssertSuccess(error);
