@@ -20,7 +20,7 @@ from Allocator import seL4_UntypedObject, seL4_TCBObject, seL4_EndpointObject, \
     seL4_IA32_PageTableObject, seL4_IA32_PageDirectoryObject, \
     seL4_IA32_IOPageTableObject, seL4_CanRead, seL4_CanWrite, seL4_CanGrant, \
     seL4_AllRights, ObjectAllocator, CSpaceAllocator, seL4_FrameObject, \
-    seL4_PageDirectoryObject
+    seL4_PageDirectoryObject, seL4_ARM_SectionObject, seL4_IA32_4M
 from PageCollection import PageCollection, create_address_space
 from util import page_table_vaddr, page_table_index, page_index, page_vaddr, \
                  page_table_coverage
