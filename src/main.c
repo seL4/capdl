@@ -453,14 +453,19 @@ elf_load_frames(char *elf_name, CDL_ObjID pd, const CDL_Model *spec, seL4_BootIn
             seL4_CPtr sel4_page_pt = get_frame_pt(pd, vaddr, spec);
             size_t sel4_page_size = get_frame_size(pd, vaddr, spec);
 
+            seL4_ARCH_VMAttributes attribs = seL4_ARCH_Default_VMAttributes;
+#ifdef ARCH_ARM
+            attribs |= seL4_ARM_ExecuteNever;
+#endif
+
             int error = seL4_ARCH_Page_Map(sel4_page, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
-                seL4_CanRead|seL4_CanWrite, seL4_ARCH_Default_VMAttributes);
+                seL4_CanRead|seL4_CanWrite, attribs);
 	    if (error == seL4_FailedLookup) {
                 error = seL4_ARCH_PageTable_Map(sel4_page_pt, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
                                            seL4_ARCH_Default_VMAttributes);
                 seL4_AssertSuccess(error);
                 error = seL4_ARCH_Page_Map(sel4_page, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
-                    seL4_CanRead|seL4_CanWrite, seL4_ARCH_Default_VMAttributes);
+                    seL4_CanRead|seL4_CanWrite, attribs);
 	    }
             seL4_AssertSuccess(error);
 
@@ -1018,8 +1023,12 @@ configure_thread(const CDL_Model *spec, CDL_ObjID tcb)
         /* FIXME: The above could actually fail messily if the user has given a
          * spec with stack pointers that point outside the ELF image.
          */
+        seL4_ARCH_VMAttributes attribs = seL4_ARCH_Default_VMAttributes;
+#ifdef ARCH_ARM
+        attribs |= seL4_ARM_ExecuteNever;
+#endif
         int error = seL4_ARCH_Page_Map(frame, seL4_CapInitThreadPD, (seL4_Word)copy_addr_with_pt,
-            seL4_CanRead|seL4_CanWrite, seL4_ARCH_Default_VMAttributes);
+            seL4_CanRead|seL4_CanWrite, attribs);
         seL4_AssertSuccess(error);
 
         /* Write all necessary arguments to the TCB's stack. */
