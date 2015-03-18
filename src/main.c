@@ -467,7 +467,20 @@ elf_load_frames(char *elf_name, CDL_ObjID pd, const CDL_Model *spec, seL4_BootIn
                 error = seL4_ARCH_Page_Map(sel4_page, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
                     seL4_CanRead|seL4_CanWrite, attribs);
             }
-            seL4_AssertSuccess(error);
+            if (error) {
+                /* Try and retrieve some useful information to help the user
+                 * diagnose the error.
+                 */
+                debug_printf("Failed to map frame ");
+                seL4_ARCH_Page_GetAddress_t addr UNUSED = seL4_ARCH_Page_GetAddress(sel4_page);
+                if (addr.error) {
+                    debug_printf("<unknown physical address (error = %d)>", addr.error);
+                } else {
+                    debug_printf("%p", (void*)addr.paddr);
+                }
+                debug_printf(" -> %p (error = %d)\n", (void*)copy_addr, error);
+                seL4_AssertSuccess(error);
+            }
 
             /* copy until end of section or end of page */
             size_t len = dest + f_len - vaddr;
@@ -1272,7 +1285,20 @@ map_page(const CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
 
         // FIXME: Add support for super-pages.
         int error = seL4_ARCH_Page_Map(sel4_page, sel4_pd, page_vaddr, rights, vm_attribs);
-        seL4_AssertSuccess(error);
+        if (error) {
+            /* Try and retrieve some useful information to help the user
+             * diagnose the error.
+             */
+            debug_printf("Failed to map frame ");
+            seL4_ARCH_Page_GetAddress_t addr UNUSED = seL4_ARCH_Page_GetAddress(sel4_page);
+            if (addr.error) {
+                debug_printf("<unknown physical address (error = %d)>", addr.error);
+            } else {
+                debug_printf("%p", (void*)addr.paddr);
+            }
+            debug_printf(" -> %p (error = %d)\n", (void*)page_vaddr, error);
+            seL4_AssertSuccess(error);
+        }
     }
 }
 
