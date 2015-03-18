@@ -305,7 +305,7 @@ get_frame_cap(CDL_ObjID pd, uintptr_t vaddr, const CDL_Model *spec)
 
     /* Check if the PT cap is actually a large frame cap. */
     if (pt_cap->type == CDL_FrameCap) {
-	    return orig_caps(CDL_Cap_ObjID(pt_cap));
+        return orig_caps(CDL_Cap_ObjID(pt_cap));
     }
 
     CDL_Object *cdl_pt = get_spec_object(spec, CDL_Cap_ObjID(pt_cap));
@@ -351,7 +351,7 @@ get_frame_pt(CDL_ObjID pd, uintptr_t vaddr, const CDL_Model *spec)
 
     /* Check if the PT cap is actually a large frame cap. */
     if (pt_cap->type == CDL_FrameCap) {
-	    return 0;
+        return 0;
     }
     assert(orig_caps(CDL_Cap_ObjID(pt_cap)) != 0);
 
@@ -397,7 +397,7 @@ void init_copy_frame(seL4_BootInfo *bootinfo)
         ((uintptr_t)copy_addr_with_pt) / PAGE_SIZE_4K -
         ((uintptr_t)&__executable_start) / PAGE_SIZE_4K;
     seL4_CPtr copy_addr_pt = bootinfo->userImagePTs.start +
-	PD_SLOT(((uintptr_t)copy_addr)) - PD_SLOT(((uintptr_t)&__executable_start));
+        PD_SLOT(((uintptr_t)copy_addr)) - PD_SLOT(((uintptr_t)&__executable_start));
 
     int error;
 
@@ -409,10 +409,10 @@ void init_copy_frame(seL4_BootInfo *bootinfo)
         error = seL4_ARCH_Page_Unmap(copy_addr_frame + i);
         seL4_AssertSuccess(error);
 
-	if ((i + 1) % (1 << PT_SIZE) == 0) {
+        if ((i + 1) % (1 << PT_SIZE) == 0) {
             error = seL4_ARCH_PageTable_Unmap(copy_addr_pt + i / (1 << PT_SIZE));
             seL4_AssertSuccess(error);
-	}
+        }
     }
 }
 
@@ -460,13 +460,13 @@ elf_load_frames(char *elf_name, CDL_ObjID pd, const CDL_Model *spec, seL4_BootIn
 
             int error = seL4_ARCH_Page_Map(sel4_page, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
                 seL4_CanRead|seL4_CanWrite, attribs);
-	    if (error == seL4_FailedLookup) {
+            if (error == seL4_FailedLookup) {
                 error = seL4_ARCH_PageTable_Map(sel4_page_pt, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
                                            seL4_ARCH_Default_VMAttributes);
                 seL4_AssertSuccess(error);
                 error = seL4_ARCH_Page_Map(sel4_page, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
                     seL4_CanRead|seL4_CanWrite, attribs);
-	    }
+            }
             seL4_AssertSuccess(error);
 
             /* copy until end of section or end of page */
@@ -483,10 +483,10 @@ elf_load_frames(char *elf_name, CDL_ObjID pd, const CDL_Model *spec, seL4_BootIn
             error = seL4_ARCH_Page_Unmap(sel4_page);
             seL4_AssertSuccess(error);
 
-	    if (sel4_page_pt != 0) {
-	        error = seL4_ARCH_PageTable_Unmap(sel4_page_pt);
+            if (sel4_page_pt != 0) {
+                error = seL4_ARCH_PageTable_Unmap(sel4_page_pt);
                 seL4_AssertSuccess(error);
-	    }
+            }
 
             vaddr += len;
         }
@@ -1407,13 +1407,13 @@ init_cnode_slot(const CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id,
 #if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_IA32)
     int src_index;
     if (is_ioport_cap) {
-	    src_index = seL4_CapIOPort;
-	} else if (is_iospace_cap) {
-	    src_index = seL4_CapIOSpace;
+        src_index = seL4_CapIOPort;
+    } else if (is_iospace_cap) {
+        src_index = seL4_CapIOSpace;
     } else if (is_irq_handler_cap) {
-	    src_index = irq_caps(target_cap_irq);
+        src_index = irq_caps(target_cap_irq);
     } else {
-	    src_index = orig_caps(target_cap_obj);
+        src_index = orig_caps(target_cap_obj);
     }
 #else
     int src_index = is_irq_handler_cap ? irq_caps(target_cap_irq) : orig_caps(target_cap_obj);
