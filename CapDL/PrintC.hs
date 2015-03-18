@@ -267,6 +267,23 @@ sizeOf ARM11 PD {} = 16 * 2^10
 sizeOf ARM11 PT {} = 2^10
 sizeOf _ _ = 0
 
+{- A custom sorting function for CapDL objects. Essentially we want to sort the
+ - objects in descending order of size for optimal runtime allocation, but we
+ - also want to give some rudimentary finer control to the user producing the
+ - input specification. For this, we sort the objects secondarily by their
+ - name. This means the spec creator can name their objects to induce a
+ - specific ordering for identically sized objects. This is primarily useful
+ - for getting physically contiguous frames.
+ -}
+sorter :: Arch -> (ObjID, KernelObject Word) -> (ObjID, KernelObject Word) -> Ordering
+sorter arch a b =
+    if a_size == b_size
+       then fst a `compare` fst b
+       else b_size `compare` a_size -- Arguments reversed for largest to smallest
+    where
+        a_size = sizeOf arch $ snd a
+        b_size = sizeOf arch $ snd b
+
 memberObjects ::  Map ObjID Int -> Arch -> [(ObjID, KernelObject Word)] -> IRQMap -> CDT ->
                   ObjMap Word -> String
 memberObjects obj_ids arch objs irqNode cdt objs' =
@@ -307,5 +324,5 @@ printC (Model arch objs irqNode cdt untypedCovers) ids copies =
     "};"
     where
         objs_sz = length $ Map.toList objs
-        objs' = reverse $ sortOn (sizeOf arch . snd) $ Map.toList objs
+        objs' = sortBy (sorter arch) $ Map.toList objs
         obj_ids = Map.fromList $ flip zip [0..] $ Prelude.map fst objs'
