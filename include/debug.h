@@ -14,6 +14,7 @@
 #include <autoconf.h>
 
 #include <sel4/types.h>
+#include <sel4utils/sel4_debug.h>
 
 #include "capdl.h"
 
@@ -27,32 +28,11 @@
     abort(); \
 } while (0)
 
-static
-char *__seL4_Errors[] = {
-    "seL4_NoError",
-    "seL4_InvalidArgument",
-    "seL4_InvalidCapability",
-    "seL4_IllegalOperation",
-    "seL4_RangeError",
-    "seL4_AlignmentError",
-    "seL4_FailedLookup",
-    "seL4_TruncatedMessage",
-    "seL4_DeleteFirst",
-    "seL4_RevokeFirst",
-    "seL4_NotEnoughMemory",
-};
-
 /* print and abort if a seL4 function returned an error */
 #define seL4_AssertSuccess(x) do { \
     int __error = x; \
-    switch (__error) { \
-        case INT_MIN ... -1: \
-        case (sizeof(__seL4_Errors) / sizeof(__seL4_Errors[0])) ... INT_MAX: \
-            die("%s:%d: <error code out of range> (%d)", __FUNCTION__, __LINE__, __error); \
-        case 0: \
-            break; \
-        default: \
-            die("%s:%d: %s", __FUNCTION__, __LINE__, __seL4_Errors[__error]); \
+    if (__error) { \
+        die("%s:%d: %s", __FUNCTION__, __LINE__, sel4_errlist[__error]); \
     } \
 } while (0)
 
