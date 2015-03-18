@@ -87,7 +87,7 @@ class ELF(object):
 
         # Various CAmkES output sections we are expecting to see in the ELF.
         TYPE = {"ignore": 1, "shared": 2, "persistent": 3, "guarded": 4}
-        regex = re.compile("^(ignore_|shared_|persistent_|guarded)");
+        regex = re.compile("^(ignore_|shared_|persistent|guarded)");
         sections = filter(lambda x: regex.match(x.name), self._elf.iter_sections())
 
         for seg in self._elf.iter_segments():
