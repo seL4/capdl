@@ -633,7 +633,7 @@ parse_bootinfo(seL4_BootInfo *bootinfo)
 #ifndef CONFIG_CAPDL_LOADER_VERIFIED
 
 #ifdef CONFIG_KERNEL_STABLE
-static int find_device_frame(void *paddr, seL4_CPtr free_slot, CDL_ObjID obj_id,
+static int find_device_frame(void *paddr, int size_bits, seL4_CPtr free_slot, CDL_ObjID obj_id,
         seL4_BootInfo *bootinfo) {
     /* Construct a path with assumptions on a 1 level cspace as seL4 construct for a rootserver */
     cspacepath_t path = {
@@ -645,7 +645,7 @@ static int find_device_frame(void *paddr, seL4_CPtr free_slot, CDL_ObjID obj_id,
         .offset = free_slot,
         .window = 1
     };
-    int error = simple_stable_get_frame_cap(bootinfo, paddr, seL4_PageBits, &path);
+    int error = simple_stable_get_frame_cap(bootinfo, paddr, size_bits, &path);
     seL4_AssertSuccess(error);
     add_sel4_cap(obj_id, ORIG, free_slot);
     return 0;
@@ -667,9 +667,11 @@ static int find_device_untyped(void *paddr, int obj_size, seL4_CPtr free_slot, C
     return error;
 }
 #else
-static int find_device_frame(void *paddr, seL4_CPtr free_slot, CDL_ObjID obj_id,
+static int find_device_frame(void *paddr, int size_bits, seL4_CPtr free_slot, CDL_ObjID obj_id,
         seL4_BootInfo *bootinfo) {
     for (unsigned int i = 0; i < bootinfo->numDeviceRegions; i++) {
+
+        int region_frame_size_bits = bootinfo->deviceRegions[i].frameSizeBits;
 
         /* Search each of the frames that make up this region to see if
          * we can find one whose base matches the address we're looking
@@ -679,8 +681,14 @@ static int find_device_frame(void *paddr, seL4_CPtr free_slot, CDL_ObjID obj_id,
                 bootinfo->deviceRegions[i].frames.start + 1; j++) {
 
             if (bootinfo->deviceRegions[i].basePaddr +
-                    BIT(bootinfo->deviceRegions[i].frameSizeBits) * j == (seL4_Word)paddr) {
+                    BIT(region_frame_size_bits) * j == (seL4_Word)paddr) {
                 /* We found it. */
+
+                if (region_frame_size_bits != size_bits) {
+                    die("Device frame %p is %d bits, not %d bits as expected\n",
+                        (void*)paddr, region_frame_size_bits, size_bits);
+                }
+
                 seL4_CPtr root = seL4_CapInitThreadCNode;
                 int index = bootinfo->deviceRegions[i].frames.start + j;
                 int depth = 32;
@@ -772,11 +780,12 @@ create_objects(const CDL_Model *spec, seL4_BootInfo *bootinfo)
 #endif
 
         if (capdl_obj_type == CDL_Frame && obj->paddr != NULL) {
-            debug_printf(" device frame, paddr = %p\n", obj->paddr);
+            obj_size = CDL_Obj_SizeBits(obj);
+            debug_printf(" device frame, paddr = %p, size = %d bits\n", obj->paddr, obj_size);
 
 #ifndef CONFIG_CAPDL_LOADER_VERIFIED
             /* This is a device frame. Look for it in bootinfo. */
-            if (find_device_frame(obj->paddr, free_slot, obj_id, bootinfo) == 0) {
+            if (find_device_frame(obj->paddr, obj_size, free_slot, obj_id, bootinfo) == 0) {
                 /* We found and added the frame. */
                 obj_id_index++;
                 free_slot_index++;
