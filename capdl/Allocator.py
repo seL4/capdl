@@ -174,7 +174,6 @@ class CSpaceAllocator(object):
     def __init__(self, cnode):
         assert isinstance(cnode, CNode)
         self.cnode = cnode
-        self.objname_to_slot = {}
         self.slot = 1 # Skip the null slot
 
     def alloc(self, obj, **kwargs):
@@ -187,13 +186,6 @@ class CSpaceAllocator(object):
         'grant' indicating the rights of the cap.
         '''
         assert isinstance(obj, Object) or obj is None
-
-        # Check if the object exists already
-        # IOPort is a special case of which the object name is not unique.
-        if not obj is None and not isinstance(obj, IOPorts):
-            slot = self.objname_to_slot.get(obj.name)
-            if not slot is None:
-                return slot
 
         while self.slot in self.cnode.slots:
             # Skip slots the caller may have manually populated.
@@ -220,6 +212,4 @@ class CSpaceAllocator(object):
                 grant = kwargs.get('grant', False)
             cap = Cap(obj, read=read, write=write, grant=grant)
         self.cnode[slot] = cap
-        if not obj is None:
-            self.objname_to_slot.update({obj.name: slot})
         return slot
