@@ -45,6 +45,16 @@ class ELF(object):
         return self._elf['e_entry']
 
     def _get_symbol(self, symbol):
+
+        # If possible, let elftools do all the work.
+        if hasattr(self._elf, 'get_symbol_by_name'):
+            # From 46ae4bd this functionality is in elftools.
+            sym = self._elf.get_symbol_by_name(symbol)
+            if isinstance(sym, list):
+                # From 9da4c45 get_symbol_by_name returns a list.
+                return sym[0]
+            return sym
+
         if self._symtab is None:
             table = self._elf.get_section_by_name('.symtab')
             if not table:
