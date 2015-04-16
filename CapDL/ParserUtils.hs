@@ -209,6 +209,13 @@ tcb_dom = do
     n <- integer
     return $ Dom n
 
+tcb_fault_ep :: MapParser ObjParam
+tcb_fault_ep = do
+    reserved "fault_ep"
+    colon
+    n <- number
+    return $ FaultEP n
+
 init_arguments :: MapParser ObjParam
 init_arguments = do
     reserved "init"
@@ -240,6 +247,7 @@ object_param =
     <|> io_pt_level
     <|> tcb_extra_param
     <|> tcb_dom
+    <|> tcb_fault_ep
     <|> init_arguments
     <|> obj_paddr
     <|> domain_id
@@ -384,13 +392,14 @@ irq_mapping = do
 
 irq_decl :: MapParser Decl
 irq_decl = do
-    ms <- braces (sepEndBy irq_mapping opt_semi)
+    ms <- sepEndBy irq_mapping opt_semi
     return $ IRQDecl ms
 
 irq_decls :: MapParser [Decl]
 irq_decls = do
     reserved "irq maps"
-    try (braces (many irq_decl)) <|> many irq_decl
+    irqs <- braces (irq_decl)
+    return [irqs]
 
 cap_ref :: MapParser (NameRef, Word)
 cap_ref = do

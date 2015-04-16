@@ -83,7 +83,7 @@ showRights rights = readRight ++ writeRight ++ grantRight
 -- Get an object's attributes.
 --
 showObjectAttrs :: KernelObject a -> [(String, String)]
-showObjectAttrs (TCB _ _ domain _) = [("domain", show domain)]
+showObjectAttrs (TCB _ _ _ domain _) = [("domain", show domain)]
 showObjectAttrs (CNode _ sz) = [("size", show sz)]
 showObjectAttrs (Untyped (Just sz) paddr) = [("size", show sz), ("paddr", show $ fromMaybe 0 paddr)]
 showObjectAttrs (Frame sz paddr) = [("size", show (logBase2 sz 0)), ("paddr", show $ fromMaybe 0 paddr)]

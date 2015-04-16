@@ -170,7 +170,7 @@ printInit argv =
 showObjectFields :: Map ObjID Int -> ObjID -> KernelObject Word -> IRQMap -> CDT -> ObjMap Word -> String
 showObjectFields _ _ Endpoint _ _ _ = ".type = CDL_Endpoint,"
 showObjectFields _ _ AsyncEndpoint _ _ _ = ".type = CDL_AsyncEndpoint,"
-showObjectFields objs obj_id (TCB slots info domain argv) _ _ _ =
+showObjectFields objs obj_id (TCB slots fault_ep info domain argv) _ _ _ =
     ".type = CDL_TCB," +++
     ".tcb_extra = {" +++
     indent

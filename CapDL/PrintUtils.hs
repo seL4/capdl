@@ -98,6 +98,10 @@ prettyPrio (Just prio) = text "prio:" <+> (text $ show prio)
 prettyDom :: Integer -> Doc
 prettyDom dom = text "dom:" <+> (text $ show dom)
 
+prettyFaultEP :: Maybe Word -> Doc
+prettyFaultEP Nothing = empty
+prettyFaultEP (Just fault_ep) = text "fault_ep:" <+> (text $ show fault_ep)
+
 prettyExtraInfo :: Maybe TCBExtraInfo -> Doc
 prettyExtraInfo Nothing = empty
 prettyExtraInfo (Just (TCBExtraInfo addr ip sp elf prio)) =
@@ -119,8 +123,8 @@ prettyPCIDevice (pci_bus, pci_dev, pci_fun) =
 prettyObjParams obj = case obj of
     Endpoint -> text "ep"
     AsyncEndpoint -> text "aep"
-    TCB _ extra dom init ->
-        text "tcb" <+> maybeParensList [prettyExtraInfo extra, prettyDom dom, prettyInitArguments init]
+    TCB _ fault_ep extra dom init ->
+        text "tcb" <+> maybeParensList [prettyExtraInfo extra, prettyFaultEP fault_ep, prettyDom dom, prettyInitArguments init]
     CNode _ 0 -> text "irq" --FIXME: This should check if the obj is in the irqNode
     CNode _ bits -> text "cnode" <+> maybeParensList [prettyBits bits]
     Untyped mbits paddr -> text "ut" <+> maybeParensList [prettyMBits mbits, prettyPaddr paddr]

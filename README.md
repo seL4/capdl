@@ -25,7 +25,7 @@ Dependencies
 -------------
 
 To build this tool the following Haskell modules are required: MissingH,
-data-ordlist, split.
+data-ordlist, split, parsec, mtl.
 
 
 Related papers

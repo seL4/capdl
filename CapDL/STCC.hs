@@ -131,7 +131,7 @@ updateModel (Model arch objects irqNode cdt untypedCovers) tcbs =
     rootCNodeOf objects tcb =
       let e = error "cannot find tcbID in updateModel" in
       case (Map.findWithDefault e tcb objects) of
-        (TCB slots _ _ _) -> head [capObj | (CNodeCap capObj _ _) <- (map snd (Map.toList slots))]
+        (TCB slots _ _ _ _) -> head [capObj | (CNodeCap capObj _ _) <- (map snd (Map.toList slots))]
         _ -> error "non-tcb ID in updateModel"
 
 saturateCSpaces :: Matrix -> ObjDictionary -> [(ObjID, Set Cap)] -> IO [(ObjID, Set Cap)]
@@ -278,7 +278,7 @@ getCSpace objects tcbID = Set.fromList $ getCaps objects tcbID
 getCaps :: ObjMap Word -> ObjID -> [Cap]
 getCaps objects tcbID =
   case Map.findWithDefault e1 tcbID objects of
-    TCB slots _ _ _ ->
+    TCB slots _ _ _ _ ->
       let cNodeCaps = [cap | (_, cap@(CNodeCap {})) <- Map.toList slots]
       in concat $ map (getCaps' objects Set.empty) cNodeCaps
     _ -> e2
@@ -313,7 +313,7 @@ getVSpace objects tcbID = Set.fromList $ getFrames objects tcbID
 getFrames :: ObjMap Word -> ObjID -> [Cap]
 getFrames objects tcbID =
   case Map.findWithDefault e1 tcbID objects of
-    TCB slots _ _ _ ->
+    TCB slots _ _ _ _ ->
       let pdCaps = [cap | (_, cap@(PDCap _ _)) <- Map.toList slots]
       in concat $ map (getFrames' objects Set.empty) pdCaps
     _ -> e2

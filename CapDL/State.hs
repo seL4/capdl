@@ -454,7 +454,7 @@ checkValidSlot obj contID (slot, cap) = do
     return valid
 
 checkValidSlots :: KernelObject Word -> ObjID -> Logger Bool
-checkValidSlots (TCB slots _ _ _) id = return True --Do we want to check this?
+checkValidSlots (TCB {}) id = return True --Do we want to check this?
 checkValidSlots obj id =
     allM (checkValidSlot obj id) (Map.toList $ objSlots obj)
 

@@ -220,6 +220,11 @@ getTCBDom [] = 0
 getTCBDom (Dom dom : xs) = dom
 getTCBDom (_ : xs) = getTCBDom xs
 
+getFaultEP :: [ObjParam] -> Maybe Word
+getFaultEP [] = Nothing
+getFaultEP (FaultEP fault_ep : xs) = Just fault_ep
+getFaultEP (_ : xs) = getFaultEP xs
+
 getInitArguments :: [ObjParam] -> [Word]
 getInitArguments [] = []
 getInitArguments (InitArguments init : xs) = init
@@ -296,7 +301,7 @@ removeConstr x xs = filter (\y -> toConstr x /= toConstr y) xs
 validObjPars :: KO -> Bool
 validObjPars (Obj TCB_T ps []) =
   subsetConstrs ps (replicate (numConstrs (Addr undefined)) (TCBExtraParam undefined) 
-                    ++ [InitArguments undefined, Dom undefined])
+                    ++ [InitArguments undefined, Dom undefined, FaultEP undefined])
 validObjPars (Obj CNode_T ps []) = subsetConstrs ps [BitSize undefined]
 validObjPars (Obj Untyped_T ps ds) = subsetConstrs ps [BitSize undefined, Paddr undefined]
 validObjPars (Obj Frame_T ps []) =
@@ -313,7 +318,8 @@ objectOf n obj =
     then case obj of
         Obj Endpoint_T [] [] -> Endpoint
         Obj AsyncEndpoint_T [] [] -> AsyncEndpoint
-        Obj TCB_T ps [] -> TCB Map.empty (getExtraInfo n ps) (getTCBDom ps) (getInitArguments ps)
+        Obj TCB_T ps [] ->
+            TCB Map.empty (getFaultEP ps) (getExtraInfo n ps) (getTCBDom ps) (getInitArguments ps)
         Obj CNode_T ps [] -> CNode Map.empty (getBitSize n ps)
         Obj Untyped_T ps ds -> Untyped (getMaybeBitSize ps) (getMaybePaddr ps)
         Obj ASIDPool_T ps [] -> ASIDPool Map.empty

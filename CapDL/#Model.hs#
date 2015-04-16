@@ -107,7 +107,7 @@ data Cap
 type CapMap a = Map a Cap
 
 data TCBExtraInfo = TCBExtraInfo {
-    ipcBufferAddr :: Word,
+    ipcBuf'ferAddr :: Word,
     ip :: Maybe Word,
     sp :: Maybe Word,
     elf :: Maybe String,

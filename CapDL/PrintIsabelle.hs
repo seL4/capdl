@@ -211,22 +211,9 @@ getAddress ms seen current_word goal_cap cap@(CNodeCap objID guard gsz)
                                  (Map.toList slots)
 getAddress _ _ _ _ _ = Nothing
 
-getFaultEndpoint :: ObjMap Word -> KernelObject Word -> String
-getFaultEndpoint ms (TCB slots _ _ _) =
-    let cnode =
-            case Map.lookup tcbCTableSlot slots of
-                Just cap -> cap
-                Nothing -> error "TCB's need a CSpace"
-    in case Map.lookup tcbFaultEPSlot slots of
-        Just faultEndpoint ->
-            case getAddress ms [] 0 faultEndpoint cnode of
-                Just address -> show address
-                Nothing -> error "TCB's need to actually contain their faultEndpoint"
-        Nothing -> "0"
-
-hasFaultEndpoint :: KernelObject Word -> String
-hasFaultEndpoint (TCB slots _ _ _) =
-    case Map.lookup tcbFaultEPSlot slots of
+hasFaultEndpoint :: Maybe Word -> String
+hasFaultEndpoint fault =
+    case fault of
         Just _ -> "True"
         Nothing -> "False"
 
@@ -244,12 +231,12 @@ printObjIDs ms irqs = vcat (map (printObjID ms irqs) (Map.toList ms)) $+$ text "
 printObj' :: ObjMap Word -> ObjID -> KernelObject Word -> Doc
 printObj' _ _ Endpoint = text "Endpoint"
 printObj' _ _ AsyncEndpoint = text "Endpoint"
-printObj' ms id obj@(TCB slots extra dom _) = text "Tcb" <+>
+printObj' ms id obj@(TCB slots fault extra dom _) = text "Tcb" <+>
     record (fsep $ punctuate comma $ map text
     ["cdl_tcb_caps = " ++ capsName id,
-    "cdl_tcb_fault_endpoint = " ++ getFaultEndpoint ms obj,
+    "cdl_tcb_fault_endpoint = " ++ maybe "0" show fault,
     "cdl_tcb_intent = undefined",
-    "cdl_tcb_has_fault = " ++ hasFaultEndpoint obj,
+    "cdl_tcb_has_fault = " ++ hasFaultEndpoint fault,
     "cdl_tcb_domain = " ++ show dom])
 printObj' _ id (CNode slots bits) = text "CNode" <+>
     record (fsep $ punctuate comma $ map text

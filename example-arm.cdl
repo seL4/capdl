@@ -13,7 +13,7 @@ arch arm11
 objects {
 
 rm_ut = ut {
-  rm_tcb = tcb (init: [10], dom: 5)
+  rm_tcb = tcb (init: [10], dom: 5, fault_ep: 0xF)
   something = ut (8 bits) { 
     rm_cn = cnode (10 bits) 
   }

@@ -16,7 +16,7 @@ objects {
   rm_ap = asid_pool
   rm_cn = cnode (10 bits)
   rm_pd = pd
-  rm_tcb = tcb (dom: 5, init: [10])
+  rm_tcb = tcb (fault_ep: 15, dom: 5, init: [10])
   test[5] = cnode (8 bits)
   timer = aep
   x = tcb (dom: 0)

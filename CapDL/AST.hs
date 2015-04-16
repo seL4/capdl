@@ -66,6 +66,8 @@ data ObjParam =
       pciDevice :: (Word, Word, Word) }
   | Dom {
       dom :: Integer }
+  | FaultEP {
+      faulEP :: Word }
   deriving (Show, Eq, Ord, Typeable, Data)
 
 data KO = Obj {
