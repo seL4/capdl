@@ -54,7 +54,7 @@ in the -}
 
 printDotMatrix :: Matrix -> Map Int (String, Maybe Word)  -> IO ()
 printDotMatrix (Matrix m) nameMap =
-  do putStrLn "digraph asdf {"
+  do putStrLn "digraph {"
      ((min, _), (_, max)) <- getBounds m
      forM_ [min .. max] $ \i ->
        do let iobjID = Map.findWithDefault (e i) i nameMap
@@ -93,7 +93,7 @@ showDotMatrix (Matrix m) nameMap =
                  (True, False) -> cf jname ++ " -> " ++ cf iname ++ ";\n"
                  (True, True) -> cf iname ++ " -> " ++ cf jname ++ "[dir=both];\n"
           return $ (cf (fst iobjID)) ++ "\n" ++ (concat cells)
-     return $ "digraph asdf {\n" ++ (concat rows) ++ "}\n"
+     return $ "digraph {\n" ++ (concat rows) ++ "}\n"
     where
       e x = error ("Can't find name for object " ++ show x)
       cf = filter (\c -> isDigit c || isAlpha c)
