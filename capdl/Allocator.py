@@ -64,11 +64,14 @@ class ObjectAllocator(object):
     def _assign_label(self, label, obj):
         self.labels[label].add(obj)
 
-    def relabel(self, label, obj):
+    def _remove_label(self, obj):
         for l, objs in self.labels.items():
             if obj in objs:
                 self.labels[l].remove(obj)
                 break
+
+    def relabel(self, label, obj):
+        self._remove_label(obj)
         self._assign_label(label, obj)
 
     def alloc(self, type, name=None, label=None, **kwargs):
@@ -160,6 +163,7 @@ class ObjectAllocator(object):
         return self.spec.__iter__()
 
     def remove(self, o):
+        self._remove_label(o)
         self.spec.objs.remove(o)
         del self.name_to_object[o.name]
 
