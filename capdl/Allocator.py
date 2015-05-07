@@ -13,7 +13,7 @@ from Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
     VCPU, ASIDPool
 from Spec import Spec
 from Cap import Cap
-import os
+import collections, os
 
 seL4_UntypedObject = 0
 seL4_TCBObject = 1
@@ -58,17 +58,15 @@ class ObjectAllocator(object):
         self.prefix = prefix
         self.counter = 0
         self.spec = Spec()
-        self.labels = {}
+        self.labels = collections.defaultdict(set)
         self.name_to_object = {}
 
     def _assign_label(self, label, obj):
-        if label not in self.labels:
-            self.labels[label] = set()
         self.labels[label].add(obj)
 
     def relabel(self, label, obj):
-        for l in self.labels:
-            if obj in self.labels[l]:
+        for l, objs in self.labels.items():
+            if obj in objs:
                 self.labels[l].remove(obj)
                 break
         self._assign_label(label, obj)
