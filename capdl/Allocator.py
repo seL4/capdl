@@ -76,7 +76,7 @@ class ObjectAllocator(object):
             name = '%s%d' % (self.prefix, self.counter)
 
         o = self.name_to_object.get(name)
-        if not o is None:
+        if o is not None:
             assert o in self.labels.get(label, set()), \
                 'attempt to allocate object %s under a new, differing label' % o.name
             return o
@@ -143,7 +143,7 @@ class ObjectAllocator(object):
         else:
             raise Exception('Invalid object type %s' % type)
         self.spec.add_object(o)
-        self.name_to_object.update({name:o})
+        self.name_to_object[name] = o
         self._assign_label(label, o)
         return o
 
@@ -151,7 +151,7 @@ class ObjectAllocator(object):
         assert isinstance(spec, Spec)
         self.spec.merge(spec)
         [self._assign_label(label, x) for x in spec.objs]
-        [self.name_to_object.update({x.name:x}) for x in spec]
+        self.name_to_object.update({x.name:x for x in spec})
 
     def __getitem__(self, key):
         return self.spec[key]
