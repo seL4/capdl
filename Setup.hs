@@ -11,14 +11,20 @@
 import Distribution.Simple
 import Distribution.PackageDescription
 import System.Environment
+import System.IO.Error (IOError)
+import Control.Exception (catch)
 
 main = do
-  maxIRQs <- getEnv "CONFIG_CAPDL_LOADER_MAX_IRQS"
+  maxIRQs <- getEnv "CONFIG_CAPDL_LOADER_MAX_IRQS" `catch` handler
   defaultMainWithHooks simpleUserHooks {  preBuild = preBuildHook maxIRQs }
 
-preBuildHook :: String -> Args -> a -> IO HookedBuildInfo
-preBuildHook maxIRQs _ _ = do
-  let buildinfo = emptyBuildInfo {
-               cppOptions = ["-DCONFIG_CAPDL_LOADER_MAX_IRQS=" ++ maxIRQs]
-             }
-  return (Nothing, [("parse-capDL", buildinfo)])
+  where
+    handler :: IOError -> IO String
+    handler _ = return "256"
+
+    preBuildHook :: String -> Args -> a -> IO HookedBuildInfo
+    preBuildHook maxIRQs _ _ = do
+      let buildinfo = emptyBuildInfo {
+                         cppOptions = ["-DCONFIG_CAPDL_LOADER_MAX_IRQS=" ++ maxIRQs]
+                      }
+      return (Nothing, [("parse-capDL", buildinfo)])
