@@ -19,15 +19,11 @@ import CapDL.Model
 
 import Control.Monad
 
-import System.IO
-
 import Data.Map ( Map )
 import qualified Data.Map as Map
 
 import Data.Set ( Set )
 import qualified Data.Set as Set
-
-import Data.List ( foldl' )
 
 import Data.Word ( Word )
 
@@ -41,34 +37,24 @@ projectEndpoint capset =
   Set.fromList $ concat [[(r, capObj) | r <- Set.toList rights] | (EndpointCap capObj _ rights) <- Set.toList capset]
 projectAsync capset =
   Set.fromList $ concat [[(r, capObj) | r <- Set.toList rights] | (AsyncEndpointCap capObj _ rights) <- Set.toList capset]
-projectPD capset =
- Set.fromList [capObj | (PDCap capObj Nothing) <- Set.toList capset]
-projectPT capset =
-  Set.fromList [capObj | (PTCap capObj Nothing) <- Set.toList capset]
 projectFrame capset =
   Set.fromList $ concat [[(r, capObj) | r <- Set.toList rights] | (FrameCap capObj rights Nothing True) <- Set.toList capset]
 
 somefn :: Model Word -> IO ()
-somefn m@(Model arch objects _ cdt _) =
+somefn (Model _ objects _ _ _) =
   do matrix <- newEmptyMatrix $ length tcbIDs
      leaksTos matrix objDict tcbDirectCaps
      warshall matrix
-     newcspaces <- saturateCSpaces matrix objDict cspaces
-     --printDotMatrix matrix objDict'
-     --printCSpaces cspaces
-     --printCSpaces newcspaces
+     _ <- saturateCSpaces matrix objDict cspaces
      return ()
   where
     tcbIDs = [objID | (objID, (TCB {})) <- Map.toList objects]
     cspaces = zip tcbIDs $ map (getCSpace objects) tcbIDs
-    vspaces = zip tcbIDs $ map (getVSpace objects) tcbIDs
     tcbDirectCaps = directTCBConnections cspaces
     objDict = Map.fromList (zip tcbIDs [0..])
-    objDict' = Map.fromList (zip [0..] tcbIDs)
-    f (objID, cspace) (objID', cspace') = (objID, cspace' `Set.difference` cspace)
 
 transitiveClosure :: Model Word -> IO (Model Word)
-transitiveClosure model@(Model arch objects _ cdt _) =
+transitiveClosure model@(Model _ objects _ _ _) =
   do matrix <- newEmptyMatrix $ length tcbIDs
      leaksTos matrix objDict tcbDirectCaps
      warshall matrix
@@ -79,14 +65,12 @@ transitiveClosure model@(Model arch objects _ cdt _) =
   where
     tcbIDs = [objID | (objID, (TCB {})) <- Map.toList objects]
     cspaces = zip tcbIDs $ map (getCSpace objects) tcbIDs
-    vspaces = zip tcbIDs $ map (getVSpace objects) tcbIDs
     tcbDirectCaps = directTCBConnections cspaces
     objDict = Map.fromList (zip tcbIDs [0..])
-    objDict' = Map.fromList (zip [0..] tcbIDs)
-    f (objID, cspace) (objID', cspace') = (objID, cspace' `Set.difference` cspace)
+    f (objID, cspace) (_, cspace') = (objID, cspace' `Set.difference` cspace)
 
 leakMatrix :: Model Word -> IO (String, String, Model Word)
-leakMatrix model@(Model arch objects _ cdt _) =
+leakMatrix model@(Model _ objects _ _ _) =
   do authMatrix <- newEmptyMatrix $ mSize
      leaksTos authMatrix objDict tcbDirectCaps
      warshall authMatrix
@@ -105,8 +89,8 @@ leakMatrix model@(Model arch objects _ cdt _) =
      flowDot <- showDotMatrix infoMatrix objDict'
      return (leakDot, flowDot, newModel)
   where
-    f (objID, cspace) (objID', cspace') = (objID, cspace' `Set.difference` cspace)
-    sndUnion (tcbID, set) (tcbID', set') = (tcbID, Set.union set set')
+    f (objID, cspace) (_, cspace') = (objID, cspace' `Set.difference` cspace)
+    sndUnion (tcbID, set) (_, set') = (tcbID, Set.union set set')
     tcbIDs = [objID | (objID, (TCB {})) <- Map.toList objects]
     mSize = length tcbIDs
     cspaces = [(tcbID, Set.fromList $ getCaps objects tcbID) | tcbID <- tcbIDs]
@@ -158,11 +142,7 @@ directTCBConnections ((tcbID, cspace) : tcbs) =
     where
       f (tcbID', cspace') acc =
         acc
-        ++ let cnodeSet = projectCNode cspace
-               cnodeSet' = projectCNode cspace'
-               tcbSet = projectTCB cspace
-               tcbSet' = projectTCB cspace'
-               endpointSet = projectEndpoint cspace
+        ++ let endpointSet = projectEndpoint cspace
                endpointSet' = projectEndpoint cspace'
                shareCSpace = sharesCSpace (projectCNode cspace) (projectCNode cspace')
                haveTCB = tcbID' `Set.member` projectTCB cspace
@@ -307,9 +287,6 @@ getCaps'' objects visited cnodeID
     where
       e = error "could not find rootID in objects map in cSpaceFrom'"
 
-getVSpace :: ObjMap Word -> ObjID -> Set Cap
-getVSpace objects tcbID = Set.fromList $ getFrames objects tcbID
-
 getFrames :: ObjMap Word -> ObjID -> [Cap]
 getFrames objects tcbID =
   case Map.findWithDefault e1 tcbID objects of
@@ -330,7 +307,7 @@ getFrames' objects visited cap =
     PTCap capObj _
       | capObj `Set.member` visited -> []
       | otherwise -> cap : getFrames'' objects visited capObj
-    FrameCap capObj _ _ _ ->
+    FrameCap _ _ _ _ ->
       [cap]
     _ -> []
 

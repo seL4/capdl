@@ -44,7 +44,7 @@ prettyObject n num obj = prettyNameDecl n num <+> prettyObjParams obj
 
 prettyObjectsList :: [(ObjID, KernelObject a)] -> [Doc]
 prettyObjectsList [] = []
-prettyObjectsList list@((id, obj):xs) =
+prettyObjectsList list@((id, obj):_) =
     prettyObject id len obj:prettyObjectsList (drop len list)
     where len = length (takeWhile (sameName id) (map fst list))
 
@@ -53,7 +53,7 @@ prettyObjects m = vcat (prettyObjectsList (Map.toList m))
 
 prettyCovered :: [ObjID] -> [Doc]
 prettyCovered [] = []
-prettyCovered list@(id@(name, num):xs) =
+prettyCovered list@(id:_) =
     prettyNameRefr same:prettyCovered (drop (length same) list)
     where same = takeWhile (sameName id) list
 
@@ -65,16 +65,17 @@ getCover ut covers =
 
 prettyIndexedUntyped :: CoverMap -> [(ObjID, KernelObject a)] -> Doc
 prettyIndexedUntyped _ [] = empty
-prettyIndexedUntyped covers ((name, obj@(Untyped mbits paddr)):xs) =
+prettyIndexedUntyped covers ((name, obj@(Untyped _ _)):xs) =
     if Set.null cover
     then prettyIndexedUntyped covers xs
     else prettyNameRefr [name] <+> equals <+> prettyObjParams obj <+>
         braces (fsep $ punctuate comma $ prettyCovered $ Set.toList cover) $+$
         prettyIndexedUntyped covers xs
     where cover = getCover name covers
+prettyIndexedUntyped _ _ = error "Untyped only"
 
 prettyUntyped :: CoverMap -> [(ObjID, KernelObject a)] -> Doc
-prettyUntyped covers list@((name, obj@(Untyped mbits paddr)):_) =
+prettyUntyped covers list@((name, obj@(Untyped _ _)):_) =
     if snd name == Nothing
     then prettyNameDecl name len <+> prettyObjParams obj <+>
         if Set.null cover
@@ -88,7 +89,7 @@ prettyUntyped _ _ = empty
 
 prettyUntypedsList :: CoverMap -> [(ObjID, KernelObject a)] -> [Doc]
 prettyUntypedsList _ [] = [empty]
-prettyUntypedsList covers list@((name, obj):_) =
+prettyUntypedsList covers list@((name, _):_) =
     prettyUntyped covers (take len list) :
     prettyUntypedsList covers (drop len list)
     where len = length $ takeWhile (sameName name) (map fst list)
@@ -103,7 +104,8 @@ prettySlot :: Printing a => (a, Cap) -> [Maybe Word] -> Doc
 prettySlot (n, cap) range = num n <> colon <+> prettyCap cap range
 
 prettySlotsRange :: Printing a => [(a, Cap)] -> Doc
-prettySlotsRange list@(x:xs) =
+prettySlotsRange [] = error "empty"
+prettySlotsRange list@(x:_) =
     prettySlot x (map (snd.objID.snd) list)
 
 prettySlotsList :: Printing a => [(a, Cap)] -> [Doc]
@@ -174,7 +176,8 @@ prettyIRQSlot :: (Word, ObjID) -> [Maybe Word] -> Doc
 prettyIRQSlot (n, irq) range = num n <> colon <+> prettyIRQ irq range
 
 prettyIRQSlotsRange :: [(Word, ObjID)] -> Doc
-prettyIRQSlotsRange list@(x:xs) =
+prettyIRQSlotsRange [] = error "empty"
+prettyIRQSlotsRange list@(x:_) =
     prettyIRQSlot x (map (snd.snd) list)
 
 prettyIRQSlotsList :: [(Word, ObjID)] -> [Doc]
@@ -192,7 +195,7 @@ prettyIRQNode irqNode =
         irqs -> vcat irqs $+$ text ""
 
 prettyMappings :: Printing a => Model a -> Doc
-prettyMappings (Model arch ms irqNode cdt untypedCovers) =
+prettyMappings (Model _ ms irqNode cdt untypedCovers) =
     text "objects {" $+$
     text "" $+$
     nest indent (prettyObjects ms) $+$

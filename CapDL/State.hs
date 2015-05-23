@@ -178,7 +178,7 @@ flatten' m objs (n, obj@(TCB {})) =
         objs' = Map.insert n tcb objs
         (cnode_id, cnode) = flattenCnode obj m
     in Map.insert cnode_id cnode objs'
-flatten' m objs (n, obj)
+flatten' _ objs (n, obj)
     | hasSlots obj =
         let obj' = obj { slots = Map.mapKeys singleton (slots obj) }
         in Map.insertWith const n obj' objs
@@ -189,6 +189,7 @@ flatten' m objs (n, obj)
                 Untyped msb paddr-> Untyped msb paddr
                 Frame vms p -> Frame vms p
                 IOPorts sz -> IOPorts sz
+                _ -> error "unmatched"
         in Map.insert n obj' objs
 
 flatten :: Model Word -> Model [Word]
@@ -345,6 +346,7 @@ capTyp (IOPortsCap {}) = IOPorts_T
 capTyp (IOSpaceCap {}) = IODevice_T
 capTyp (IOPTCap {}) = IOPT_T
 capTyp (VCPUCap {}) = VCPU_T
+capTyp _ = error "cap has no object"
 
 checkTypAt :: Cap -> Model Word -> ObjID -> Word -> Logger Bool
 checkTypAt cap m contID slot = do
@@ -444,7 +446,7 @@ checkValidSlot obj contID (slot, cap) = do
     return valid
 
 checkValidSlots :: KernelObject Word -> ObjID -> Logger Bool
-checkValidSlots (TCB {}) id = return True --Do we want to check this?
+checkValidSlots (TCB {}) _ = return True --Do we want to check this?
 checkValidSlots obj id =
     allM (checkValidSlot obj id) (Map.toList $ objSlots obj)
 
@@ -467,7 +469,7 @@ allCovers (Model _ _ _ _ covMap) =
 
 nullIntersections :: Ord a => [Set.Set a] -> Bool
 nullIntersections [] = True
-nullIntersections [x] = True
+nullIntersections [_] = True
 nullIntersections (x:xs) = Set.null (Set.intersection x (Set.unions xs)) &&
                            nullIntersections xs
 

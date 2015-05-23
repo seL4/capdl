@@ -8,6 +8,8 @@
 -- @TAG(NICTA_BSD)
 --
 
+{-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
+
 module CapDL.ParserUtils where
 
 import CapDL.AST
@@ -20,8 +22,6 @@ import Text.ParserCombinators.Parsec.Language
 import Data.Word
 import qualified Data.Set as Set
 import qualified Data.Map as Map
-import Data.List (find)
-import Numeric
 
 data Maps = Maps {
     refMap :: Map.Map Name ObjID,
@@ -317,8 +317,8 @@ mask :: MapParser String
 mask = do
     reserved "mask"
     colon
-    r <- parse_rights
-    return ""
+    parse_rights
+    return ""  -- FIXME: warn
 
 parse_asid :: MapParser Asid
 parse_asid = do

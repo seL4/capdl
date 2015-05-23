@@ -8,6 +8,8 @@
 -- @TAG(NICTA_BSD)
 --
 
+{-# OPTIONS_GHC -fno-warn-unused-binds #-}
+
 module CapDL.MakeModel where
 
 import CapDL.Model
@@ -130,6 +132,7 @@ getUntypedCover ns objs covers (ObjDecl (KODecl objName obj)) =
             qns = qNames objName
             covers' = addUTCovers objs covers [name]
                                   (map refToID (reverse (ns ++ qns)))
+            -- FIXME: should covers below be covers'?
             covers'' = addUTDecls objs name covers (Either.rights (objDecls obj))
         in getUntypedCovers (ns ++ objName) objs covers''
                                         (map ObjDecl (lefts (objDecls obj)))
@@ -178,27 +181,27 @@ addUntypeds = foldl' addUntyped
 
 getTCBAddr :: [ObjParam] -> Maybe Word
 getTCBAddr [] = Nothing
-getTCBAddr (TCBExtraParam (Addr addr) : xs) = Just addr
+getTCBAddr (TCBExtraParam (Addr addr) : _) = Just addr
 getTCBAddr (_ : xs ) = getTCBAddr xs
 
 getTCBip :: [ObjParam] -> Maybe Word
 getTCBip [] = Nothing
-getTCBip (TCBExtraParam (IP ip) : xs) = Just ip
+getTCBip (TCBExtraParam (IP ip) : _) = Just ip
 getTCBip (_ : xs ) = getTCBip xs
 
 getTCBsp :: [ObjParam] -> Maybe Word
 getTCBsp [] = Nothing
-getTCBsp (TCBExtraParam (SP sp) : xs) = Just sp
+getTCBsp (TCBExtraParam (SP sp) : _) = Just sp
 getTCBsp (_ : xs ) = getTCBsp xs
 
 getTCBelf :: [ObjParam] -> Maybe String
 getTCBelf [] = Nothing
-getTCBelf (TCBExtraParam (Elf elf) : xs) = Just elf
+getTCBelf (TCBExtraParam (Elf elf) : _) = Just elf
 getTCBelf (_ : xs ) = getTCBelf xs
 
 getTCBprio :: [ObjParam] -> Maybe Integer
 getTCBprio [] = Nothing
-getTCBprio (TCBExtraParam (Prio prio) : xs) = Just prio
+getTCBprio (TCBExtraParam (Prio prio) : _) = Just prio
 getTCBprio (_ : xs) = getTCBprio xs
 
 getExtraInfo :: Name -> [ObjParam] -> Maybe TCBExtraInfo
@@ -216,22 +219,22 @@ getExtraInfo n params =
 
 getTCBDom :: [ObjParam] -> Integer
 getTCBDom [] = 0
-getTCBDom (Dom dom : xs) = dom
+getTCBDom (Dom dom : _) = dom
 getTCBDom (_ : xs) = getTCBDom xs
 
 getFaultEP :: [ObjParam] -> Maybe Word
 getFaultEP [] = Nothing
-getFaultEP (FaultEP fault_ep : xs) = Just fault_ep
+getFaultEP (FaultEP fault_ep : _) = Just fault_ep
 getFaultEP (_ : xs) = getFaultEP xs
 
 getInitArguments :: [ObjParam] -> [Word]
 getInitArguments [] = []
-getInitArguments (InitArguments init : xs) = init
+getInitArguments (InitArguments init : _) = init
 getInitArguments (_ : xs) = getInitArguments xs
 
 getMaybeBitSize :: [ObjParam] -> Maybe Word
 getMaybeBitSize [] = Nothing
-getMaybeBitSize (BitSize x : xs) = Just x
+getMaybeBitSize (BitSize x : _) = Just x
 getMaybeBitSize (_ : xs) = getMaybeBitSize xs
 
 getBitSize :: Name -> [ObjParam] -> Word
@@ -242,33 +245,33 @@ getBitSize n xs =
 
 getVMSize :: Name -> [ObjParam] -> Word
 getVMSize n [] = error ("Needs vmsize parameter: " ++ n)
-getVMSize n (VMSize 0 : xs) = error ("Cannot make a frame object that has size 0: " ++ n)
-getVMSize n (VMSize x : xs) = x
+getVMSize n (VMSize 0 : _) = error ("Cannot make a frame object that has size 0: " ++ n)
+getVMSize _ (VMSize x : _) = x
 getVMSize n (_ : xs) = getVMSize n xs
 
 getMaybePaddr :: [ObjParam] -> Maybe Word
 getMaybePaddr [] = Nothing
-getMaybePaddr (Paddr x : xs) = Just x
+getMaybePaddr (Paddr x : _) = Just x
 getMaybePaddr (_ : xs) = getMaybePaddr xs
 
 getLevel :: Name -> [ObjParam] -> Word
 getLevel n [] = error ("Needs level parameter: " ++ n)
-getLevel n (IOPTLevel l : xs) = l
+getLevel _ (IOPTLevel l : _) = l
 getLevel n (_ : xs) = getLevel n xs
 
 getPortsSize :: [ObjParam] -> Word
 getPortsSize [] = 64 * (2^10)
-getPortsSize (PortsSize x : xs) = x
+getPortsSize (PortsSize x : _) = x
 getPortsSize (_ : xs) = getPortsSize xs
 
 getDomainID :: Name -> [ObjParam] -> Word
 getDomainID n [] = error ("Needs domainID parameter: " ++ n)
-getDomainID n (DomainID x : xs) = x
+getDomainID _ (DomainID x : _) = x
 getDomainID n (_ : xs) = getDomainID n xs
 
 getPCIDevice :: Name -> [ObjParam] -> (Word, Word, Word)
 getPCIDevice n [] = error ("Needs pciDevice parameter: " ++ n)
-getPCIDevice n (PCIDevice x : xs) = x
+getPCIDevice _ (PCIDevice x : _) = x
 getPCIDevice n (_ : xs) = getPCIDevice n xs
 
 orderedSubset :: Eq a => [a] -> [a] -> Bool
@@ -302,7 +305,7 @@ validObjPars (Obj TCB_T ps []) =
   subsetConstrs ps (replicate (numConstrs (Addr undefined)) (TCBExtraParam undefined) 
                     ++ [InitArguments undefined, Dom undefined, FaultEP undefined])
 validObjPars (Obj CNode_T ps []) = subsetConstrs ps [BitSize undefined]
-validObjPars (Obj Untyped_T ps ds) = subsetConstrs ps [BitSize undefined, Paddr undefined]
+validObjPars (Obj Untyped_T ps _) = subsetConstrs ps [BitSize undefined, Paddr undefined]
 validObjPars (Obj Frame_T ps []) =
   subsetConstrs ps [VMSize undefined, Paddr undefined] &&
   (not (containsConstr (Paddr undefined) ps) || containsConstr (VMSize undefined) ps)
@@ -320,17 +323,17 @@ objectOf n obj =
         Obj TCB_T ps [] ->
             TCB Map.empty (getFaultEP ps) (getExtraInfo n ps) (getTCBDom ps) (getInitArguments ps)
         Obj CNode_T ps [] -> CNode Map.empty (getBitSize n ps)
-        Obj Untyped_T ps ds -> Untyped (getMaybeBitSize ps) (getMaybePaddr ps)
-        Obj ASIDPool_T ps [] -> ASIDPool Map.empty
-        Obj PT_T ps [] -> PT Map.empty
-        Obj PD_T ps [] -> PD Map.empty
+        Obj Untyped_T ps _ -> Untyped (getMaybeBitSize ps) (getMaybePaddr ps)
+        Obj ASIDPool_T _ [] -> ASIDPool Map.empty
+        Obj PT_T _ [] -> PT Map.empty
+        Obj PD_T _ [] -> PD Map.empty
         Obj Frame_T ps [] -> Frame (getVMSize n ps) (getMaybePaddr ps)
         Obj IOPT_T ps [] -> IOPT Map.empty (getLevel n ps)
         Obj IOPorts_T ps [] -> IOPorts (getPortsSize ps)
         Obj IODevice_T ps [] -> IODevice Map.empty (getDomainID n ps) (getPCIDevice n ps)
         Obj IrqSlot_T [] [] -> CNode Map.empty 0
         Obj VCPU_T [] [] -> VCPU
-        Obj t ps (d:ds) ->
+        Obj _ _ (_:_) ->
           error $ "Only untyped caps can have objects as content: " ++
                   n ++ " = " ++ show obj
         _ -> error ("Could not convert: " ++ n ++ " = " ++ show obj)
@@ -374,6 +377,7 @@ getSlotIRQs objs (IRQMapping slot nameRef) = do
         lastSlot = slot' + fromIntegral (length irqs - 1)
     putSlot lastSlot
     return $ zip [slot'..lastSlot] irqs
+getSlotIRQs _ _ = error "not an IRQMapping"
 
 addIRQMapping :: ObjMap Word -> SlotState IRQMap -> CapMapping -> SlotState IRQMap
 addIRQMapping objs irqNode cm = do
@@ -419,12 +423,12 @@ getRights (_ : ps) = getRights ps
 
 getGuard :: [CapParam] -> Word
 getGuard [] = 0
-getGuard (Guard n : ps) = n
+getGuard (Guard n : _) = n
 getGuard (_ : ps) = getGuard ps
 
 getGuardSize :: [CapParam] -> Word
 getGuardSize [] = 0
-getGuardSize (GuardSize n : ps) = n
+getGuardSize (GuardSize n : _) = n
 getGuardSize (_ : ps) = getGuardSize ps
 
 getPorts :: ObjID -> [CapParam] -> Word -> Set.Set Word
@@ -446,12 +450,12 @@ getReplys (_ : ps) = getReplys ps
 
 hasPorts :: [CapParam] -> Bool
 hasPorts [] = False
-hasPorts (Range _ : ps) = True
+hasPorts (Range _ : _) = True
 hasPorts (_ : ps) = hasPorts ps
 
 getMaybeAsid :: [CapParam] -> Maybe Asid
 getMaybeAsid [] = Nothing
-getMaybeAsid (Asid asid : ps) = Just asid
+getMaybeAsid (Asid asid : _) = Just asid
 getMaybeAsid (_ : ps) = getMaybeAsid ps
 
 getAsid :: ObjID -> ObjID -> [CapParam] -> Asid
@@ -463,7 +467,7 @@ getAsid containerName objRef ps =
 
 getCached :: [CapParam] -> Bool
 getCached [] = True
-getCached (Cached c : ps) = c
+getCached (Cached c : _) = c
 getCached (_ : ps) = getCached ps
 
 validCapPars :: KernelObject Word -> [CapParam] -> Bool
@@ -495,6 +499,7 @@ objCapOf containerName obj objRef params =
                 [] -> TCBCap objRef
                 [Reply] -> ReplyCap objRef
                 [MasterReply] -> MasterReplyCap objRef
+                _ -> error "invalid cap"
         Untyped {} -> UntypedCap objRef
         CNode _ 0 -> IRQHandlerCap objRef --FIXME: This should check if the obj is in the irqNode
         CNode {} -> CNodeCap objRef (getGuard params) (getGuardSize params)
@@ -548,10 +553,11 @@ slotsAndCapsOf objs objName (CapMapping slot _ nameRef params _)
             lastSlot = slot' + fromIntegral (length caps - 1)
         putSlot lastSlot
         return $ zip [slot'..lastSlot] caps
-slotsAndCapsOf _ _ (CopyOf slot nm ref _ _) = do
+slotsAndCapsOf _ _ (CopyOf slot _ _ _ _) = do
     slot' <- checkSlot slot
     putSlot slot'
     return [(slot', NullCap)]
+slotsAndCapsOf _ _ _ = error "IRQ or ASID mapping"
 
 addMapping :: ObjMap Word -> ObjID -> KernelObject Word -> CapMapping
               -> SlotState (KernelObject Word)
@@ -613,6 +619,7 @@ addCapIdentMapping' m obj ids slot (names, range) ref =
                 else error ("Cannot give a unique name to an array of caps: "
                             ++ names)
             [All] -> zip (repeat names) (map Just [0..fromIntegral len - 1])
+            _ -> error "invalid range"
         lastSlot = slot + fromIntegral len - 1
         slots = [slot..lastSlot]
     in foldl' (\ids' (name, s) -> insertCapIdentMapping obj ids' name s)
@@ -632,7 +639,7 @@ addCapIdentMappings m obj =
     foldl' (addCapIdentMapping m (head (refToIDs m obj)))
 
 addCapIdent :: ObjMap Word -> Idents CapName -> Decl -> Idents CapName
-addCapIdent m (Idents ids) (CapNameDecl name target slot) =
+addCapIdent _ (Idents ids) (CapNameDecl name target slot) =
     Idents (Map.insert (name, Nothing) (target', slot) ids)
     where
         target' = refToID target
@@ -733,7 +740,7 @@ addCapCopyDecls ids refs = foldl' (addCapCopyDecl ids refs)
 
 getCapCopy :: Idents CapName -> ObjMap Word -> ObjID -> CopyMap ->
               CapMapping -> CopyMap
-getCapCopy ids m obj copies (CopyOf (Just slot) _ src params _) =
+getCapCopy ids _ obj copies (CopyOf (Just slot) _ src _ _) =
     let capNames = refToIDs (cap_ids ids) src
         capRefs = zip (repeat obj) [slot..(slot + fromIntegral (length capNames))]
     in foldl' (\copies' (capRef, capName) -> Map.insert capRef capName copies')
@@ -755,7 +762,7 @@ getCapCopyDecls :: Idents CapName -> ObjMap Word -> [Decl] -> CopyMap
 getCapCopyDecls ids m = foldl' (getCapCopyDecl ids m) Map.empty
 
 slotRefToCapRef :: Idents CapName -> SlotRef -> CapRef
-slotRefToCapRef ids (Left (obj, slot)) = (refToID obj, slot)
+slotRefToCapRef _ (Left (obj, slot)) = (refToID obj, slot)
 slotRefToCapRef ids (Right name) =
     case Map.lookup (refToID name) (cap_ids ids) of
         Just capRef -> capRef
@@ -772,6 +779,7 @@ getDeclOrSlotRef ids parent cdt (Left decl@(CDTDecl child _)) =
     let child' = slotRefToCapRef ids child
         cdt' = insertCDT child' parent cdt
     in getCDTDecl ids cdt' decl
+getDeclOrSlotRef _ _ _ (Left _) = error "not a CDTDecl"
 getDeclOrSlotRef ids parent cdt (Right child) =
     let child' = slotRefToCapRef ids child
     in insertCDT child' parent cdt

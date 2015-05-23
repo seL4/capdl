@@ -27,6 +27,7 @@ data Rights = Read
 
 type CapRights = Set Rights
 
+allRights :: CapRights
 allRights = Data.Set.fromList [Read, Write, Grant]
 
 --
@@ -261,9 +262,16 @@ tcbFaultEPSlot = 5
 -- The string used when defining an IOSpaceMasterCap, an ASIDControlCap,
 -- an IRQControlCap or a DomainCap.
 --
+ioSpaceMaster :: String
 ioSpaceMaster = "io_space_master"
+
+asidControl :: String
 asidControl = "asid_control"
+
+irqControl :: String
 irqControl = "irq_control"
+
+domain :: String
 domain = "domain"
 
 --

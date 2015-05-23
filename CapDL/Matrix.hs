@@ -42,7 +42,7 @@ printMatrix (Matrix m) =
      forM_ [minx .. maxx] $ \i ->
        forM_ [miny .. maxy] $ \j ->
          do elt <- readArray m (i,j)
-            putStr $ show (if elt then 1 else 0)
+            putStr $ (if elt then "1" else "0")
                      ++ if j == maxy then "\n" else " "
 
 {- This function takes a matrix and a map of labels for

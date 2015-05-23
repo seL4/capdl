@@ -126,7 +126,7 @@ printReal False = text "Fake"
 
 printCNodeSize :: ObjMap Word -> ObjID -> Doc
 printCNodeSize ms id =
-    let (CNode slots sz) = fromJust $ Map.lookup id ms
+    let (CNode _ sz) = fromJust $ Map.lookup id ms
     in num sz
 
 -- The bool represents whether the cap is a real cap;
@@ -164,6 +164,7 @@ printCap _ _ _ real  (PDCap id asid) =
 printCap _ _ _ _ ASIDControlCap = text "AsidControlCap"
 printCap _ _ _ _ (ASIDPoolCap id asid) =
     text "AsidPoolCap" <+> printID id <+> printAsid asid
+printCap _ _ _ _ _ = error "IO caps unsupported"
 
 printCapMapping :: ObjMap Word -> IRQMap -> CoverMap -> Bool -> (Word, Cap) -> Doc
 printCapMapping ms irqNode covers real (slot, cap) =
@@ -218,7 +219,7 @@ hasFaultEndpoint fault =
         Nothing -> "False"
 
 printObjID :: ObjMap Word -> IRQMap -> (ObjID, KernelObject Word) -> Doc
-printObjID ms irqNode (id, obj) =
+printObjID ms irqNode (id, _) =
     constdefs name "cdl_object_id" $+$
     doubleQuotes (printID id <+> equiv <+> obj_id)
     $+$ text ""
@@ -231,30 +232,30 @@ printObjIDs ms irqs = vcat (map (printObjID ms irqs) (Map.toList ms)) $+$ text "
 printObj' :: ObjMap Word -> ObjID -> KernelObject Word -> Doc
 printObj' _ _ Endpoint = text "Endpoint"
 printObj' _ _ AsyncEndpoint = text "Endpoint"
-printObj' ms id obj@(TCB slots fault extra dom _) = text "Tcb" <+>
+printObj' _ id (TCB _ fault _ dom _) = text "Tcb" <+>
     record (fsep $ punctuate comma $ map text
     ["cdl_tcb_caps = " ++ capsName id,
     "cdl_tcb_fault_endpoint = " ++ maybe "0" show fault,
     "cdl_tcb_intent = undefined",
     "cdl_tcb_has_fault = " ++ hasFaultEndpoint fault,
     "cdl_tcb_domain = " ++ show dom])
-printObj' _ id (CNode slots bits) = text "CNode" <+>
+printObj' _ id (CNode _ bits) = text "CNode" <+>
     record (fsep $ punctuate comma $ map text
     ["cdl_cnode_caps = " ++ capsName id,
     "cdl_cnode_size_bits = " ++ show bits])
 printObj' _ id (ASIDPool _) = text "AsidPool" <+>
     record (fsep $ punctuate comma $ map text
     ["cdl_asid_pool_caps = " ++ capsName id])
-printObj' _ id (PT slots) = text "PageTable" <+>
+printObj' _ id (PT _) = text "PageTable" <+>
     record (fsep $ punctuate comma $ map text
     ["cdl_page_table_caps = " ++ capsName id])
-printObj' _ id (PD slots) = text "PageDirectory" <+>
+printObj' _ id (PD _) = text "PageDirectory" <+>
     record (fsep $ punctuate comma $ map text
     ["cdl_page_directory_caps = " ++ capsName id])
 printObj' _ _ (Frame vmSz _) = text "Frame" <+>
     record (fsep $ punctuate comma $ map text
     ["cdl_frame_size_bits = " ++ show (bitsToPageBits vmSz)])
-
+printObj' _ _ _ = error "Untyped and IO objs unsupported"
 
 printLemmaObjectSlots :: ObjID -> Doc
 printLemmaObjectSlots id = 
@@ -286,7 +287,7 @@ printObjs ms irqNode covers = vcat (map (printObj ms irqNode covers) (Map.toList
     printEmptyIrqNode $+$ text ""
 
 printObjMapping :: (ObjID, KernelObject Word) -> Doc
-printObjMapping (id, obj) = printID id <+> text ("\\<mapsto> " ++ showID id)
+printObjMapping (id, _) = printID id <+> text ("\\<mapsto> " ++ showID id)
 
 printEmptyIrqObjMapping :: ObjMap Word -> IRQMap -> Doc
 printEmptyIrqObjMapping ms irqNode =
@@ -302,7 +303,7 @@ printEmptyIrqObjMap ms irqNode =
     doubleQuotes (text "empty_irq_objects" <+> equiv <+> printEmptyIrqObjMapping ms irqNode)
 
 printObjMap :: ObjMap Word -> IRQMap -> Doc
-printObjMap ms irqNode = text "empty_irq_objects ++" $+$
+printObjMap ms _ = text "empty_irq_objects ++" $+$
     case map printObjMapping (Map.toList ms) of
         [] -> text "empty"
         xs -> brackets $ fsep $ punctuate comma xs
@@ -324,7 +325,7 @@ completeMap x [] = x
 completeMap x@((x1, x2):xs) y@((y1, y2):ys)
     | x1 < y1 = (x1, x2) : completeMap xs y
     | x1 == y1 = (x1, x2) : completeMap xs ys
-    | x1 > y1 = (y1, y2) : completeMap x ys
+    | otherwise = (y1, y2) : completeMap x ys
 
 printIrqMappings :: ObjMap Word -> IRQMap -> [Doc]
 printIrqMappings ms irqNode =
@@ -353,6 +354,7 @@ addToASIDTable' asidTable cap = case cap of
                 if obj == obj'
                 then asidTable
                 else error $ "Multiple ASIDPools mapped to " ++ show asid
+            _ -> error "inconceivable: not an ASIDPoolCap"
     _ -> asidTable
 
 addToASIDTable :: CapMap Word -> KernelObject Word -> CapMap Word
@@ -399,12 +401,12 @@ printSimps ms =
     text "lemmas cap_defs = " $+$ vcat (map caps objs_with_caps) $+$ text "" $+$
     text "lemmas obj_defs = " $+$ vcat (map objs obj_list) $+$ text "" $+$
     lemma' "objects" (map objects obj_list) ("by (auto simp: objects_def ids)")
-    where obj_ids (id, obj) = printID id <> text "_def"
-          caps (id, obj) = text (capsName id) <> text "_def"
-          objs (id, obj) = text (showID id) <> text "_def"
+    where obj_ids (id, _) = printID id <> text "_def"
+          caps (id, _) = text (capsName id) <> text "_def"
+          objs (id, _) = text (showID id) <> text "_def"
           obj_list = Map.toList ms
-          objs_with_caps = filter (\(id, obj) -> hasSlots obj) obj_list
-          objects (id, obj) = "objects " ++ showID id ++ "_id = Some " ++showID id
+          objs_with_caps = filter (\(_, obj) -> hasSlots obj) obj_list
+          objects (id, _) = "objects " ++ showID id ++ "_id = Some " ++ showID id
 
 printState :: Arch -> Doc
 printState arch = constdefs "state" "cdl_state" $+$
@@ -422,8 +424,8 @@ printFooter :: Doc
 printFooter = text "end"
 
 printIsabelle :: String -> Model Word -> Doc
-printIsabelle name (Model IA32 ms irqNode cdt untypedCovers) =
-    error "Currently only the ARM11 architecture is specified when parsing to Isabelle"
+printIsabelle _ (Model IA32 _ _ _ _) =
+    error "Currently only the ARM11 architecture is supported when parsing to Isabelle"
 printIsabelle name (Model arch ms irqNode cdt untypedCovers) =
     printHeader name $+$ text "" $+$
     printObjIDs ms' irqNode $+$

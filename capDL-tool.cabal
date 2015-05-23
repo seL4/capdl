@@ -21,7 +21,7 @@ category:            Development
 build-type:          Custom
 extra-source-files:  README.md
 cabal-version:       >=1.18
-tested-with:         GHC >= 7.8.4
+tested-with:         GHC == 7.8.4
 
 executable parse-capDL
   main-is:             Main.hs
@@ -37,5 +37,5 @@ executable parse-capDL
 
   default-language:    Haskell2010
 
-  ghc-options:         -O2 -Werror 
-  -- -Wall -fno-warn-name-shadowing
+  ghc-options:         -O2 -Werror -Wall -fno-warn-name-shadowing
+                       -fno-warn-missing-signatures -fno-warn-type-defaults

@@ -14,7 +14,6 @@ module CapDL.AST where
 import CapDL.Model
 
 import Data.Word
-import Data.Set
 import Data.Data
 
 -- AST

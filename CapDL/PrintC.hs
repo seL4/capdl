@@ -109,7 +109,7 @@ showCap objs (TCBCap id) _ is_orig _ =
     ", .is_orig = " ++ is_orig ++
     ", .rights = seL4_AllRights}"
 showCap _ IRQControlCap _ _ _ = "{.type = CDL_IRQControlCap}"
-showCap objs (IRQHandlerCap id) irqNode is_orig _ =
+showCap _ (IRQHandlerCap id) irqNode is_orig _ =
     "{.type = CDL_IRQHandlerCap, .obj_id = INVALID_OBJ_ID" ++
     ", .is_orig = " ++ is_orig ++
     ", .irq = " ++ show (lookupByValue (\x -> x == id) irqNode) ++ "}"
@@ -128,7 +128,7 @@ showCap objs (PDCap id _) _ is_orig _ =
     ", .is_orig = " ++ is_orig ++ "}"
 showCap _ ASIDControlCap _ _ _ =
     "{.type = CDL_ASIDControlCap}"
-showCap objs (ASIDPoolCap id _) _ is_orig _ =
+showCap objs (ASIDPoolCap id _) _ _ _ =
     "{.type = CDL_ASIDPoolCap, .obj_id = " ++ showObjID objs id ++ "}"
 showCap objs (IOPortsCap id ports) _ is_orig _ =
     "{.type = CDL_IOPortsCap, .obj_id = " ++ showObjID objs id ++
@@ -171,7 +171,7 @@ printInit argv =
 showObjectFields :: Map ObjID Int -> ObjID -> KernelObject Word -> IRQMap -> CDT -> ObjMap Word -> String
 showObjectFields _ _ Endpoint _ _ _ = ".type = CDL_Endpoint,"
 showObjectFields _ _ AsyncEndpoint _ _ _ = ".type = CDL_AsyncEndpoint,"
-showObjectFields objs obj_id (TCB slots fault_ep info domain argv) _ _ _ =
+showObjectFields objs obj_id (TCB slots _ info domain argv) _ _ _ =
     ".type = CDL_TCB," +++
     ".tcb_extra = {" +++
     indent
@@ -226,7 +226,7 @@ showObjectFields _ _ (IOPorts size) _ _ _ =
 showObjectFields objs obj_id (ASIDPool slots) _ _ _ =
     ".type = CDL_ASIDPool," +++
     memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
-showObjectFields objs _ (IODevice slots domainID (bus, dev, fun)) _ _ _ =
+showObjectFields _ _ (IODevice _ _ _) _ _ _ =
     ".type = CDL_IODevice,"
 showObjectFields _ _ VCPU _ _ _ = ".type = CDL_VCPU,"
 showObjectFields _ _ x _ _ _ = assert False $
@@ -287,7 +287,7 @@ sorter arch a b =
 
 memberObjects ::  Map ObjID Int -> Arch -> [(ObjID, KernelObject Word)] -> IRQMap -> CDT ->
                   ObjMap Word -> String
-memberObjects obj_ids arch objs irqNode cdt objs' =
+memberObjects obj_ids _ objs irqNode cdt objs' =
     ".objects = (CDL_Object[]) {" +++
     (indent $ showObjects obj_ids 0 objs irqNode cdt objs') +++
     "},"
@@ -296,7 +296,7 @@ memberObjects obj_ids arch objs irqNode cdt objs' =
 -- that interrupt has no handler or else the object ID of the interrupt
 -- (0-sized CNode).
 memberIRQs :: Map ObjID Int -> IRQMap -> Arch -> String
-memberIRQs objs irqNode arch =
+memberIRQs objs irqNode _ =
     ".irqs = {" +++
     (indent $ join ", " $ Data.List.map (\k -> show $ case Map.lookup k irqNode of
         Just i -> fromJust $ Map.lookup i objs
@@ -304,7 +304,7 @@ memberIRQs objs irqNode arch =
     "},"
 
 printC :: Model Word -> Idents CapName -> CopyMap -> Doc
-printC (Model arch objs irqNode cdt untypedCovers) ids copies =
+printC (Model arch objs irqNode cdt _) _ _ =
     text $
     "/* Generated file. Your changes will be overwritten. */" +++
     "" +++

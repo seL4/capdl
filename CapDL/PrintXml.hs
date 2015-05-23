@@ -13,7 +13,6 @@ import CapDL.Model
 import CapDL.PrintUtils
 
 import Text.PrettyPrint
-import Data.List
 import Data.Maybe (fromMaybe)
 import Data.Word
 import qualified Data.Map as Map
@@ -213,7 +212,7 @@ printCDT cdt =
 
 -- Print the contents of a model in XML format.
 printXml :: String -> Model Word -> Doc
-printXml _ (Model arch ms irqNode cdt untypedCovers) =
+printXml _ (Model arch ms _ cdt untypedCovers) =
     text xml_header
         $+$ (xmlSurround "model" [("arch", show arch)] $ printObjects ms $+$ printUntypedCovers untypedCovers $+$ printCDT cdt)
         $+$ text "\n"

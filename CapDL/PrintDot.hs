@@ -66,7 +66,7 @@ hasCover ut covers =
 
 dotCovered :: NodeMap -> ObjMap a -> CoverMap -> [ObjID] -> [Doc]
 dotCovered _ _ _ [] = []
-dotCovered names ms covers list@(id:xs)
+dotCovered names ms covers list@(id:_)
     | hasCover id covers =
         dotUntyped names ms covers [] id [Nothing] obj:
             dotCovered names ms covers (drop (length same) list)
@@ -80,7 +80,7 @@ dotCovered names ms covers list@(id:xs)
 -- Minor problem if a covered object has a cap to the untyped
 dotCluster ::  NodeMap -> ObjMap a -> CoverMap -> ObjID -> [Maybe Word] ->
               [ObjID] -> Doc
-dotCluster names ms covers n num cover =
+dotCluster names ms covers n _ cover =
     text "subgraph" <+> (doubleQuotes.text) ("cluster_" ++ getName n names) <+>
     braces (braces (text "rank = source;" <+> (doubleQuotes.text) (getName n names)
             <+> text "[style = filled];") <> semi <+>
@@ -118,13 +118,13 @@ sameHeadNode names (_, first) (_, second) =
 
 dotEdges :: DotPrinting a => NodeMap -> [(a, Cap)] -> a -> ObjID -> Doc
 dotEdges _ [] _ _ = empty
-dotEdges names list@(first@(_, cap):xs) slot n =
+dotEdges names list@(first@(_, cap):_) slot n =
     dotEdge names slot cap n $+$ dotEdges names others slot n
-    where (same,others) = partition (sameHeadNode names first) list
+    where (_,others) = partition (sameHeadNode names first) list
 
 dotEdgesList :: DotPrinting a => NodeMap -> [(a, Cap)] -> ObjID -> [Doc]
 dotEdgesList _ [] _ = []
-dotEdgesList names list@(first@(slot, cap):xs) name =
+dotEdgesList names list@((slot, cap):xs) name =
     if hasObjID cap
     then dotEdges names sameGroup slot name:
         dotEdgesList names (drop (length sameGroup) list) name
@@ -143,7 +143,8 @@ dotSlot (n, cap) range = text "|" <>
     braces (dotTop n (length range) <+> text "|" <+> dotBot n cap range)
 
 dotSlotsRange :: DotPrinting a => [(a, Cap)] -> Doc
-dotSlotsRange list@(x:xs) =
+dotSlotsRange [] = error "dotSlotsRange: empty"
+dotSlotsRange list@(x:_) =
     dotSlot x (map (snd.objID.snd) list)
 
 dotSlotsList :: DotPrinting a => [(a, Cap)] -> [Doc]
@@ -179,7 +180,7 @@ dotNodesGroup names ms covers cov list =
 dotNodesList :: DotPrinting a => NodeMap -> ObjMap a -> CoverMap -> [ObjID]
                 -> [(ObjID, KernelObject a)] -> [Doc]
 dotNodesList _ _ _ _ [] = []
-dotNodesList names ms covers cov list@(first:xs) =
+dotNodesList names ms covers cov list@(first:_) =
     dotNodesGroup names ms covers cov sameCaps:
     dotNodesList names ms covers cov otherCaps
     where (sameCaps, otherCaps) =
@@ -223,7 +224,7 @@ initNamesGroup names list =
 
 initNamesList :: DotPrinting a => NodeMap -> [(ObjID, KernelObject a)] -> NodeMap
 initNamesList _ [] = Map.empty
-initNamesList names list@(first:xs) =
+initNamesList names list@(first:_) =
     Map.union (initNamesGroup names (map fst sameCaps))
                 (initNamesList names otherCaps)
     where (sameCaps, otherCaps) = partition (same first) list
@@ -256,5 +257,5 @@ printDot' name arch ms covers =
        rbrace
 
 printDot :: DotPrinting a => String -> Model a -> Doc
-printDot name (Model arch ms irqNode _ untypedCovers) =
+printDot name (Model arch ms _ _ untypedCovers) =
     printDot' name arch ms untypedCovers

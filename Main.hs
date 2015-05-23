@@ -15,25 +15,19 @@ import CapDL.DumpParser
 import CapDL.ParserUtils (emptyMaps)
 import CapDL.MakeModel
 import CapDL.PrintModel
-import CapDL.Model
 import CapDL.State
 import CapDL.PrintDot
 import CapDL.PrintXml
 import CapDL.PrintIsabelle
 import CapDL.PrintC
-import CapDL.Matrix
 import CapDL.STCC
 
 import System.Environment
 import System.IO
 import Text.ParserCombinators.Parsec
 import Control.Monad
-import Control.Monad.State
 import Control.Monad.Writer
-import Data.Word
 import System.Console.GetOpt
-import qualified Data.Map as Map
-import qualified Data.Set as Set
 
 data Options = Options {
     optOutputIsabelle :: Maybe String,

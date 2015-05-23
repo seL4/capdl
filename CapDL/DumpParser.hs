@@ -15,8 +15,6 @@ import CapDL.Model
 import CapDL.ParserUtils
 
 import Text.ParserCombinators.Parsec
-import qualified Text.ParserCombinators.Parsec.Token as PT
-import Text.ParserCombinators.Parsec.Language
 
 import Data.Word
 import qualified Data.Set as Set
@@ -110,7 +108,7 @@ object = do
 maybe_object :: MapParser (Maybe (Name, KO))
 maybe_object =
         do name <- name
-           symbol "="
+           _ <- symbol "="
            obj <- CapDL.DumpParser.object
            return $ Just (name, obj)
     <|> return Nothing
@@ -167,7 +165,7 @@ maybe_obj_decl arch pre num = do
          then do let (name, obj) = fromJust next
                      refr = (fst pre, Just num)
                      addr = getAddr name
-                 maybe_object
+                 _ <- maybe_object
                  maybeInsertIRQ name
                  insertRef name refr
                  considerUntypeds arch refr addr obj
@@ -178,7 +176,7 @@ maybe_obj_decl arch pre num = do
 obj_decl :: Arch -> MapParser KODecl
 obj_decl arch = do
     name <- name
-    symbol "="
+    _ <- symbol "="
     obj <- CapDL.DumpParser.object
     total <- maybe_obj_decl arch (name, obj) 1
     let (decl, refr) = if total == 1

@@ -37,13 +37,14 @@ sandbox:
 	cabal sandbox init
 	cabal install --dependencies-only
 
-$(TARGET): Setup.hs Main.hs CapDL/*.hs
+$(TARGET): capDL-tool.cabal Setup.hs Main.hs CapDL/*.hs
 	export CONFIG_CAPDL_LOADER_MAX_IRQS=$(CONFIG_CAPDL_LOADER_MAX_IRQS) && cabal configure && cabal build && \
 	cp dist/build/parse-capDL/parse-capDL .
 
 .PHONY: clean
 clean:
 	cabal clean
+	rm -f $(TARGET)
 
 .PHONY: testclean
 testclean: 

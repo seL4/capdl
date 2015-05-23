@@ -15,7 +15,6 @@ module CapDL.PrintUtils where
 import CapDL.Model
 
 import Text.PrettyPrint
-import Data.Maybe (fromMaybe)
 import Data.Word
 import qualified Data.Set as Set
 import Numeric
@@ -146,16 +145,18 @@ capParams xs = parens (hsep $ punctuate comma xs)
 successiveWordsUp :: [Maybe Word] -> [Word]
 successiveWordsUp [] = []
 successiveWordsUp [Just x] = [x]
-successiveWordsUp ls@((Just first):(Just second):xs)
+successiveWordsUp ls@((Just first):(Just second):_)
     | succ first == second = first:(successiveWordsUp (tail ls))
     | otherwise = [first]
+successiveWordsUp _ = error "successiveWordsUp"
 
 successiveWordsDown :: [Maybe Word] -> [Word]
 successiveWordsDown [] = []
 successiveWordsDown [Just x] = [x]
-successiveWordsDown ls@((Just first):(Just second):xs)
+successiveWordsDown ls@((Just first):(Just second):_)
     | first == succ second = first:(successiveWordsDown (tail ls))
     | otherwise = [first]
+successiveWordsDown _ = error "successiveWordsDown"
 
 successiveWords :: [Maybe Word] -> [Word]
 successiveWords [] = []
@@ -184,7 +185,7 @@ prettyBrackets list = brackets (prettyRanges list)
 
 prettyParemNum t n = [text t <> colon <+> num n]
 
-maybeNum t 0 = []
+maybeNum _ 0 = []
 maybeNum t n = prettyParemNum t n
 
 maybeBadge = maybeNum "badge"
@@ -279,7 +280,7 @@ instance Arrayable ObjID where
 sameArray :: (Printing a, Arrayable b) => [(a, b)] -> [(a, b)]
 sameArray [] = []
 sameArray [x] = [x]
-sameArray ls@(x@(slot1, first):(slot2, second):xs)
+sameArray ls@(x@(slot1, first):(slot2, second):_)
     | isSameArray first second && isSucc slot1 slot2 = x:(sameArray (tail ls))
     | otherwise = [x]
 

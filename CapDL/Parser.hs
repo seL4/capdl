@@ -8,18 +8,16 @@
 -- @TAG(NICTA_BSD)
 --
 
+{-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
+
 module CapDL.Parser where
 
 import CapDL.AST
-import CapDL.Model
 import CapDL.ParserUtils
 
 import Text.ParserCombinators.Parsec
-import qualified Text.ParserCombinators.Parsec.Token as PT
-import Text.ParserCombinators.Parsec.Language
 
 import Data.Word
-import Data.Set (fromList)
 
 obj_decl_or_ref :: MapParser (Either KODecl NameRef)
 obj_decl_or_ref =
