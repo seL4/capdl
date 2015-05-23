@@ -11,13 +11,14 @@
 -- Printer for C source format to be consumed by the CapDL initialiser.
 -- Note: corresponds to the -c/--code argument.
 
+{-# LANGUAGE CPP #-}
+
 module CapDL.PrintC where
 
 import CapDL.Model
 
 import Control.Exception (assert)
 import Data.List
-import Data.List.Ordered
 import Data.List.Utils
 import Data.Maybe (fromJust, fromMaybe)
 import Data.Word

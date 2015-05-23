@@ -8,8 +8,6 @@
 -- @TAG(NICTA_BSD)
 --
 
-{-# LANGUAGE CPP #-}
-
 module CapDL.State where
 
 import CapDL.Model
@@ -252,14 +250,6 @@ hasTarget :: ObjID -> Cap -> Bool
 hasTarget ref cap = if hasObjID cap then objID cap == ref else False
 
 -- validity
-
-#if __GLASGOW_HASKELL__<704
-
-instance Monoid Doc where
-    mempty = empty
-    mappend x y = x $+$ y
-
-#endif
 
 type Logger a = Writer Doc a
 

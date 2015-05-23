@@ -1,8 +1,5 @@
 syntax: glob
 
-*.hi
-*.o
-parse-capDL
 *.parse
 *.parse.x
 *.out
@@ -13,3 +10,8 @@ parse-capDL
 doc/capDL.pdf
 doc/capDL.aux
 doc/capDL.log
+
+.cabal-sandbox
+cabal.sandbox.config
+dist
+parse-capDL

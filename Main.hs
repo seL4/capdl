@@ -82,7 +82,7 @@ options = [
     Option ['a'] ["analysis"]
         (ReqArg (\arg o -> o {optOutputAnalysis = Just arg }) "FILE")
         "perform analysis and output cap leak and info flow .dot files and capDL text"
-    ]
+  ]
 
 --
 -- Usage information

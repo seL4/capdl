@@ -11,13 +11,10 @@
 TARGET=parse-capDL
 
 .PHONY: all
-all: $(TARGET)
+all: sandbox $(TARGET)
 
 .PHONY: tests
 tests: example-arm.parse example-ia32.parse hello-dump.parse
-
-# Command-line options to pass to GHC.
-GHC_FLAGS ?=
 
 # The size of the IRQ array we emit (if using --code) needs to match the size
 # expected by the initialiser. If we're building within a project, try to
@@ -25,11 +22,6 @@ GHC_FLAGS ?=
 -include .config
 ifndef CONFIG_CAPDL_LOADER_MAX_IRQS
     CONFIG_CAPDL_LOADER_MAX_IRQS = 256
-endif
-
-# Enable parallel compilation if the available version of GHC supports it.
-ifneq ($(shell ghc --info | grep '"Support parallel --make","YES"'),)
-  GHC_FLAGS += -j
 endif
 
 %.parse: %.cdl %.right $(TARGET)
@@ -40,9 +32,14 @@ endif
 	@diff $*.parse $*.parse.x  || (echo "Self parse failed"; exit 1)
 	which xmllint && xmllint --noout --dtdvalid ./capdl.dtd $*.xml
 
+.PHONY: sandbox
+sandbox:
+	cabal sandbox init
+	cabal install --dependencies-only
+
 $(TARGET): Main.hs CapDL/*.hs
-	ghc -O2 --make ${GHC_FLAGS} Main.hs -o $(TARGET) \
-        -cpp -DCONFIG_CAPDL_LOADER_MAX_IRQS=${CONFIG_CAPDL_LOADER_MAX_IRQS}
+	export CONFIG_CAPDL_LOADER_MAX_IRQS=$(CONFIG_CAPDL_LOADER_MAX_IRQS) && cabal configure && cabal build && \
+	cp dist/build/parse-capDL/parse-capDL .
 
 .PHONY: clean
 clean:

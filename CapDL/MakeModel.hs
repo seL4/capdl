@@ -17,7 +17,6 @@ import CapDL.State
 import Data.Word
 import Data.Maybe
 import Data.List
-import Data.List.Ordered
 import Data.Either as Either
 import Data.Data
 import qualified Data.Set as Set
