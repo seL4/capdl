@@ -24,9 +24,11 @@ Repository overview
 Dependencies
 -------------
 
-To build this tool the following Haskell modules are required: MissingH,
-data-ordlist, split, parsec, mtl.
+[Cabal][1] should automatically retrieve all necessary Haskell dependencies to
+build this tool, but if you need exact dependency information it is available
+in [`capDL-tool.cabal`](capDL-tool.cabal).
 
+  [1]: https://www.haskell.org/cabal/
 
 Related papers
 --------------
