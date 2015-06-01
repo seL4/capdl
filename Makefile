@@ -11,7 +11,7 @@
 TARGET=parse-capDL
 
 .PHONY: all
-all: sandbox $(TARGET)
+all: $(TARGET)
 
 .PHONY: tests
 tests: example-arm.parse example-ia32.parse hello-dump.parse
@@ -36,6 +36,10 @@ endif
 sandbox:
 	cabal sandbox init
 	cabal install --dependencies-only
+
+.PHONY: userdeps
+userdeps:
+	cabal install --user --dependencies-only
 
 $(TARGET): capDL-tool.cabal Setup.hs Main.hs CapDL/*.hs
 	export CONFIG_CAPDL_LOADER_MAX_IRQS=$(CONFIG_CAPDL_LOADER_MAX_IRQS) && cabal configure && cabal build && \

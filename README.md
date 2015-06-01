@@ -30,6 +30,18 @@ in [`capDL-tool.cabal`](capDL-tool.cabal).
 
   [1]: https://www.haskell.org/cabal/
 
+You can install cabal package dependencies either in a sandbox in the build
+directory or in the current user's home.
+
+To install cabal dependencies in a sandbox run
+
+    make sandbox
+
+To install cabal dependencies in the user's home run
+
+    make userdeps
+
+
 Related papers
 --------------
 
