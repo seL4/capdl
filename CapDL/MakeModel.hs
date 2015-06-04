@@ -132,8 +132,7 @@ getUntypedCover ns objs covers (ObjDecl (KODecl objName obj)) =
             qns = qNames objName
             covers' = addUTCovers objs covers [name]
                                   (map refToID (reverse (ns ++ qns)))
-            -- FIXME: should covers below be covers'?
-            covers'' = addUTDecls objs name covers (Either.rights (objDecls obj))
+            covers'' = addUTDecls objs name covers' (Either.rights (objDecls obj))
         in getUntypedCovers (ns ++ objName) objs covers''
                                         (map ObjDecl (lefts (objDecls obj)))
 getUntypedCover _ _ covers _ = covers

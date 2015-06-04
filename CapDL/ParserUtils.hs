@@ -313,13 +313,6 @@ ranges =
     <|> brackets (sepBy1 range comma)
     <|> return []
 
-mask :: MapParser String
-mask = do
-    reserved "mask"
-    colon
-    parse_rights
-    return ""  -- FIXME: warn
-
 parse_asid :: MapParser Asid
 parse_asid = do
     symbol "("

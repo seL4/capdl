@@ -26,7 +26,7 @@ objects {
   name = ut (8 bits) {a, b, name2, y[0..2], z}
   name2 = ut {name3}
   name3 = ut {x}
-  name_b = ut (10 bits)
+  name_b = ut (10 bits) {name}
   rm_ut = ut {control, frame_nic1[0..63], frame_nic2[0..63],
               frame_nic3[0..3], linux_pd, rm_ap, rm_pd, rm_tcb, rm_ut_big[0..99],
               rm_ut_small[0..49], something, test[0..4], timer}
