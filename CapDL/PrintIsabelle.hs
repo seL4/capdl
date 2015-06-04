@@ -294,7 +294,7 @@ printEmptyIrqObjMapping ms irqNode =
     parens (lambda <> text ("obj_id. if " ++ start ++ " \\<le> obj_id \\<and> obj_id \\<le> " ++ end) <+>
         text "then (Some empty_irq_node)" <+> text "else None")
     where ms' = Map.filterWithKey (\id _ -> not (mapElem id irqNode)) ms
-          start = show $ Map.size ms'
+          start = show $ Map.size ms
           end = show $ Map.size ms' + 255
 
 printEmptyIrqObjMap :: ObjMap Word -> IRQMap -> Doc
