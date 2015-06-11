@@ -12,7 +12,7 @@ from Cap import Cap
 from ELF import ELF
 from Object import Frame, PageTable, PageDirectory, ASIDPool, CNode, Endpoint, \
                    AsyncEndpoint, TCB, Untyped, IOPorts, IODevice, IOPageTable, \
-                   IRQ
+                   IRQ, calculate_cnode_size
 from Spec import Spec
 from Allocator import seL4_UntypedObject, seL4_TCBObject, seL4_EndpointObject, \
     seL4_AsyncEndpointObject, seL4_CapTableObject, seL4_ARM_SmallPageObject, \
