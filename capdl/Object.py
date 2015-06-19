@@ -107,8 +107,11 @@ class ASIDPool(ContainerObject):
     def __repr__(self):
         return '%s = asid_pool' % self.name
 
+def calculate_cnode_size(max_slot):
+    return int(math.floor(math.log(max(max_slot, 2), 2)) + 1)
+
 def calculate_size(cnode):
-    return int(math.floor(math.log(reduce(max, cnode.slots.keys(), 2), 2)) + 1)
+    return calculate_cnode_size(max(cnode.slots.keys()))
 
 class CNode(ContainerObject):
     def __init__(self, name, size_bits='auto'):
