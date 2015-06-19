@@ -50,10 +50,9 @@ class ContainerObject(Object):
                 assert isinstance(index, str)
                 return '%s: ' % index
 
-        return '%s {\n%s\n}' % \
-            (self.name, \
-             '\n'.join(['%s%s' % (slot_index(x[0]), x[1]) \
-                for x in self.slots.items() if x[1] is not None]))
+        return '%s {\n%s\n}' % (self.name,
+            '\n'.join(sorted('%s%s' % (slot_index(x[0]), x[1])
+                for x in self.slots.items() if x[1] is not None)))
 
     def __contains__(self, key):
         return key in self.slots

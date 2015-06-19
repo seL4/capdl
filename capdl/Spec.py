@@ -42,14 +42,14 @@ class Spec(object):
             'arch':self.arch,
 
             # Kernel objects
-            'objs':'\n'.join([str(x) for x in self.objs]),
+            'objs':'\n'.join(sorted(str(x) for x in self.objs)),
 
             # Capabilities to kernel objects
-            'caps':'\n'.join(
-                [x.print_contents() for x in self.objs if x.is_container()]),
+            'caps':'\n'.join(sorted(
+                x.print_contents() for x in self.objs if x.is_container())),
 
             # Mapping from interrupt numbers to IRQ objects
-            'irqs':'\n'.join(
-                ['%d: %s' % (x.number, x.name) for x in self.objs \
-                    if isinstance(x, IRQ) and x.number is not None]),
+            'irqs':'\n'.join(sorted(
+                '%d: %s' % (x.number, x.name) for x in self.objs
+                    if isinstance(x, IRQ) and x.number is not None)),
         }
