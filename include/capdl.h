@@ -193,9 +193,6 @@ typedef struct {
     CDL_Object *objects;
 
     CDL_ObjID irqs[CONFIG_CAPDL_LOADER_MAX_IRQS];
-
-    /* covers: the root untyped TODO: change to CoverMap? */
-    CDL_ObjID root_ut;
 } CDL_Model;
 
 /* helper functions ---------------------------------------------------------------------------- */
