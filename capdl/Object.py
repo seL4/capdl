@@ -152,8 +152,7 @@ class TCB(ContainerObject):
         self.domain = domain
 
     def __repr__(self):
-        # XXX: Assumes 32-bit pointers
-        s = '%(name)s = tcb (addr: 0x%(addr)0.8x, ip: 0x%(ip)0.8x, sp: 0x%(sp)0.8x, elf: %(elf)s, prio: %(prio)s, init: %(init)s' % self.__dict__
+        s = '%(name)s = tcb (addr: 0x%(addr)x, ip: 0x%(ip)x, sp: 0x%(sp)x, elf: %(elf)s, prio: %(prio)s, init: %(init)s' % self.__dict__
         if self.domain is not None:
             s += ', dom: %d' % self.domain
         s += ')'
