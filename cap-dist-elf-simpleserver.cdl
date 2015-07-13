@@ -13,7 +13,7 @@ arch ia32
 objects {
 
 cnode = cnode (4 bits)
-tcb = tcb (addr: 0x15000, ip: 0x00010000, sp: 0x00013000, elf: sel4_simpleserver, prio: 42, init:[10,15])
+tcb = tcb (addr: 0x15000, ip: 0x00010000, sp: 0x00013000, elf: sel4_simpleserver, prio: 42, init:[10,15], fault_ep_slot: 1)
 pd1 = pd
 ap = asid_pool
 pt1 = pt
@@ -45,6 +45,5 @@ tcb {
   cspace: cnode2 (guard: 0, guard_size: 28)
   vspace: pd1
   ipc_buffer_slot: frame[5] (RWG)
-  fault_ep_slot: ep (RWG)
 }
 }
