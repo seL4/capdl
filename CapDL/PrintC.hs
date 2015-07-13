@@ -171,7 +171,7 @@ printInit argv =
 showObjectFields :: Map ObjID Int -> ObjID -> KernelObject Word -> IRQMap -> CDT -> ObjMap Word -> String
 showObjectFields _ _ Endpoint _ _ _ = ".type = CDL_Endpoint,"
 showObjectFields _ _ AsyncEndpoint _ _ _ = ".type = CDL_AsyncEndpoint,"
-showObjectFields objs obj_id (TCB slots _ info domain argv) _ _ _ =
+showObjectFields objs obj_id (TCB slots faultEndpoint info domain argv) _ _ _ =
     ".type = CDL_TCB," +++
     ".tcb_extra = {" +++
     indent
@@ -183,7 +183,8 @@ showObjectFields objs obj_id (TCB slots _ info domain argv) _ _ _ =
        ".elf_name = " ++ show elf_name ++ "," +++
        ".init = (const seL4_Word[])" ++ printInit argv ++ "," +++
        ".init_sz = " ++ show (length argv) ++ "," +++
-       ".domain = " ++ show domain ++ ",") +++
+       ".domain = " ++ show domain ++ "," +++
+       ".fault_ep = " ++ show fault_ep ++ ",") +++
     "}," +++
     memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
     where
@@ -193,6 +194,7 @@ showObjectFields objs obj_id (TCB slots _ info domain argv) _ _ _ =
         pc = case info of {Just i -> case ip i of {Just v -> v; _ -> 0}; _ -> 0}
         stack = case info of {Just i -> case sp i of {Just v -> v; _ -> 0}; _ -> 0}
         elf_name = case info of {Just i -> case elf i of {Just e -> e; _ -> ""}; _ -> ""}
+        fault_ep = case faultEndpoint of {Just w -> w; _ -> 0}
 showObjectFields objs obj_id (CNode slots sizeBits) irqNode cdt ms =
     ".type = " ++ t ++ "," +++
     ".size_bits = " ++ show sizeBits ++ "," +++
