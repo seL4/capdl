@@ -170,6 +170,7 @@ typedef struct {
     const seL4_Word *init;
     seL4_Word init_sz;
     uint32_t domain;
+    seL4_CPtr fault_ep;
 } CDL_TCBExtraInfo;
 
 typedef struct {
