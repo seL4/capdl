@@ -897,10 +897,6 @@ init_tcb(const CDL_Model *spec, CDL_ObjID tcb)
     if (cdl_vspace_root == NULL) {
         die("Could not find VSpace cap for %s", CDL_Obj_Name(cdl_tcb));
     }
-    CDL_Cap *cdl_fault_ep    = get_cap_at(cdl_tcb, CDL_TCB_FaultEP_Slot);
-    if (cdl_fault_ep == NULL) {
-        debug_printf("  Warning: TCB has no fault endpoint\n");
-    }
     CDL_Cap *cdl_ipcbuffer   = get_cap_at(cdl_tcb, CDL_TCB_IPCBuffer_Slot);
     if (cdl_ipcbuffer == NULL) {
         debug_printf("  Warning: TCB has no IPC buffer\n");
@@ -914,7 +910,7 @@ init_tcb(const CDL_Model *spec, CDL_ObjID tcb)
     seL4_CPtr sel4_cspace_root = cdl_cspace_root == NULL ? 0 : orig_caps(CDL_Cap_ObjID(cdl_cspace_root));
     seL4_CPtr sel4_vspace_root = orig_caps(CDL_Cap_ObjID(cdl_vspace_root));
     seL4_CPtr sel4_ipcbuffer   = cdl_ipcbuffer ? orig_caps(CDL_Cap_ObjID(cdl_ipcbuffer)) : 0;
-    seL4_CPtr sel4_fault_ep    = cdl_fault_ep ? orig_caps(CDL_Cap_ObjID(cdl_fault_ep)) : 0;
+    seL4_CPtr sel4_fault_ep    = cdl_tcb->tcb_extra.fault_ep;
 
     seL4_CapData_t sel4_cspace_root_data = cdl_cspace_root == NULL ? (seL4_CapData_t){{0}} : get_capData(CDL_Cap_Data(cdl_cspace_root));
     seL4_CapData_t sel4_vspace_root_data = get_capData(CDL_Cap_Data(cdl_vspace_root));
