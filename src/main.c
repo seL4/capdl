@@ -921,6 +921,19 @@ init_tcb(const CDL_Model *spec, CDL_ObjID tcb)
                                    ipcbuffer_addr, sel4_ipcbuffer);
 
     seL4_AssertSuccess(error);
+
+#ifdef SEL4_DEBUG_KERNEL
+    /* Name the thread after its TCB name if possible. We need to do some
+     * juggling first to ensure the name will not overflow the IPC buffer.
+     */
+    char safe_name[seL4_MsgMaxLength * sizeof(seL4_Word)];
+    const char *name = CDL_Obj_Name(cdl_tcb);
+    if (name != NULL) {
+        strncpy(safe_name, name, sizeof(safe_name) - 1);
+        safe_name[sizeof(safe_name) - 1] = '\0';
+        (void)seL4_DebugNameThread(sel4_tcb, safe_name);
+    }
+#endif
 }
 
 static void
