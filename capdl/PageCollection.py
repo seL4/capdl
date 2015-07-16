@@ -19,7 +19,6 @@ from Spec import Spec
 from util import page_table_vaddr, page_table_index, page_index, round_down, \
     PAGE_SIZE, page_table_coverage
 import collections
-from weakref import ref
 
 def consume(iterator):
     '''Take a generator and exhaust it. Useful for discarding the unused result
@@ -36,7 +35,7 @@ class PageCollection(object):
         self._pd = pd
         self._asid = None
         self.infer_asid = infer_asid
-        self._spec = lambda: None
+        self._spec = None
         self.hyp = hyp
 
     def add_page(self, vaddr, read=False, write=False, execute=False, size=PAGE_SIZE):
@@ -105,9 +104,8 @@ class PageCollection(object):
         return self._asid
 
     def get_spec(self):
-        spec = self._spec()
-        if spec:
-            return spec
+        if self._spec is not None:
+            return self._spec
 
         spec = Spec(self.arch)
 
@@ -146,8 +144,9 @@ class PageCollection(object):
                 pt[p_index] = page_cap
 
         # Cache the result for next time.
-        assert self._spec() is None
-        self._spec = ref(spec)
+        assert self._spec is None
+        self._spec = spec
+
 
         return spec
 
