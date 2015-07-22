@@ -1252,6 +1252,25 @@ map_page(const CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
             debug_printf(" -> %p (error = %d)\n", (void*)page_vaddr, error);
             seL4_AssertSuccess(error);
         }
+#ifdef ARCH_ARM
+        /* When seL4 creates a new frame object it zeroes the associated memory
+         * through a cached kernel mapping. If we are configuring a cached
+         * mapping for the target, standard coherence protocols ensure
+         * everything works as expected. However, if we are configuring an
+         * uncached mapping for the target, the dirty zero data cached from the
+         * kernel's mapping is likely flushed to memory at some time in the
+         * future causing an unpleasant surprise for the target whose own
+         * uncached writes are mysteriously overwritten. To prevent this, we
+         * unify the mapping here, flushing the cached data from the kernel's
+         * mapping.
+         */
+        if (!(vm_attribs & seL4_ARM_PageCacheable)) {
+            seL4_Word size_bits = spec->objects[page].size_bits;
+            assert(size_bits <= sizeof(uintptr_t) * 8 - 1 && "illegal object size");
+            error = seL4_ARM_Page_CleanInvalidate_Data(sel4_page, 0, BIT(size_bits));
+            seL4_AssertSuccess(error);
+        }
+#endif
     }
 }
 
