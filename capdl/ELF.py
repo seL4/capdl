@@ -111,7 +111,7 @@ class ELF(object):
                         'type': 0}]
             relevant_sections = filter(seg.section_in_segment, sections)
             for sec in relevant_sections:
-                region = [x for x in regions if \
+                region = [x for x in regions if
                     sec['sh_addr'] in xrange(x['addr'], x['addr'] + x['size'])]
                 assert len(region) == 1
                 region = region[0]
@@ -171,7 +171,7 @@ class ELF(object):
 
         if infer_tcb:
             # Create a single TCB.
-            tcb = TCB('tcb_%s' % self._safe_name(), ip=self.get_entry_point(), \
+            tcb = TCB('tcb_%s' % self._safe_name(), ip=self.get_entry_point(),
                 elf=self.name)
             spec.add_object(tcb)
             tcb['vspace'] = pages.get_page_directory()[1]

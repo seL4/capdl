@@ -140,7 +140,7 @@ class AsyncEndpoint(Object):
         return '%s = aep' % self.name
 
 class TCB(ContainerObject):
-    def __init__(self, name, ipc_buffer_vaddr=0x0, ip=0x0, sp=0x0, elf=None, \
+    def __init__(self, name, ipc_buffer_vaddr=0x0, ip=0x0, sp=0x0, elf=None,
             prio=254, init=None, domain=None):
         super(TCB, self).__init__(name)
         self.addr = ipc_buffer_vaddr
@@ -178,7 +178,7 @@ class IOPorts(Object):
 
     def __repr__(self):
         return '%(name)s = io_ports (%(size)sk ports)' % \
-            {'name':self.name, \
+            {'name':self.name,
              'size':self.size / 1024}
 
 class IODevice(Object):

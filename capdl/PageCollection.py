@@ -159,7 +159,7 @@ def create_address_space(regions, name='', arch='arm11'):
         assert 'end' in r
         v = round_down(r['start'])
         while round_down(v) < r['end']:
-            pages.add_page(v, r.get('read', False), r.get('write', False), \
+            pages.add_page(v, r.get('read', False), r.get('write', False),
                 r.get('execute', False))
             v += PAGE_SIZE
 

@@ -60,13 +60,13 @@ class Cap(object):
         if isinstance(self.referent, Object.Frame) or \
            isinstance(self.referent, Object.Endpoint) or \
            isinstance(self.referent, Object.AsyncEndpoint):
-            extra.append('%s%s%s' % \
-                ('R' if self.read else '', \
-                 'W' if self.write else '', \
+            extra.append('%s%s%s' %
+                ('R' if self.read else '',
+                 'W' if self.write else '',
                  'X' if self.grant else ''))
         if isinstance(self.referent, Object.Frame) and not self.cached:
             extra.append('uncached')
-        if (isinstance(self.referent, Object.Endpoint) or \
+        if (isinstance(self.referent, Object.Endpoint) or
             isinstance(self.referent, Object.AsyncEndpoint)) and \
            self.badge is not None:
             extra.append('badge: %d' % self.badge)
@@ -80,5 +80,5 @@ class Cap(object):
 
         extra = filter(lambda x: x != '', extra)
 
-        return '%s%s' % (self.referent.name, \
+        return '%s%s' % (self.referent.name,
                          (' (%s)' % ', '.join(extra)) if extra else '')
