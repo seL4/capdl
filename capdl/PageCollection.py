@@ -120,7 +120,7 @@ class PageCollection(object):
         pts = {}
         pt_counter = 0
         for page_counter, (page_vaddr, page) in enumerate(self._pages.items()):
-            frame = Frame('frame_%s_%s' % (self.name, page_counter),
+            frame = Frame('frame_%s_%04d' % (self.name, page_counter),
                 page['size'])
             spec.add_object(frame)
             page_cap = Cap(frame, read=page['read'], write=page['write'],
@@ -133,7 +133,7 @@ class PageCollection(object):
                 pd[pt_index] = page_cap
             else:
                 if pt_vaddr not in pts:
-                    pt = PageTable('pt_%s_%s' % (self.name, pt_counter))
+                    pt = PageTable('pt_%s_%04d' % (self.name, pt_counter))
                     pt_counter += 1
                     spec.add_object(pt)
                     pt_cap = Cap(pt)
