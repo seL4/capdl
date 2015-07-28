@@ -60,7 +60,7 @@ def page_table_coverage(arch, hyp=False):
     else:
         # NB: If you end up in this branch while dealing with an ELF that you
         # are reasonably sure is ARM, chances are you don't have a recent
-        # enough version of pyelftools. ARM support was only added recently.
+        # enough version of pyelftools.
         raise NotImplementedError
 
 def page_table_vaddr(arch, vaddr, hyp=False):
