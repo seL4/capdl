@@ -99,7 +99,9 @@ class ObjectAllocator(object):
         elif type == seL4_CapTableObject:
             o = CNode(name, **kwargs)
         elif type == seL4_FrameObject:
-            o = Frame(name, 4096, **kwargs)
+            if 'size' not in kwargs:
+                kwargs['size'] = 4096
+            o = Frame(name, **kwargs)
         elif type == seL4_IA32_4K or type == seL4_ARM_SmallPageObject:
             o = Frame(name, 4096, **kwargs) # 4K
         elif type == seL4_ARM_LargePageObject:
