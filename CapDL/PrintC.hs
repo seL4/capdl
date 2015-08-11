@@ -24,15 +24,11 @@ import Data.Maybe (fromJust, fromMaybe)
 import Data.Word
 import Data.Map as Map
 import Data.Set as Set
-import Data.String.Utils (rstrip)
 import Data.Bits
 import Numeric (showHex)
 import Text.PrettyPrint
 
 (∈) = Set.member
-
-indent :: String -> String
-indent s = rstrip $ unlines $ Prelude.map (\a -> "  " ++ a) $ lines s
 
 (+++) :: String -> String -> String
 s1 +++ s2 = s1 ++ "\n" ++ s2
@@ -159,7 +155,7 @@ memberSlots :: Map ObjID Int -> ObjID -> CapMap Word -> IRQMap -> CDT -> ObjMap 
 memberSlots objs obj_id slots irqNode cdt ms =
     ".slots.num = " ++ show slot_count ++ "," +++
     ".slots.slot = (CDL_CapSlot[]) {" +++
-    indent (showSlots objs obj_id (Map.toList slots) irqNode cdt ms) +++
+    showSlots objs obj_id (Map.toList slots) irqNode cdt ms +++
     "},"
     where
         slot_count = Map.size slots
@@ -174,17 +170,16 @@ showObjectFields _ _ AsyncEndpoint _ _ _ = ".type = CDL_AsyncEndpoint,"
 showObjectFields objs obj_id (TCB slots faultEndpoint info domain argv) _ _ _ =
     ".type = CDL_TCB," +++
     ".tcb_extra = {" +++
-    indent
-      (".ipcbuffer_addr = " ++ show ipcbuffer_addr ++ "," +++
-       ".driverinfo = " ++ show driverinfo ++ "," +++
-       ".priority = " ++ show priority ++ "," +++
-       ".pc = " ++ show pc ++ "," +++
-       ".sp = " ++ show stack ++ "," +++
-       ".elf_name = " ++ show elf_name ++ "," +++
-       ".init = (const seL4_Word[])" ++ printInit argv ++ "," +++
-       ".init_sz = " ++ show (length argv) ++ "," +++
-       ".domain = " ++ show domain ++ "," +++
-       ".fault_ep = " ++ show fault_ep ++ ",") +++
+    ".ipcbuffer_addr = " ++ show ipcbuffer_addr ++ "," +++
+    ".driverinfo = " ++ show driverinfo ++ "," +++
+    ".priority = " ++ show priority ++ "," +++
+    ".pc = " ++ show pc ++ "," +++
+    ".sp = " ++ show stack ++ "," +++
+    ".elf_name = " ++ show elf_name ++ "," +++
+    ".init = (const seL4_Word[])" ++ printInit argv ++ "," +++
+    ".init_sz = " ++ show (length argv) ++ "," +++
+    ".domain = " ++ show domain ++ "," +++
+    ".fault_ep = " ++ show fault_ep ++ "," +++
     "}," +++
     memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
     where
@@ -237,9 +232,8 @@ showObjectFields _ _ x _ _ _ = assert False $
 showObject :: Map ObjID Int -> (ObjID, KernelObject Word) -> IRQMap -> CDT -> ObjMap Word -> String
 showObject objs obj irqNode cdt ms =
     "{" +++
-    indent
-      ("#ifdef CONFIG_CAPDL_LOADER_PRINTF" +++ ".name = \"" ++ name ++ "\"," +++ "#endif" +++
-       showObjectFields objs id (snd obj) irqNode cdt ms) +++
+    "#ifdef CONFIG_CAPDL_LOADER_PRINTF" +++ ".name = \"" ++ name ++ "\"," +++ "#endif" +++
+    showObjectFields objs id (snd obj) irqNode cdt ms +++
     "}"
     where
         id = fst obj
@@ -291,7 +285,7 @@ memberObjects ::  Map ObjID Int -> Arch -> [(ObjID, KernelObject Word)] -> IRQMa
                   ObjMap Word -> String
 memberObjects obj_ids _ objs irqNode cdt objs' =
     ".objects = (CDL_Object[]) {" +++
-    (indent $ showObjects obj_ids 0 objs irqNode cdt objs') +++
+    showObjects obj_ids 0 objs irqNode cdt objs' +++
     "},"
 
 -- Emit an array where each entry represents a given interrupt. Each is -1 if
@@ -300,7 +294,7 @@ memberObjects obj_ids _ objs irqNode cdt objs' =
 memberIRQs :: Map ObjID Int -> IRQMap -> Arch -> String
 memberIRQs objs irqNode _ =
     ".irqs = {" +++
-    (indent $ join ", " $ Data.List.map (\k -> show $ case Map.lookup k irqNode of
+    (join ", " $ Data.List.map (\k -> show $ case Map.lookup k irqNode of
         Just i -> fromJust $ Map.lookup i objs
         _ -> -1) [0..(CONFIG_CAPDL_LOADER_MAX_IRQS - 1)]) +++
     "},"
@@ -313,17 +307,16 @@ printC (Model arch objs irqNode cdt _) _ _ =
     "#include <capdl.h>" +++
     "" +++
     "#ifndef INVALID_SLOT" +++
-    indent "#define INVALID_SLOT (-1)" +++
+    "#define INVALID_SLOT (-1)" +++
     "#endif" +++
     "" +++
     maxObjects objs_sz +++ -- FIXME: I suspect this is not the right list to measure.
     "" +++
     "CDL_Model capdl_spec = {" +++
-    indent
-      (memberArch arch +++
-       memberNum objs_sz +++
-       memberIRQs obj_ids irqNode arch +++
-       memberObjects obj_ids arch objs' irqNode cdt objs) +++
+    memberArch arch +++
+    memberNum objs_sz +++
+    memberIRQs obj_ids irqNode arch +++
+    memberObjects obj_ids arch objs' irqNode cdt objs +++
     "};"
     where
         objs_sz = length $ Map.toList objs
