@@ -1264,7 +1264,7 @@ map_page(const CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
          * unify the mapping here, flushing the cached data from the kernel's
          * mapping.
          */
-        if (!(vm_attribs & seL4_ARM_PageCacheable)) {
+        if (!(vm_attribs & seL4_ARM_PageCacheable) && spec->objects[page].paddr == NULL) {
             seL4_Word size_bits = spec->objects[page].size_bits;
             assert(size_bits <= sizeof(uintptr_t) * 8 - 1 && "illegal object size");
             error = seL4_ARM_Page_CleanInvalidate_Data(sel4_page, 0, BIT(size_bits));
