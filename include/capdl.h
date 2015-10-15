@@ -67,7 +67,7 @@ typedef enum {
     CDL_NullCap,
     CDL_UntypedCap,
     CDL_EPCap,
-    CDL_AEPCap,
+    CDL_NotificationCap,
     CDL_ReplyCap,
     CDL_MasterReplyCap,
     CDL_CNodeCap,
@@ -138,7 +138,7 @@ typedef struct {
 /* KernelObject: */
 typedef enum {
     CDL_Endpoint      = seL4_EndpointObject,
-    CDL_AsyncEndpoint = seL4_NotificationObject,
+    CDL_Notification  = seL4_NotificationObject,
     CDL_TCB           = seL4_TCBObject,
     CDL_CNode         = seL4_CapTableObject,
     CDL_Untyped       = seL4_UntypedObject,

@@ -1385,7 +1385,7 @@ init_cnode_slot(const CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id,
 #else
     int is_orig_cap = false; //FIXME
 #endif
-    int is_ep_cap = (target_cap_type == CDL_EPCap || target_cap_type == CDL_AEPCap);
+    int is_ep_cap = (target_cap_type == CDL_EPCap || target_cap_type == CDL_NotificationCap);
     int is_irq_handler_cap = (target_cap_type == CDL_IRQHandlerCap);
 #if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_IA32)
     int is_ioport_cap = (target_cap_type == CDL_IOPortsCap);
