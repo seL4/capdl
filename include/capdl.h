@@ -138,7 +138,7 @@ typedef struct {
 /* KernelObject: */
 typedef enum {
     CDL_Endpoint      = seL4_EndpointObject,
-    CDL_AsyncEndpoint = seL4_AsyncEndpointObject,
+    CDL_AsyncEndpoint = seL4_NotificationObject,
     CDL_TCB           = seL4_TCBObject,
     CDL_CNode         = seL4_CapTableObject,
     CDL_Untyped       = seL4_UntypedObject,

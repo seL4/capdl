@@ -1137,7 +1137,7 @@ init_irq(const CDL_Model *spec, CDL_IRQ irq_no)
         CDL_Cap *endpoint_cap = &cdl_irq->slots.slot[0].cap;
         seL4_CPtr endpoint_cptr = orig_caps(CDL_Cap_ObjID(endpoint_cap));
 
-        int error = seL4_IRQHandler_SetEndpoint (irq_handler_cap, endpoint_cptr);
+        int error = seL4_IRQHandler_SetNotification (irq_handler_cap, endpoint_cptr);
         seL4_AssertSuccess(error);
     }
 }
