@@ -22,7 +22,7 @@ CFILES += ${BUILD_DIR}/src/capdl_spec.c
 
 ENTRY_POINT := _sel4_start
 
-LIBS := c sel4 elf cpio sel4muslcsys sel4platsupport platsupport sel4simple sel4utils utils
+LIBS := c sel4 elf cpio sel4muslcsys sel4platsupport platsupport sel4simple sel4utils utils sel4vspace
 ifdef CONFIG_KERNEL_STABLE
 LIBS += sel4simple-stable
 else
