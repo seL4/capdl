@@ -9,7 +9,7 @@
 #
 
 from Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
-    AsyncEndpoint, TCB, Untyped, IOPageTable, Object, IRQ, IOPorts, IODevice, \
+    Notification, TCB, Untyped, IOPageTable, Object, IRQ, IOPorts, IODevice, \
     VCPU, ASIDPool
 from Spec import Spec
 from Cap import Cap
@@ -18,7 +18,7 @@ import collections, os
 seL4_UntypedObject = 0
 seL4_TCBObject = 1
 seL4_EndpointObject = 2
-seL4_AsyncEndpointObject = 3
+seL4_NotificationObject = 3
 seL4_CapTableObject = 4
 
 seL4_ARM_SmallPageObject = 5
@@ -94,8 +94,8 @@ class ObjectAllocator(object):
             o = TCB(name)
         elif type == seL4_EndpointObject:
             o = Endpoint(name)
-        elif type == seL4_AsyncEndpointObject:
-            o = AsyncEndpoint(name)
+        elif type == seL4_NotificationObject:
+            o = Notification(name)
         elif type == seL4_CapTableObject:
             o = CNode(name, **kwargs)
         elif type == seL4_FrameObject:
@@ -138,9 +138,9 @@ class ObjectAllocator(object):
         elif type == seL4_IA32_VCPU:
             o = VCPU(name)
         elif type == seL4_IRQControl:
-            if 'number' in kwargs and 'aep' in kwargs:
+            if 'number' in kwargs and 'notification' in kwargs:
                 o = IRQ(name, kwargs['number'])
-                o.set_endpoint(kwargs['aep'])
+                o.set_endpoint(kwargs['notification'])
             else:
                 raise ValueError
         elif type == seL4_ASID_Pool:

@@ -42,7 +42,7 @@ class Cap(object):
     def set_badge(self, badge):
         # Only endpoint caps can be badged.
         assert isinstance(self.referent, Object.Endpoint) or \
-            isinstance(self.referent, Object.AsyncEndpoint)
+            isinstance(self.referent, Object.Notification)
         assert badge & 0xfffffff == badge, 'badges can be a maximum of 28 bits'
         self.badge = badge
 
@@ -59,7 +59,7 @@ class Cap(object):
 
         if isinstance(self.referent, Object.Frame) or \
            isinstance(self.referent, Object.Endpoint) or \
-           isinstance(self.referent, Object.AsyncEndpoint):
+           isinstance(self.referent, Object.Notification):
             extra.append('%s%s%s' %
                 ('R' if self.read else '',
                  'W' if self.write else '',
@@ -67,7 +67,7 @@ class Cap(object):
         if isinstance(self.referent, Object.Frame) and not self.cached:
             extra.append('uncached')
         if (isinstance(self.referent, Object.Endpoint) or
-            isinstance(self.referent, Object.AsyncEndpoint)) and \
+            isinstance(self.referent, Object.Notification)) and \
            self.badge is not None:
             extra.append('badge: %d' % self.badge)
         if isinstance(self.referent, Object.CNode):

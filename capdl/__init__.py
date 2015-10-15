@@ -11,11 +11,11 @@
 from Cap import Cap
 from ELF import ELF
 from Object import Frame, PageTable, PageDirectory, ASIDPool, CNode, Endpoint, \
-                   AsyncEndpoint, TCB, Untyped, IOPorts, IODevice, IOPageTable, \
+                   Notification, TCB, Untyped, IOPorts, IODevice, IOPageTable, \
                    IRQ, calculate_cnode_size
 from Spec import Spec
 from Allocator import seL4_UntypedObject, seL4_TCBObject, seL4_EndpointObject, \
-    seL4_AsyncEndpointObject, seL4_CapTableObject, seL4_ARM_SmallPageObject, \
+    seL4_NotificationObject, seL4_CapTableObject, seL4_ARM_SmallPageObject, \
     seL4_ARM_PageTableObject, seL4_ARM_PageDirectoryObject, seL4_IA32_4K, \
     seL4_IA32_PageTableObject, seL4_IA32_PageDirectoryObject, \
     seL4_IA32_IOPageTableObject, seL4_CanRead, seL4_CanWrite, seL4_CanGrant, \

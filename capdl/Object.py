@@ -135,9 +135,9 @@ class Endpoint(Object):
     def __repr__(self):
         return '%s = ep' % self.name
 
-class AsyncEndpoint(Object):
+class Notification(Object):
     def __repr__(self):
-        return '%s = aep' % self.name
+        return '%s = notification' % self.name
 
 class TCB(ContainerObject):
     def __init__(self, name, ipc_buffer_vaddr=0x0, ip=0x0, sp=0x0, elf=None,
@@ -208,15 +208,15 @@ class IRQ(ContainerObject):
         super(IRQ, self).__init__(name)
         self.number = number
 
-    def set_endpoint(self, aep):
+    def set_endpoint(self, notification):
         # Allow the user to pass an object or cap.
-        if isinstance(aep, Object):
-            assert isinstance(aep, AsyncEndpoint)
-            c = Cap.Cap(aep)
+        if isinstance(notification, Object):
+            assert isinstance(notification, Notification)
+            c = Cap.Cap(notification)
         else:
-            assert isinstance(aep, Cap.Cap)
-            assert isinstance(aep.referent, AsyncEndpoint)
-            c = aep
+            assert isinstance(notification, Cap.Cap)
+            assert isinstance(notification.referent, Notification)
+            c = notification
         self[0] = c
 
     def __repr__(self):
