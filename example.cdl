@@ -38,7 +38,7 @@ rm_ut = ut {
   frame_nic3[4] = frame (4k)
   -- io space??
   
-  timer = aep
+  timer = notification
   control = ep
 }
 
@@ -91,7 +91,7 @@ rm_tcb {
 cap_name = (rm_tcb, cspace)
 cap_name2 = (irqtable, 0)
 
-irqtable { 0: aep_cap nic1 }
+irqtable { 0: notification_cap nic1 }
 
 cnode_booter {
   001: rm_ut

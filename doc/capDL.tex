@@ -115,7 +115,7 @@ implementation of the system.
 %
 %NIC_A_frames = frame[4] (4k)  -- IO memory for network card
 %
-%TIMER_aepR = aep
+%TIMER_notificationR = notification
 %
 %caps
 %
@@ -127,8 +127,8 @@ implementation of the system.
 %TIMER_cspace {
 %  0: TIMER_tcb (RW)
 %  1: TIMER_cspace (RW)
-%  2: TIMER_aepC (W)
-%  3: TIMER_aepR (W)
+%  2: TIMER_notificationC (W)
+%  3: TIMER_notificationR (W)
 %  4: TIMER (RWG)
 %  5: irq_table (irq: 5) -- FIXME
 %}
@@ -200,7 +200,7 @@ This section describes the concrete syntax of capDL using the tokens defined abo
 
   object ::= object_type object_params? opt_obj_decls?
 
-  object_type ::= 'ep'  | 'aep' | 'tcb' | 'cnode' | 'ut' | 'irq' |
+  object_type ::= 'ep'  | 'notification' | 'tcb' | 'cnode' | 'ut' | 'irq' |
                   'asid_pool' | 'pt' | 'pd' | 'frame' | 'io_ports' |
                   'io_device' | 'io_pt' | 'vcpu'
 
@@ -340,7 +340,7 @@ Objects are described by the following data type. We are mainly interested in wh
 types CapMap = Map Word Cap
 
 data Object = Endpoint
-            | AsyncEndpoint
+            | Notification
             | TCB { slots :: CapMap, initArguments :: [Word] }
             | CNode { slots :: CapMap, sizeBits :: Word } 
             | Untyped { maybeSizeBits :: Maybe Word }
@@ -372,7 +372,7 @@ Again in contrast to the security model of seL4, we explicitly distinguish diffe
 data Cap = NullCap
          | UntypedCap { capObj :: ObjID } 
          | EndpointCap { capObj :: ObjID, capBadge :: Word, capRights :: CapRights }
-         | AsyncEndpointCap { capObj :: ObjID, capBadge :: Word, capRights :: CapRights }
+         | NotificationCap { capObj :: ObjID, capBadge :: Word, capRights :: CapRights }
          | ReplyCap { capObj :: ObjID }
          | MasterReplyCap { capObj :: ObjID }
          | CNodeCap { capObj :: ObjID, capGuard :: Word, 
@@ -490,7 +490,7 @@ The right hand side is defined by the following syntax productions:
 \begin{verbatim}
   object ::= object_type object_params? obj_decls?
 
-  object_type ::= 'ep'  | 'aep' | 'tcb' | 'cnode' | 'ut' | 
+  object_type ::= 'ep'  | 'notification' | 'tcb' | 'cnode' | 'ut' | 
                   'asid_pool' | 'pt' | 'pd' | 'frame' | 'io_ports' |
                   'io_device' | 'io_pt' 
 
@@ -601,7 +601,7 @@ ASIDControlCap is specified by \texttt{asid\_control} and IOSpaceMasterCap by
 %
 %\begin{verbatim}
 %entity_of Endpoint          = {}
-%entity_of AsyncEndpoint     = {}
+%entity_of Notification     = {}
 %entity_of (TCB slots)       = Union (caps_of ` range slots)
 %entity_of (CNode slots _)   = Union (caps_of ` range slots)
 %entity_of (Untyped _ _)     = {}
@@ -618,7 +618,7 @@ ASIDControlCap is specified by \texttt{asid\_control} and IOSpaceMasterCap by
 %\begin{verbatim}
 %caps_of NullCap = {}
 %caps_of (EndpointCap id _ R) = {(id_of id, cap_rights R )}
-%caps_of (AsyncEndpointCap id _ R) = {(id_of id, cap_rights R)}
+%caps_of (NotificationCap id _ R) = {(id_of id, cap_rights R)}
 %caps_of (UntypedCap id) = {(id_of id, {Create})}
 %caps_of (CNodeCap id _ _ _ R) = {(id_of id, cnode_rights R)}
 %caps_of (TCBCap id R) = {(id_of id, cap_rights R)}

@@ -18,7 +18,7 @@ objects {
   irq_handler[3] = irq
   linux_pd = pd
   nic1 = io_device (domainID: 0, 0:0.0)
-  nic1_aep = aep
+  nic1_notification = notification
   nic2 = io_device (domainID: 0, 0:0.0)
   nic3 = io_device (domainID: 50, 15:10.3)
   rm_ap = asid_pool
@@ -26,7 +26,7 @@ objects {
   rm_pd = pd
   rm_tcb = tcb (dom: 0)
   some_pt = pt
-  timer = aep
+  timer = notification
   x = tcb (dom: 0)
   y = ep
   z = ep

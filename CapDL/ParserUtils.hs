@@ -107,7 +107,7 @@ parse_arch = do
 object_type :: MapParser KOType
 object_type =
         keyw "ep" Endpoint_T
-    <|> keyw "aep" AsyncEndpoint_T
+    <|> keyw "notification" Notification_T
     <|> keyw "tcb" TCB_T
     <|> keyw "cnode" CNode_T
     <|> keyw "ut" Untyped_T

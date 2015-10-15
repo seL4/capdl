@@ -83,8 +83,8 @@ showCap objs (EndpointCap id badge rights) _ is_orig _ =
     ", .is_orig = " ++ is_orig ++
     ", .rights = " ++ showRights rights ++
     ", .data = { .tag = seL4_CapData_Badge, .badge = " ++ show badge ++ "}}"
-showCap objs (AsyncEndpointCap id badge rights) _ is_orig _ =
-    "{.type = CDL_AEPCap, .obj_id = " ++ showObjID objs id ++
+showCap objs (NotificationCap id badge rights) _ is_orig _ =
+    "{.type = CDL_NotificationCap, .obj_id = " ++ showObjID objs id ++
     ", .is_orig = " ++ is_orig ++
     ", .rights = " ++ showRights rights ++
     ", .data = { .tag = seL4_CapData_Badge, .badge = " ++ show badge ++
@@ -166,7 +166,7 @@ printInit argv =
 
 showObjectFields :: Map ObjID Int -> ObjID -> KernelObject Word -> IRQMap -> CDT -> ObjMap Word -> String
 showObjectFields _ _ Endpoint _ _ _ = ".type = CDL_Endpoint,"
-showObjectFields _ _ AsyncEndpoint _ _ _ = ".type = CDL_AsyncEndpoint,"
+showObjectFields _ _ Notification _ _ _ = ".type = CDL_Notification,"
 showObjectFields objs obj_id (TCB slots faultEndpoint info domain argv) _ _ _ =
     ".type = CDL_TCB," +++
     ".tcb_extra = {" +++
@@ -250,7 +250,7 @@ sizeOf _ (Frame vmSz _) = vmSz
 sizeOf _ (Untyped (Just bSz) _) = 2 ^ bSz
 sizeOf _ (CNode _ bSz) = 16 * 2 ^ bSz
 sizeOf _ Endpoint = 16
-sizeOf _ AsyncEndpoint = 16
+sizeOf _ Notification = 16
 sizeOf _ ASIDPool {} = 4 * 2^10
 sizeOf _ IOPT {} = 4 * 2^10
 sizeOf _ IODevice {} = 1

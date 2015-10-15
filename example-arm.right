@@ -12,13 +12,13 @@ objects {
   g = tcb (dom: 0)
   irq_handler[3] = irq
   linux_pd = pd
-  nic1_aep = aep
+  nic1_notification = notification
   rm_ap = asid_pool
   rm_cn = cnode (10 bits)
   rm_pd = pd
   rm_tcb = tcb (fault_ep: 15, dom: 5, init: [10])
   test[5] = cnode (8 bits)
-  timer = aep
+  timer = notification
   x = tcb (dom: 0)
   y[5] = ep
   z = ep

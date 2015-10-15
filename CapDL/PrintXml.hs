@@ -96,7 +96,7 @@ showObjectAttrs _ = []
 --
 showObjectName :: KernelObject a -> String
 showObjectName Endpoint = "Endpoint"
-showObjectName AsyncEndpoint = "AsyncEndpoint"
+showObjectName Notification = "AsyncEndpoint"
 showObjectName TCB {} = "TCB"
 showObjectName CNode {} = "CNode"
 showObjectName Untyped {} = "Untyped"
@@ -116,7 +116,7 @@ showCapName :: Cap -> String
 showCapName NullCap = "NullCap"
 showCapName UntypedCap {} = "UntypedCap"
 showCapName EndpointCap {} = "EndpointCap"
-showCapName AsyncEndpointCap {} = "AsyncEndpointCap"
+showCapName NotificationCap {} = "AsyncEndpointCap"
 showCapName ReplyCap {} = "ReplyCap"
 showCapName MasterReplyCap {} = "MasterReplyCap"
 showCapName CNodeCap {} = "CNodeCap"
@@ -137,7 +137,7 @@ showCapName VCPUCap {} = "VCPUCap"
 
 showExtraCapAttributes :: Cap -> [(String, String)]
 showExtraCapAttributes (EndpointCap _ capBadge _) = [("badge", show capBadge)]
-showExtraCapAttributes (AsyncEndpointCap _ capBadge _) = [("badge", show capBadge)]
+showExtraCapAttributes (NotificationCap _ capBadge _) = [("badge", show capBadge)]
 showExtraCapAttributes (CNodeCap _ guard guardSize) =
     [("guard", show guard), ("guardSize", show guardSize)]
 showExtraCapAttributes (IOPortsCap _ capPorts) =

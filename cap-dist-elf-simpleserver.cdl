@@ -18,7 +18,7 @@ pd1 = pd
 ap = asid_pool
 pt1 = pt
 frame[6] = frame (4k)
-ep = aep
+ep = notification
 cnode2 = cnode (4 bits)
 }
 

@@ -121,7 +121,7 @@ prettyPCIDevice (pci_bus, pci_dev, pci_fun) =
 
 prettyObjParams obj = case obj of
     Endpoint -> text "ep"
-    AsyncEndpoint -> text "aep"
+    Notification -> text "notification"
     TCB _ fault_ep extra dom init ->
         text "tcb" <+> maybeParensList [prettyExtraInfo extra, prettyFaultEP fault_ep, prettyDom dom, prettyInitArguments init]
     CNode _ 0 -> text "irq" --FIXME: This should check if the obj is in the irqNode
@@ -219,7 +219,7 @@ maybeCapParams :: Cap -> Doc
 maybeCapParams cap = case cap of
     EndpointCap _ badge rights ->
         capParams (maybeBadge badge ++ maybeRights False rights)
-    AsyncEndpointCap _ badge rights ->
+    NotificationCap _ badge rights ->
         capParams (maybeBadge badge ++ maybeRights False rights)
     ReplyCap _ -> capParams [text "reply"]
     MasterReplyCap _ -> capParams [text "master_reply"]
@@ -249,7 +249,7 @@ sameParams :: Cap -> Cap -> Bool
 sameParams cap1 cap2 =
     case (cap1, cap2) of
     ((EndpointCap _ b1 r1), (EndpointCap _ b2 r2)) -> b1 == b2 && r1 == r2
-    ((AsyncEndpointCap _ b1 r1), (AsyncEndpointCap _ b2 r2)) ->
+    ((NotificationCap _ b1 r1), (NotificationCap _ b2 r2)) ->
         b1 == b2 && r1 == r2
     ((CNodeCap _ g1 gs1), (CNodeCap _ g2 gs2)) ->
         g1 == g2 && gs1 == gs2

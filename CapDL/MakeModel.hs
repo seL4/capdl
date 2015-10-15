@@ -318,7 +318,7 @@ objectOf n obj =
     if validObjPars obj
     then case obj of
         Obj Endpoint_T [] [] -> Endpoint
-        Obj AsyncEndpoint_T [] [] -> AsyncEndpoint
+        Obj Notification_T [] [] -> Notification
         Obj TCB_T ps [] ->
             TCB Map.empty (getFaultEP ps) (getExtraInfo n ps) (getTCBDom ps) (getInitArguments ps)
         Obj CNode_T ps [] -> CNode Map.empty (getBitSize n ps)
@@ -472,7 +472,7 @@ getCached (_ : ps) = getCached ps
 validCapPars :: KernelObject Word -> [CapParam] -> Bool
 validCapPars (Endpoint {}) ps =
     subsetConstrs (removeConstr (Rights undefined) ps) [Badge undefined]
-validCapPars (AsyncEndpoint {}) ps =
+validCapPars (Notification {}) ps =
     subsetConstrs (removeConstr (Rights undefined) ps) [Badge undefined]
 validCapPars (TCB {}) ps =
     subsetConstrs ps [Reply, MasterReply] &&
@@ -491,8 +491,8 @@ objCapOf containerName obj objRef params =
     if validCapPars obj params
     then case obj of
         Endpoint -> EndpointCap objRef (getBadge params) (getRights params)
-        AsyncEndpoint ->
-            AsyncEndpointCap objRef (getBadge params) (getRights params)
+        Notification ->
+            NotificationCap objRef (getBadge params) (getRights params)
         TCB {} ->
             case getReplys params of
                 [] -> TCBCap objRef

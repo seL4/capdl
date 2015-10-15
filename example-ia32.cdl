@@ -34,7 +34,7 @@ rm_ut = ut {
   frame_nic3[4] = frame (4k)
   nic3 = io_device (0xf:10.3, domainID: 50)
 
-  timer = aep
+  timer = notification
   control = ep
 
   io_pt1 = io_pt (level: 1)
@@ -49,7 +49,7 @@ io_ports = io_ports (64k ports)
 
 irq_handler[3] = irq
 
-nic1_aep = aep
+nic1_notification = notification
 
 iospace = io_device (0xf:10.3, domainID: 50)
 

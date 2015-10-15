@@ -36,7 +36,7 @@ projectCNode capset =
 projectEndpoint capset =
   Set.fromList $ concat [[(r, capObj) | r <- Set.toList rights] | (EndpointCap capObj _ rights) <- Set.toList capset]
 projectAsync capset =
-  Set.fromList $ concat [[(r, capObj) | r <- Set.toList rights] | (AsyncEndpointCap capObj _ rights) <- Set.toList capset]
+  Set.fromList $ concat [[(r, capObj) | r <- Set.toList rights] | (NotificationCap capObj _ rights) <- Set.toList capset]
 projectFrame capset =
   Set.fromList $ concat [[(r, capObj) | r <- Set.toList rights] | (FrameCap capObj rights Nothing True) <- Set.toList capset]
 

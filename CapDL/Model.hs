@@ -59,7 +59,7 @@ data Cap
             capObj :: ObjID,
             capBadge :: Word,
             capRights :: CapRights }
-        | AsyncEndpointCap {
+        | NotificationCap {
             capObj :: ObjID,
             capBadge :: Word,
             capRights :: CapRights }
@@ -125,7 +125,7 @@ data TCBExtraInfo = TCBExtraInfo {
 --
 data KernelObject a
     = Endpoint
-    | AsyncEndpoint
+    | Notification
     | TCB {
         slots :: CapMap a,
         faultEndpoint :: Maybe Word,
@@ -163,7 +163,7 @@ data KernelObject a
 
 data KOType
     = Endpoint_T
-    | AsyncEndpoint_T
+    | Notification_T
     | TCB_T
     | CNode_T
     | Untyped_T
@@ -297,7 +297,7 @@ objID = capObj
 -- Determine if the given cap has rights.
 --
 hasRights :: Cap -> Bool
-hasRights (AsyncEndpointCap {})   = True
+hasRights (NotificationCap {})   = True
 hasRights (EndpointCap {})        = True
 hasRights (FrameCap {})           = True
 hasRights _                       = False

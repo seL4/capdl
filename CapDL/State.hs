@@ -185,7 +185,7 @@ flatten' _ objs (n, obj)
     | otherwise =
         let obj' = case obj of
                 Endpoint -> Endpoint
-                AsyncEndpoint -> AsyncEndpoint
+                Notification -> Notification
                 Untyped msb paddr-> Untyped msb paddr
                 Frame vms p -> Frame vms p
                 IOPorts sz -> IOPorts sz
@@ -309,7 +309,7 @@ checkMappings m = do
 
 koType :: KernelObject Word -> KOType
 koType Endpoint = Endpoint_T
-koType AsyncEndpoint = AsyncEndpoint_T
+koType Notification = Notification_T
 koType (TCB {}) = TCB_T
 koType (CNode {}) = CNode_T
 koType (Untyped {}) = Untyped_T
@@ -331,7 +331,7 @@ typAt t = objAt $ (==) t . koType
 capTyp :: Cap -> KOType
 capTyp (UntypedCap {}) = Untyped_T
 capTyp (EndpointCap {}) = Endpoint_T
-capTyp (AsyncEndpointCap {}) = AsyncEndpoint_T
+capTyp (NotificationCap {}) = Notification_T
 capTyp (ReplyCap {}) = TCB_T
 capTyp (MasterReplyCap {}) = TCB_T
 capTyp (CNodeCap {}) = CNode_T
@@ -359,7 +359,7 @@ validCapArch :: Arch -> Cap -> Bool
 validCapArch _ NullCap = True
 validCapArch _ (UntypedCap {}) = True
 validCapArch _ (EndpointCap {}) = True
-validCapArch _ (AsyncEndpointCap {}) = True
+validCapArch _ (NotificationCap {}) = True
 validCapArch _ (ReplyCap {}) = True
 validCapArch _ (MasterReplyCap {}) = True
 validCapArch _ (CNodeCap {}) = True
@@ -402,7 +402,7 @@ allM f xs = do
 
 validObjArch :: Arch -> KernelObject Word -> Bool
 validObjArch _ Endpoint = True
-validObjArch _ AsyncEndpoint = True
+validObjArch _ Notification = True
 validObjArch _ (TCB {}) = True
 validObjArch _ (CNode {}) = True
 validObjArch _ (Untyped {}) = True
@@ -424,7 +424,7 @@ checkObjArch arch obj id = do
     return valid
 
 validObjCap :: KernelObject Word -> Cap -> Bool
-validObjCap (CNode _ 0) (AsyncEndpointCap {}) = True --Should check if it is in the irqNode and in slot 0
+validObjCap (CNode _ 0) (NotificationCap {}) = True --Should check if it is in the irqNode and in slot 0
 validObjCap (CNode _ 0) _ = False
 validObjCap (ASIDPool {}) (PDCap {}) = True
 validObjCap (ASIDPool {}) _ = False

@@ -34,7 +34,7 @@ rm_ut = ut {
   frame_nic3[4] = frame (4k)
   -- io space??
   
-  timer = aep
+  timer = notification
   control = ep
   test[5] = cnode (8 bits)
 }
@@ -44,7 +44,7 @@ rm_ut_small[0] = ut {
 rm_ut_small[0].g = tcb
 
 irq_handler[3] = irq
-nic1_aep = aep
+nic1_notification = notification
 
 cnode_booter = cnode (8 bits)
 

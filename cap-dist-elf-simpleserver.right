@@ -5,7 +5,7 @@ objects
 ap = asid_pool
 cnode = cnode (4 bits)
 cnode2 = cnode (4 bits)
-ep = aep
+ep = notification
 frame[6] = frame (4k)
 pd1 = pd
 pt1 = pt
