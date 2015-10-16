@@ -175,8 +175,6 @@ typedef struct {
     seL4_Word size_bits;
     CDL_TCBExtraInfo tcb_extra;
 
-    CDL_ObjMap covers; /* XXX: should this be in a separate coversMap? */
-
     void *paddr; /* Physical address; only relevant for frames and untyped objects. */
 } CDL_Object;
 
@@ -232,12 +230,6 @@ static inline seL4_Word      CDL_Obj_SizeBits(CDL_Object *obj)            { retu
 static inline seL4_Word      CDL_Obj_NumSlots(CDL_Object *obj)            { return obj->slots.num; }
 static inline CDL_CapSlot *  
 CDL_Obj_GetSlot(CDL_Object *obj, seL4_Word i)      { return &obj->slots.slot[i]; }
-
-static inline seL4_Word      
-CDL_Untyped_NumSlots(CDL_Object *obj)        { return obj->covers.num; }
-
-static inline CDL_ObjSlot *  
-CDL_Untyped_GetSlot(CDL_Object *obj, seL4_Word i)  { return &obj->covers.slot[i]; }
 
 static inline void *     
 CDL_TCB_DriverInfo(CDL_Object *obj)          { return obj->tcb_extra.driverinfo; }
