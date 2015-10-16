@@ -231,7 +231,7 @@ printObjIDs ms irqs = vcat (map (printObjID ms irqs) (Map.toList ms)) $+$ text "
 
 printObj' :: ObjMap Word -> ObjID -> KernelObject Word -> Doc
 printObj' _ _ Endpoint = text "Endpoint"
-printObj' _ _ AsyncEndpoint = text "Endpoint"
+printObj' _ _ AsyncEndpoint = text "AsyncEndpoint"
 printObj' _ id (TCB _ fault _ dom _) = text "Tcb" <+>
     record (fsep $ punctuate comma $ map text
     ["cdl_tcb_caps = " ++ capsName id,
