@@ -118,12 +118,6 @@ typedef struct {
     CDL_CapSlot *slot;
 } CDL_CapMap;
 
-/* ObjIDSet: is just an array of object ids */
-typedef struct {
-    seL4_Word num;
-    CDL_ObjID *slot;
-} CDL_ObjIDSet;
-
 /* ObjMap: is just an array of object slots */
 typedef struct {
     seL4_Word slot;
