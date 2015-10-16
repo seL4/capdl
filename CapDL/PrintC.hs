@@ -171,7 +171,6 @@ showObjectFields objs obj_id (TCB slots faultEndpoint info domain argv) _ _ _ =
     ".type = CDL_TCB," +++
     ".tcb_extra = {" +++
     ".ipcbuffer_addr = " ++ show ipcbuffer_addr ++ "," +++
-    ".driverinfo = " ++ show driverinfo ++ "," +++
     ".priority = " ++ show priority ++ "," +++
     ".pc = " ++ show pc ++ "," +++
     ".sp = " ++ show stack ++ "," +++
@@ -184,7 +183,6 @@ showObjectFields objs obj_id (TCB slots faultEndpoint info domain argv) _ _ _ =
     memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
     where
         ipcbuffer_addr = case info of {Just i -> ipcBufferAddr i; _ -> 0}
-        driverinfo = 0 -- TODO: Not currently in CapDL
         priority = case info of {Just i -> case prio i of {Just p -> p; _ -> 125}; _ -> 125}
         pc = case info of {Just i -> case ip i of {Just v -> v; _ -> 0}; _ -> 0}
         stack = case info of {Just i -> case sp i of {Just v -> v; _ -> 0}; _ -> 0}
