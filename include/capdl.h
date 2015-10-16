@@ -168,7 +168,7 @@ typedef struct {
 } CDL_TCBExtraInfo;
 
 typedef struct {
-    char *name; /* textual ObjID from the capDL spec */
+    const char *name; /* textual ObjID from the capDL spec */
 
     CDL_ObjectType type;
     CDL_CapMap slots;
@@ -219,7 +219,7 @@ static inline CDL_Cap *      CDL_CapSlot_Cap(CDL_CapSlot *cap_slot)       { retu
 static inline seL4_Word      CDL_ObjSlot_Slot(CDL_ObjSlot *obj_slot)      { return obj_slot->slot; }
 static inline CDL_ObjID      CDL_ObjSlot_ObjID(CDL_ObjSlot *obj_slot)     { return obj_slot->id; }
 
-static inline char *CDL_Obj_Name(CDL_Object *obj) {
+static inline const char *CDL_Obj_Name(CDL_Object *obj) {
     if (obj->name == NULL) {
         return "<unnamed>";
     } else {
