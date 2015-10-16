@@ -352,7 +352,8 @@ void init_copy_frame(seL4_BootInfo *bootinfo)
 }
 
 static void
-elf_load_frames(char *elf_name, CDL_ObjID pd, const CDL_Model *spec, seL4_BootInfo *bootinfo)
+elf_load_frames(const char *elf_name, CDL_ObjID pd, const CDL_Model *spec,
+        seL4_BootInfo *bootinfo)
 {
     unsigned long elf_size;
     void *elf_file = cpio_get_file(_capdl_archive,elf_name,&elf_size);

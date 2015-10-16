@@ -160,7 +160,7 @@ typedef struct {
     uint8_t priority;
     seL4_Word pc;
     seL4_Word sp;
-    char *elf_name;
+    const char *elf_name;
     const seL4_Word *init;
     seL4_Word init_sz;
     uint32_t domain;
@@ -260,7 +260,7 @@ CDL_TCB_PC(CDL_Object *obj)                  { return obj->tcb_extra.pc; }
 static inline seL4_Word      
 CDL_TCB_SP(CDL_Object *obj)                  { return obj->tcb_extra.sp; }
 
-static inline char *
+static inline const char *
 CDL_TCB_ElfName(CDL_Object *obj)             { return obj->tcb_extra.elf_name; }
 
 #endif
