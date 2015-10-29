@@ -105,6 +105,8 @@ typedef struct {
     bool is_orig;
     seL4_ARCH_VMAttributes vm_attribs;
     seL4_CapRights rights;
+    CDL_ObjID mapping_container_id;
+    seL4_Word mapping_slot;
 } CDL_Cap;
 
 /* CapMap: is just an array of cap slots, position of the slot and cap */
