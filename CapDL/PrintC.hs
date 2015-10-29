@@ -110,11 +110,19 @@ showCap _ (IRQHandlerCap id) irqNode is_orig _ =
     ", .is_orig = " ++ is_orig ++
     ", .irq = " ++ show (lookupByValue (\x -> x == id) irqNode) ++ "}"
     -- Caps have obj_ids, or IRQs, but not both.
-showCap objs (FrameCap id rights _ cached) _ is_orig _ =
+showCap objs (FrameCap id rights _ cached maybe_mapping) _ is_orig _ =
     "{.type = CDL_FrameCap, .obj_id = " ++ showObjID objs id ++
     ", .is_orig = " ++ is_orig ++
     ", .rights = " ++ showRights rights ++
-    ", .vm_attribs = " ++ (if cached then "seL4_ARCH_Default_VMAttributes" else "CDL_VM_CacheDisabled") ++ "}"
+    ", .vm_attribs = " ++ (if cached then "seL4_ARCH_Default_VMAttributes" else "CDL_VM_CacheDisabled") ++
+    ", .mapping_container_id = " ++ case maybe_mapping of {
+                                      Just (mapping_container, _) -> showObjID objs mapping_container;
+                                      _ -> "INVALID_OBJ_ID"
+                                    } ++
+    ", .mapping_slot = " ++ case maybe_mapping of {
+                              Just (_, mapping_slot) -> (show mapping_slot);
+                              _ -> "0"
+                            } ++ "}"
     -- FIXME: I feel like I should be doing something with the ASID data here...
 showCap objs (PTCap id _) _ is_orig _ =
     "{.type = CDL_PTCap, .obj_id = " ++ showObjID objs id ++

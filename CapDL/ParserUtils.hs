@@ -368,6 +368,11 @@ cap_param =
     <|> do
         reserved "uncached"
         return $ Cached False
+    <|> do
+        reserved "mapping"
+        colon
+        (container_name, slot) <- cap_ref
+        return $ FrameMapping container_name slot
 
 cap_params :: MapParser [CapParam]
 cap_params =

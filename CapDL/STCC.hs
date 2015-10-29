@@ -38,7 +38,7 @@ projectEndpoint capset =
 projectAsync capset =
   Set.fromList $ concat [[(r, capObj) | r <- Set.toList rights] | (NotificationCap capObj _ rights) <- Set.toList capset]
 projectFrame capset =
-  Set.fromList $ concat [[(r, capObj) | r <- Set.toList rights] | (FrameCap capObj rights Nothing True) <- Set.toList capset]
+  Set.fromList $ concat [[(r, capObj) | r <- Set.toList rights] | (FrameCap capObj rights Nothing True Nothing) <- Set.toList capset]
 
 somefn :: Model Word -> IO ()
 somefn (Model _ objects _ _ _) =
@@ -307,7 +307,7 @@ getFrames' objects visited cap =
     PTCap capObj _
       | capObj `Set.member` visited -> []
       | otherwise -> cap : getFrames'' objects visited capObj
-    FrameCap _ _ _ _ ->
+    FrameCap _ _ _ _ _ ->
       [cap]
     _ -> []
 

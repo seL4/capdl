@@ -98,6 +98,9 @@ data CapParam
         asid :: Asid }
     | Cached {
         cached :: Bool }
+    | FrameMapping {
+        container :: NameRef,
+        slotIndex :: Word }
     deriving (Show, Eq, Ord, Typeable, Data)
 
 

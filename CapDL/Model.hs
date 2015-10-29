@@ -79,7 +79,8 @@ data Cap
             capObj :: ObjID,
             capRights :: CapRights,
             capMaybeAsid :: Maybe Asid,
-            capCached :: Bool }
+            capCached :: Bool,
+            capMaybeMapping :: Maybe (ObjID, Word) }
         | PTCap {
             capObj :: ObjID,
             capMaybeAsid :: Maybe Asid }

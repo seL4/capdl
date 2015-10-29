@@ -152,7 +152,7 @@ printCap _ _ _ _ IRQControlCap = text "IrqControlCap"
 printCap _ irqNode _ _ (IRQHandlerCap id) =
     text "IrqHandlerCap" <+> num (fromJust (lookupElem id irqNode))
 printCap _ _ _ _ DomainCap = text "DomainCap"
-printCap ms _ _ real (FrameCap id rights asid cached) = text "FrameCap" <+>
+printCap ms _ _ real (FrameCap id rights asid cached _) = text "FrameCap" <+>
     printID id <+> printRights rights <+> printSize id ms <+>
     printReal real <+> printMaybeAsid asid <+>
     text (if cached then "" else "(* uncached *)")

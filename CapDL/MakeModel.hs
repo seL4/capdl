@@ -469,6 +469,11 @@ getCached [] = True
 getCached (Cached c : _) = c
 getCached (_ : ps) = getCached ps
 
+getMaybeMapping :: [CapParam] -> Maybe (ObjID, Word)
+getMaybeMapping [] = Nothing
+getMaybeMapping (FrameMapping c s : _) = Just (refToID c, s)
+getMaybeMapping (_ : ps) = getMaybeMapping ps
+
 validCapPars :: KernelObject Word -> [CapParam] -> Bool
 validCapPars (Endpoint {}) ps =
     subsetConstrs (removeConstr (Rights undefined) ps) [Badge undefined]
@@ -479,7 +484,8 @@ validCapPars (TCB {}) ps =
     (not (containsConstr Reply ps) || not (containsConstr MasterReply ps))
 validCapPars (CNode {}) ps = subsetConstrs ps [Guard undefined, GuardSize undefined]
 validCapPars (Frame {}) ps =
-    subsetConstrs (removeConstr (Rights undefined) ps) [Asid undefined, Cached undefined]
+    subsetConstrs (removeConstr (Rights undefined) ps) [Asid undefined, Cached undefined,
+                                                        FrameMapping undefined undefined]
 validCapPars (PD {}) ps = subsetConstrs ps [Asid undefined]
 validCapPars (PT {}) ps = subsetConstrs ps [Asid undefined]
 validCapPars (ASIDPool {}) ps = subsetConstrs ps [Asid undefined]
@@ -503,6 +509,7 @@ objCapOf containerName obj objRef params =
         CNode _ 0 -> IRQHandlerCap objRef --FIXME: This should check if the obj is in the irqNode
         CNode {} -> CNodeCap objRef (getGuard params) (getGuardSize params)
         Frame {} -> FrameCap objRef (getRights params) (getMaybeAsid params) (getCached params)
+                                    (getMaybeMapping params)
         PD {} -> PDCap objRef (getMaybeAsid params)
         PT {} -> PTCap objRef (getMaybeAsid params)
         ASIDPool {} -> ASIDPoolCap objRef (getAsid containerName objRef params)

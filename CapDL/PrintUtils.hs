@@ -215,6 +215,12 @@ prettyAsid asid = [text "asid:" <+> printAsid asid]
 maybeAsid Nothing = []
 maybeAsid (Just asid) = prettyAsid asid
 
+prettyFrameMapping (container, slot) =
+  [text "mapping: (" <> text (showID container) <> text ", " <> num slot <> text ")"]
+
+maybeFrameMapping Nothing = []
+maybeFrameMapping (Just mapping) = prettyFrameMapping mapping
+
 maybeCapParams :: Cap -> Doc
 maybeCapParams cap = case cap of
     EndpointCap _ badge rights ->
@@ -225,8 +231,8 @@ maybeCapParams cap = case cap of
     MasterReplyCap _ -> capParams [text "master_reply"]
     CNodeCap _ guard gsize ->
         capParams (maybeGuard guard ++ maybeGSize gsize)
-    FrameCap _ rights asid cached -> capParams (maybeRights True rights ++ maybeAsid asid ++
-        (if cached then [] else [text "uncached"]))
+    FrameCap _ rights asid cached mapping -> capParams (maybeRights True rights ++ maybeAsid asid ++
+        (if cached then [] else [text "uncached"]) ++ maybeFrameMapping mapping)
     PTCap _ asid -> capParams (maybeAsid asid)
     PDCap _ asid -> capParams (maybeAsid asid)
     ASIDPoolCap _ asid -> capParams (prettyAsid asid)
@@ -253,7 +259,7 @@ sameParams cap1 cap2 =
         b1 == b2 && r1 == r2
     ((CNodeCap _ g1 gs1), (CNodeCap _ g2 gs2)) ->
         g1 == g2 && gs1 == gs2
-    ((FrameCap _ r1 a1 c1), (FrameCap _ r2 a2 c2)) -> r1 == r2 && a1 == a2 && c1 == c2
+    ((FrameCap _ r1 a1 c1 m1), (FrameCap _ r2 a2 c2 m2)) -> r1 == r2 && a1 == a2 && c1 == c2 && m1 == m2
     ((PTCap _ a1), (PTCap _ a2)) -> a1 == a2
     ((PDCap _ a1), (PDCap _ a2)) -> a1 == a2
     _ -> True
