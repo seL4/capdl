@@ -16,6 +16,7 @@ import Control.Monad.State
 import Control.Monad.Writer
 import Data.Word
 import Data.Maybe
+import Data.List
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Text.PrettyPrint
@@ -526,11 +527,108 @@ checkIRQ m (slot, irq) = do
 checkIRQNode :: Model Word -> Logger Bool
 checkIRQNode m = allM (checkIRQ m) (Map.toList $ irqNode m)
 
+flattenCNodeSlots :: [(ObjID, KernelObject Word)] -> [Cap]
+flattenCNodeSlots [] = []
+flattenCNodeSlots ((_, CNode slots _) : xs) = (map snd (Map.toList slots)) ++ (flattenCNodeSlots xs)
+flattenCNodeSlots (_ : xs) = flattenCNodeSlots xs
+
+isMappedFrameCap :: Cap -> Bool
+isMappedFrameCap (FrameCap _ _ _ _ (Just _)) = True
+isMappedFrameCap _ = False
+
+-- Returns list containing each element in argument list occuring more than once.
+-- There are no duplicates in the returned list.
+findDuplicates :: Ord a => [a] -> [a]
+findDuplicates s =
+    let sorted = sort s
+        in Set.toList $ snd $ foldl (\(prev, duplicates) x ->
+            if x == prev then (x, Set.insert x duplicates)
+                         else (x, duplicates))
+            (head sorted, Set.empty) (tail sorted)
+
+-- Checks that each mapping is specified by at most 1 frame cap
+checkDuplicateMappedFrameCaps :: [(ObjID, Word)] -> Logger Bool
+checkDuplicateMappedFrameCaps mappings = do
+    let duplicates = findDuplicates mappings
+    let valid = null duplicates
+    unless valid (tell $ text $ "Mappings referenced by multiple frame caps:\n" ++
+                  (intercalate "\n" $ map (\((container, _), slot) -> container ++ ", slot " ++ show slot) duplicates)
+                  ++ "\n")
+    return valid
+
+checkMappingSlotSanity :: CapMap Word -> Word -> Logger Bool
+checkMappingSlotSanity slots slot =
+    let cap = Map.lookup slot slots
+    in case cap of
+        Just (FrameCap {}) -> return True
+        Just _ -> do
+            tell $ text "Frame references mapping to object other than a frame\n"
+            return False
+        Nothing -> do
+            tell $ text "Frame references mapping in empty or non-existent slot\n"
+            return False
+
+checkMappingSanity :: (ObjID, KernelObject Word, Word) -> Logger Bool
+checkMappingSanity (id, obj, slot) =
+    case obj of
+        PT slots -> checkMappingSlotSanity slots slot
+        PD slots -> checkMappingSlotSanity slots slot
+        _ -> do
+            tell $ text $ "Object specified in mapping(" ++ fst id ++ ", " ++ show slot ++ ") is neither page table nor page directory\n"
+            return False
+
+checkMappedFrameCapsSanity :: Model Word -> [(ObjID, Word)] -> Logger Bool
+checkMappedFrameCapsSanity m mappings = do
+    let object_mappings = map (\(objID, slot) -> (objID, object objID m, slot)) mappings
+    allM checkMappingSanity object_mappings
+
+isCNode :: KernelObject Word -> Bool
+isCNode (CNode _ _) = True
+isCNode _ = False
+
+getSlotsFromKernelObject :: KernelObject Word -> Maybe (CapMap Word)
+getSlotsFromKernelObject (TCB slots _ _ _ _) = Just slots
+getSlotsFromKernelObject (CNode slots _) = Just slots
+getSlotsFromKernelObject (ASIDPool slots) = Just slots
+getSlotsFromKernelObject (PT slots) = Just slots
+getSlotsFromKernelObject (PD slots) = Just slots
+getSlotsFromKernelObject (IODevice slots _ _) = Just slots
+getSlotsFromKernelObject (IOPT slots _) = Just slots
+getSlotsFromKernelObject _ = Nothing
+
+-- Checks that an object contains no frame caps with a specified mapping 
+checkObjectContainsNoMappedFrameCap :: (ObjID, KernelObject Word) -> Logger Bool
+checkObjectContainsNoMappedFrameCap (id, obj) =
+    let maybe_slots = getSlotsFromKernelObject obj
+    in case maybe_slots of
+        Nothing -> return True
+        Just slots -> do
+            let valid = all (not . isMappedFrameCap) $ map snd $ Map.toList slots
+            unless valid $ tell $ text $ "Non-CNode object '" ++ fst id ++ "' contains frame cap with mapping\n"
+            return valid
+
+checkMappedFrameCapsOnlyInCNodes :: Model Word -> Logger Bool
+checkMappedFrameCapsOnlyInCNodes m =
+    allM checkObjectContainsNoMappedFrameCap $ filter (not . isCNode . snd) $ allObjs m
+
+-- Checks that mappings specified by frame caps refer to valid slots in
+-- container objects (page directories or page tables) which contain a
+-- mapping to a frame.
+checkMappedFrameCaps :: Model Word -> Logger Bool
+checkMappedFrameCaps m = do
+    let mappings = map (\(FrameCap _ _ _ _ (Just x)) -> x) $
+                      filter isMappedFrameCap $ flattenCNodeSlots $ allObjs m
+    no_duplicates <- checkDuplicateMappedFrameCaps mappings
+    sane_mappings <- checkMappedFrameCapsSanity m mappings
+    only_in_cnodes <- checkMappedFrameCapsOnlyInCNodes m
+    return $ no_duplicates && sane_mappings && only_in_cnodes
+
 checkModel :: Model Word -> Logger Bool
 checkModel m = do
     objs <- checkObjs (arch m) m
     covers <- checkCovers m
     mappings <- checkMappings m
     irq <- checkIRQNode m
+    mapped_frame_caps <- checkMappedFrameCaps m
     tell $ text ""
-    return $ objs && covers && mappings && irq
+    return $ objs && covers && mappings && irq && mapped_frame_caps
