@@ -277,7 +277,7 @@ uniqueASID id m =
 checkASID :: ObjID -> Model Word -> Logger Bool
 checkASID id m = do
     let valid = uniqueASID id m
-    unless valid (tell $ text $ show id ++ " is mapped into multiple ASID's")
+    unless valid (tell $ text $ show id ++ " is mapped into multiple ASID's\n")
     return valid
 
 isPD :: KernelObject Word -> Bool
@@ -292,7 +292,7 @@ uniquePD id m =
 checkPD :: ObjID -> Model Word -> Logger Bool
 checkPD id m = do
     let valid = uniquePD id m
-    unless valid (tell $ text $ show id ++ " is mapped into multiple PD's")
+    unless valid (tell $ text $ show id ++ " is mapped into multiple PD's\n")
     return valid
 
 checkMapping :: Model Word -> (ObjID, KernelObject Word) -> Logger Bool
@@ -352,7 +352,7 @@ checkTypAt :: Cap -> Model Word -> ObjID -> Word -> Logger Bool
 checkTypAt cap m contID slot = do
     let valid = if hasObjID cap then typAt (capTyp cap) (objID cap) m else True
     unless valid (tell $ text $ "The cap at slot " ++ show slot ++ " in " ++
-                        show contID ++ " refers to an object of the wrong type") --FIXME:Needs better error message
+                        show contID ++ " refers to an object of the wrong type\n") --FIXME:Needs better error message
     return valid
 
 validCapArch :: Arch -> Cap -> Bool
@@ -383,7 +383,7 @@ checkCapArch :: Arch -> Cap -> ObjID -> Word -> Logger Bool
 checkCapArch arch cap contID slot = do
     let valid = validCapArch arch cap
     unless valid (tell $ text $ "The cap at slot " ++ show slot ++ " in " ++
-                           show contID ++ " is not valid for this architecture")
+                           show contID ++ " is not valid for this architecture\n")
     return valid
 
 checkValidCap :: Arch -> ObjID -> Model Word -> (Word, Cap) -> Logger Bool
@@ -420,7 +420,7 @@ checkObjArch :: Arch -> KernelObject Word -> ObjID -> Logger Bool
 checkObjArch arch obj id = do
     let valid = validObjArch arch obj
     unless valid
-     (tell $ text $ show id ++ " is not a valid object for this architecture")
+     (tell $ text $ show id ++ " is not a valid object for this architecture\n")
     return valid
 
 validObjCap :: KernelObject Word -> Cap -> Bool
@@ -442,7 +442,7 @@ checkValidSlot :: KernelObject Word -> ObjID -> (Word, Cap) -> Logger Bool
 checkValidSlot obj contID (slot, cap) = do
     let valid = validObjCap obj cap
     unless valid (tell $ text $ "The cap at slot " ++ show slot ++ " in " ++
-                           show contID ++ " is not valid for this object")
+                           show contID ++ " is not valid for this object\n")
     return valid
 
 checkValidSlots :: KernelObject Word -> ObjID -> Logger Bool
@@ -480,7 +480,7 @@ checkUntyped m ref = do
                 Untyped _ _ -> True
                 _ -> False
     unless valid
-              (tell $ text $ show ref ++ " covers objects but is not an untyped")
+              (tell $ text $ show ref ++ " covers objects but is not an untyped\n")
     return valid
 
 checkUntypeds :: Model Word -> Logger Bool
@@ -492,7 +492,7 @@ checkUntypedCover :: Model Word -> (ObjID, [ObjID]) -> Logger Bool
 checkUntypedCover m (id, objs) = do
     let valid = allM (objAt (const True)) objs m
     unless valid
-                 (tell $ text $ show id ++ " covers a non-existant object")
+                 (tell $ text $ show id ++ " covers a non-existant object\n")
     return valid
 
 checkUntypedCovers :: Model Word -> Logger Bool
@@ -504,7 +504,7 @@ checkCovers :: Model Word -> Logger Bool
 checkCovers m = do
     let valid = nullIntersections $ allCovers m
     unless valid (tell $ text $
-                               "At least two untypeds have intersecting covers")
+                               "At least two untypeds have intersecting covers\n")
     untypeds <- checkUntypeds m
     covers <- checkUntypedCovers m
     return $ valid && covers && untypeds
@@ -520,7 +520,7 @@ checkIRQ :: Model Word -> (Word, ObjID) -> Logger Bool
 checkIRQ m (slot, irq) = do
     let valid = validIRQ m irq
     unless valid (tell $ text $ "The object mapped by irq " ++ show slot ++ --FIXME:rewrite
-                                     " in the irqNode is not a valid irq_slot")
+                                     " in the irqNode is not a valid irq_slot\n")
     return valid
 
 checkIRQNode :: Model Word -> Logger Bool
