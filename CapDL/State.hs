@@ -539,6 +539,7 @@ isMappedFrameCap _ = False
 -- Returns list containing each element in argument list occuring more than once.
 -- There are no duplicates in the returned list.
 findDuplicates :: Ord a => [a] -> [a]
+findDuplicates [] = []
 findDuplicates s =
     let sorted = sort s
         in Set.toList $ snd $ foldl (\(prev, duplicates) x ->
