@@ -1,0 +1,17 @@
+syntax: glob
+
+*.parse
+*.parse.x
+*.out
+*.dot
+*.png
+*.xml
+*.thy
+doc/capDL.pdf
+doc/capDL.aux
+doc/capDL.log
+
+.cabal-sandbox
+cabal.sandbox.config
+dist
+parse-capDL

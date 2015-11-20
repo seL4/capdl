@@ -1,0 +1,194 @@
+arch arm11
+
+objects {
+
+  asid_pool@0xf0306000 = asid_pool
+  cnode@0xf7ff0000 = cnode (12 bits)
+  frame@0x10000000[64] = frame (1M)
+  frame@0x18000000[32] = frame (1M)
+  frame@0x26000000 = frame (4k)
+  frame@0x30000000[32] = frame (1M)
+  frame@0xb3f80000 = frame (4k)
+  frame@0xb3f84000 = frame (4k)
+  frame@0xb3f88000 = frame (4k)
+  frame@0xb3f8c000 = frame (4k)
+  frame@0xb3f94000 = frame (4k)
+  frame@0xb3f98000 = frame (4k)
+  frame@0xb3f9c000 = frame (4k)
+  frame@0xb3fa0000 = frame (4k)
+  frame@0xb3fa4000 = frame (4k)
+  frame@0xb3fa8000 = frame (4k)
+  frame@0xb3fac000 = frame (4k)
+  frame@0xb3fb0000 = frame (4k)
+  frame@0xb3fb4000 = frame (4k)
+  frame@0xc0004000 = frame (4k)
+  frame@0xc0008000 = frame (4k)
+  frame@0xc000c000 = frame (4k)
+  frame@0xc0010000 = frame (4k)
+  frame@0xc0014000 = frame (4k)
+  frame@0xc0018000 = frame (4k)
+  frame@0xc001c000 = frame (4k)
+  frame@0xc0020000 = frame (4k)
+  frame@0xc0024000 = frame (4k)
+  frame@0xc0028000 = frame (4k)
+  frame@0xc003c000 = frame (4k)
+  frame@0xc3f80000 = frame (4k)
+  frame@0xc3f84000 = frame (4k)
+  frame@0xc3f8c000 = frame (4k)
+  frame@0xc3f90000 = frame (4k)
+  frame@0xc3f98000 = frame (4k)
+  frame@0xc3fa4000 = frame (4k)
+  frame@0xc3fb0000 = frame (4k)
+  frame@0xc3fc4000 = frame (4k)
+  frame@0xc3fcc000 = frame (4k)
+  frame@0xc3fd0000 = frame (4k)
+  frame@0xc3fd8000 = frame (4k)
+  frame@0xc3fe0000 = frame (4k)
+  frame@0xc3fec000 = frame (4k)
+  frame@0xf002f000[2] = frame (4k)
+  frame@0xf0307000[16] = frame (4k)
+  pd@0xf7fec000 = pd
+  pt@0xf0031000 = pt
+  tcb@0xf0031700 = tcb (dom: 0)
+
+  untyped@0xf0000000@12[16] = ut (12 bits)
+  untyped@0xf0031800@11 = ut (11 bits)
+  untyped@0xf0032000@13 = ut (13 bits)
+  untyped@0xf0034000@14 = ut (14 bits)
+  untyped@0xf0038000@15 = ut (15 bits)
+  untyped@0xf0040000@18 = ut (18 bits)
+  untyped@0xf0080000@19 = ut (19 bits)
+  untyped@0xf0100000@20[2] = ut (20 bits)
+  untyped@0xf0300000@14 = ut (14 bits)
+  untyped@0xf0304000@13 = ut (13 bits)
+  untyped@0xf0317000@12 = ut (12 bits)
+  untyped@0xf0318000@15 = ut (15 bits)
+  untyped@0xf0320000@17 = ut (17 bits)
+  untyped@0xf0340000@18 = ut (18 bits)
+  untyped@0xf0380000@19 = ut (19 bits)
+  untyped@0xf0400000@22 = ut (22 bits)
+  untyped@0xf0800000@23 = ut (23 bits)
+  untyped@0xf1000000@24 = ut (24 bits)
+  untyped@0xf2000000@25[2] = ut (25 bits)
+  untyped@0xf6000000@24 = ut (24 bits)
+  untyped@0xf7000000@23 = ut (23 bits)
+  untyped@0xf7800000@22 = ut (22 bits)
+  untyped@0xf7c00000@21 = ut (21 bits)
+  untyped@0xf7e00000@20 = ut (20 bits)
+  untyped@0xf7f00000@19 = ut (19 bits)
+  untyped@0xf7f80000@18 = ut (18 bits)
+  untyped@0xf7fc0000@17 = ut (17 bits)
+  untyped@0xf7fe0000@15 = ut (15 bits)
+  untyped@0xf7fe8000@14 = ut (14 bits)
+
+} caps {
+
+  asid_pool@0xf0306000 {1: pd@0xf7fec000}
+  
+  cnode@0xf7ff0000 {
+    1: tcb@0xf0031700
+    2: cnode@0xf7ff0000 (guard_size: 20)
+    3: pd@0xf7fec000 (asid: (0, 1))
+    4: irq_control
+    5: asid_control
+    6: asid_pool@0xf0306000 (asid: (0, 0))
+    9: frame@0xf002f000[1..0] (RW, asid: (0, 1))
+    11: frame@0xf0307000[0..15] (RW, asid: (0, 1))
+    27: pt@0xf0031000 (asid: (0, 1))
+    28: untyped@0xf0000000@12[0..15]
+    44: untyped@0xf0031800@11
+    45: untyped@0xf0032000@13
+    46: untyped@0xf0304000@13
+    47: untyped@0xf0034000@14
+    48: untyped@0xf0300000@14
+    49: untyped@0xf0038000@15
+    50: untyped@0xf0040000@18
+    51: untyped@0xf0080000@19
+    52: untyped@0xf0100000@20[0..1]
+    54: untyped@0xf0317000@12
+    55: untyped@0xf7fe8000@14
+    56: untyped@0xf0318000@15
+    57: untyped@0xf7fe0000@15
+    58: untyped@0xf0320000@17
+    59: untyped@0xf7fc0000@17
+    60: untyped@0xf0340000@18
+    61: untyped@0xf7f80000@18
+    62: untyped@0xf0380000@19
+    63: untyped@0xf7f00000@19
+    64: untyped@0xf7e00000@20
+    65: untyped@0xf7c00000@21
+    66: untyped@0xf0400000@22
+    67: untyped@0xf7800000@22
+    68: untyped@0xf0800000@23
+    69: untyped@0xf7000000@23
+    70: untyped@0xf1000000@24
+    71: untyped@0xf6000000@24
+    72: untyped@0xf2000000@25[0..1]
+    74: frame@0xb3f80000 (RW)
+    75: frame@0xb3f84000 (RW)
+    76: frame@0xb3f88000 (RW)
+    77: frame@0xb3f8c000 (RW)
+    78: frame@0xb3f94000 (RW)
+    79: frame@0xb3f98000 (RW)
+    80: frame@0xb3f9c000 (RW)
+    81: frame@0xb3fa0000 (RW)
+    82: frame@0xb3fa4000 (RW)
+    83: frame@0xb3fa8000 (RW)
+    84: frame@0xb3fac000 (RW)
+    85: frame@0xb3fb0000 (RW)
+    86: frame@0xb3fb4000 (RW)
+    87: frame@0xc0004000 (RW)
+    88: frame@0xc0008000 (RW)
+    89: frame@0xc000c000 (RW)
+    90: frame@0xc0010000 (RW)
+    91: frame@0xc0014000 (RW)
+    92: frame@0xc0018000 (RW)
+    93: frame@0xc001c000 (RW)
+    94: frame@0xc0020000 (RW)
+    95: frame@0xc0024000 (RW)
+    96: frame@0xc0028000 (RW)
+    97: frame@0xc003c000 (RW)
+    98: frame@0xc3f80000 (RW)
+    99: frame@0xc3f84000 (RW)
+    100: frame@0xc3f8c000 (RW)
+    101: frame@0xc3f90000 (RW)
+    102: frame@0xc3f98000 (RW)
+    103: frame@0xc3fa4000 (RW)
+    104: frame@0xc3fb0000 (RW)
+    105: frame@0xc3fc4000 (RW)
+    106: frame@0xc3fcc000 (RW)
+    107: frame@0xc3fd0000 (RW)
+    108: frame@0xc3fd8000 (RW)
+    109: frame@0xc3fe0000 (RW)
+    110: frame@0xc3fec000 (RW)
+    111: frame@0x10000000[0..63] (RW)
+    175: frame@0x18000000[0..31] (RW)
+    207: frame@0x26000000 (RW)
+    208: frame@0x30000000[0..31] (RW)
+  }
+  
+  pd@0xf7fec000 {0: pt@0xf0031000}
+  
+  pt@0xf0031000 {
+    7: frame@0xf0307000[0..15] (RW)
+    23: frame@0xf002f000[0..1] (RW)
+  }
+  
+  tcb@0xf0031700 {
+    0: cnode@0xf7ff0000 (guard_size: 20)
+    1: pd@0xf7fec000 (asid: (0, 1))
+    2: tcb@0xf0031700 (master_reply)
+    4: frame@0xf002f000[0] (RW, asid: (0, 1))
+  }
+  
+} cdt {
+
+  (cnode@0xf7ff0000, 2) {(tcb@0xf0031700, 0)}
+  
+  (cnode@0xf7ff0000, 3) {(tcb@0xf0031700, 1)}
+  
+  (cnode@0xf7ff0000, 10) {(tcb@0xf0031700, 4)}
+  
+} irq maps {
+
+}

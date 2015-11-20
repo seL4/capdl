@@ -1,0 +1,50 @@
+<!--
+     Copyright 2014, NICTA
+
+     This software may be distributed and modified according to the terms of
+     the BSD 2-Clause license. Note that NO WARRANTY is provided.
+     See "LICENSE_BSD2.txt" for details.
+
+     @TAG(NICTA_BSD)
+  -->
+
+<!ELEMENT model (objects*, untypedCovers*, cdt*)>
+<!ATTLIST model arch CDATA #IMPLIED>
+
+<!ELEMENT objects (object*)>
+
+<!ELEMENT object (cap*)>
+<!ATTLIST object id CDATA #REQUIRED>
+<!ATTLIST object type CDATA #REQUIRED>
+<!ATTLIST object size CDATA #IMPLIED>
+<!ATTLIST object paddr CDATA #IMPLIED>
+<!ATTLIST object level CDATA #IMPLIED>
+<!ATTLIST object domain CDATA #IMPLIED>
+<!ATTLIST object device CDATA #IMPLIED>
+
+<!ELEMENT cap EMPTY>
+<!ATTLIST cap id CDATA #REQUIRED>
+<!ATTLIST cap type CDATA #REQUIRED>
+<!ATTLIST cap slot CDATA #IMPLIED>
+<!ATTLIST cap rights CDATA #IMPLIED>
+<!ATTLIST cap badge CDATA #IMPLIED>
+<!ATTLIST cap guard CDATA #IMPLIED>
+<!ATTLIST cap guardSize CDATA #IMPLIED>
+<!ATTLIST cap ports CDATA #IMPLIED>
+<!ATTLIST cap cached CDATA #IMPLIED>
+
+<!ELEMENT untypedCovers (cover*)>
+
+<!ELEMENT cover (covered*)>
+<!ATTLIST cover untyped CDATA #REQUIRED>
+
+<!ELEMENT covered (id*)>
+
+<!ELEMENT id EMPTY>
+<!ATTLIST id id CDATA #REQUIRED>
+
+<!ELEMENT cdt (cdtRelation*)>
+
+<!ELEMENT cdtRelation EMPTY>
+<!ATTLIST cdtRelation child CDATA #REQUIRED>
+<!ATTLIST cdtRelation parent CDATA #REQUIRED>

@@ -1,0 +1,150 @@
+/*
+ * Copyright 2014, NICTA
+ *
+ * This software may be distributed and modified according to the terms of
+ * the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ * See "LICENSE_BSD2.txt" for details.
+ *
+ * @TAG(NICTA_BSD)
+ */
+
+arch ia32
+
+objects {
+
+rm_ut = ut {
+  rm_tcb = tcb
+  name2 = ut (8 bits) {
+    rm_cn = cnode (10 bits)
+  }
+  rm_pd = pd
+  rm_ap = asid_pool
+
+  linux_pd = pd
+
+  rm_ut_small[50] = ut (12 bits)
+  rm_ut_big[100] = ut (20 bits)
+
+  frame_nic1[64] = frame (4k)
+  nic1 = io_device (domainID: 0, 0:0.0)
+
+  frame_nic2[64] = frame (4k)
+  nic2 = io_device (domainID: 0, 0:0.0)
+
+  frame_nic3[4] = frame (4k)
+  nic3 = io_device (0xf:10.3, domainID: 50)
+
+  timer = notification
+  control = ep
+
+  io_pt1 = io_pt (level: 1)
+  io_pt2 = io_pt (level: 2)
+  io_pt3 = io_pt (level: 3)
+}
+
+some_pt = pt
+frame_name = frame (4k)
+
+io_ports = io_ports (64k ports)
+
+irq_handler[3] = irq
+
+nic1_notification = notification
+
+iospace = io_device (0xf:10.3, domainID: 50)
+
+cnode_booter = cnode (8 bits)
+
+name = ut (8 bits) { y, z }
+
+name_b = ut (10 bits)
+name.name3.x = tcb
+name.a = tcb
+name.b = tcb
+
+y = ep
+z = ep
+
+} caps {
+
+rm_cn {
+  001: rm_tcb
+  002: rm_cn ( guard: 0, guard_size: 0)
+  003: rm_pd
+  006: rm_ap (asid: (0,0))
+  007: io_ports (ports: [..0x1000, 45893])
+0x00b: linux_pd;
+0x00c: rm_ut_small[3..5];
+0x00f: rm_ut_small[7..20, 23, 27..];
+0x03e: rm_ut_big[];
+
+0x0a3: irq_handler[0];
+0x0a4: name[] = frame_nic1[];
+0x0e4: iospace;
+
+0x0e5: irq_handler[1];
+0x0e6: frame_nic2[];
+-- 126: iospace
+
+0x127: irq_handler[2];
+0x128: frame_nic3[];
+--  12c: iospace
+
+0x12d: timer (G)
+0x12e: control (badge: 10)
+
+0x140: io_space_master
+
+0x145: nic2
+
+0x147: io_pt1
+
+0x148: io_ports (ports: [])
+
+0x210: x
+
+0x12f: name2[] = <name[0]> (masked: R);
+}
+
+rm_tcb {
+    vspace: rm_pd
+    cspace: rm_cn
+}
+
+cap_name = (rm_tcb, cspace)
+cap_name2 = (irq_table, 0)
+
+cnode_booter {
+  001: rm_ut
+}
+
+-- some pd and pt mappings:
+
+linux_pd {
+  10: frame_name
+  0xFF: some_pt
+  0x100: frame_nic1[..030]
+  0x130: frame_nic1[31..]
+  0x160: frame_nic2[10]
+  0x180: frame_nic2[11..17, ..2, 10, 10..]
+}
+
+some_pt {
+  37: frame_nic3[..2]
+}
+
+nic1 { 0: io_pt1 }
+
+io_pt1 { 0: io_pt2 }
+io_pt2 { 0: io_pt3 }
+io_pt3 { 0: frame_nic3[0] }
+
+} irq maps {
+  irq_handler[]
+}
+
+/* not supported yet
+CDT: {
+  rm_ut parent_of timer
+}
+*/
