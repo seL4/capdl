@@ -1237,6 +1237,10 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
         }
 #endif
 
+        /* Store the cap used for mapping the page in the CDL_Cap in the
+         * corresponding page table/directory slot for later use. */
+        page_cap->mapped_frame_cap = sel4_page;
+
         // FIXME: Add support for super-pages.
         int error = seL4_ARCH_Page_Map(sel4_page, sel4_pd, page_vaddr, rights, vm_attribs);
         if (error) {
@@ -1388,6 +1392,7 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
 #endif
     int is_ep_cap = (target_cap_type == CDL_EPCap || target_cap_type == CDL_NotificationCap);
     int is_irq_handler_cap = (target_cap_type == CDL_IRQHandlerCap);
+    int is_frame_cap = (target_cap_type == CDL_FrameCap);
 #if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_IA32)
     int is_ioport_cap = (target_cap_type == CDL_IOPortsCap);
     int is_iospace_cap = (target_cap_type == CDL_IOSpaceCap);
@@ -1433,10 +1438,36 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
             seL4_AssertSuccess(error);
         }
     } else if ((mode == COPY) && !is_orig_cap) {
-        debug_printf("minting (with badge/guard %p)...\n", (void*)target_cap_data.words[0]);
-        int error = seL4_CNode_Mint(dest_root, dest_index, dest_depth,
-                                    src_root, src_index, src_depth, target_cap_rights, target_cap_data);
-        seL4_AssertSuccess(error);
+        if (is_frame_cap && target_cap->mapping_container_id != INVALID_OBJ_ID) {
+            /* The spec requires the frame cap in the current slot be the same one
+             * used to perform the mapping of the frame in some container (either
+             * a page table or page directory). */
+            CDL_ObjID container_id = target_cap->mapping_container_id;
+            seL4_Word slot_index = target_cap->mapping_slot;
+
+            /* Look up the container object which contains the mapping. */
+            CDL_Object *container = get_spec_object(spec, container_id);
+            assert(container);
+            assert(container->type == CDL_PT || container->type == CDL_PD);
+
+            /* When the frame was mapped in, a copy of the cap was first created,
+             * and the copy used for the mapping. This copy is the cap that must
+             * be moved into the current slot. */
+            CDL_Cap *frame_cap = get_cap_at(container, slot_index);
+            assert(frame_cap);
+            assert(frame_cap->type == CDL_FrameCap);
+            seL4_CPtr mapped_frame_cap = frame_cap->mapped_frame_cap;
+
+            /* Move the cap to the frame used for the mapping into the destination slot. */
+            int error = seL4_CNode_Move(dest_root, dest_index, dest_depth,
+                                        src_root, mapped_frame_cap, src_depth);
+            seL4_AssertSuccess(error);
+        } else {
+          debug_printf("minting (with badge/guard %p)...\n", (void*)target_cap_data.words[0]);
+          int error = seL4_CNode_Mint(dest_root, dest_index, dest_depth,
+                                      src_root, src_index, src_depth, target_cap_rights, target_cap_data);
+          seL4_AssertSuccess(error);
+        }
     } else {
         debug_printf("skipping\n");
     }

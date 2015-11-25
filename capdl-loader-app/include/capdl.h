@@ -107,6 +107,7 @@ typedef struct {
     seL4_CapRights rights;
     CDL_ObjID mapping_container_id;
     seL4_Word mapping_slot;
+    seL4_CPtr mapped_frame_cap;
 } CDL_Cap;
 
 /* CapMap: is just an array of cap slots, position of the slot and cap */
