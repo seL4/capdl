@@ -194,7 +194,7 @@ add_sel4_cap(CDL_ObjID object_id, seL4_cap_type type, seL4_CPtr slot)
 }
 
 static CDL_Object
-*get_spec_object(const CDL_Model *spec, CDL_ObjID object_id)
+*get_spec_object(CDL_Model *spec, CDL_ObjID object_id)
 {
     return &spec->objects[object_id];
 }
@@ -230,7 +230,7 @@ get_cap_at(CDL_Object *obj, unsigned int slot)
 
 /* elf file loading hack - prefill objects with the data defined in the elf file */
 static seL4_CPtr
-get_frame_cap(CDL_ObjID pd, uintptr_t vaddr, const CDL_Model *spec)
+get_frame_cap(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
 {
     CDL_Object *cdl_pd = get_spec_object(spec, pd);
     CDL_Cap *pt_cap = get_cap_at(cdl_pd, PD_SLOT(vaddr));
@@ -253,7 +253,7 @@ get_frame_cap(CDL_ObjID pd, uintptr_t vaddr, const CDL_Model *spec)
 }
 
 static seL4_CPtr
-get_frame_size(CDL_ObjID pd, uintptr_t vaddr, const CDL_Model *spec)
+get_frame_size(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
 {
     CDL_Object *cdl_pd = get_spec_object(spec, pd);
     CDL_Cap *pt_cap = get_cap_at(cdl_pd, PD_SLOT(vaddr));
@@ -276,7 +276,7 @@ get_frame_size(CDL_ObjID pd, uintptr_t vaddr, const CDL_Model *spec)
 }
 
 static seL4_CPtr
-get_frame_pt(CDL_ObjID pd, uintptr_t vaddr, const CDL_Model *spec)
+get_frame_pt(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
 {
     CDL_Object *cdl_pd = get_spec_object(spec, pd);
     CDL_Cap *pt_cap = get_cap_at(cdl_pd, PD_SLOT(vaddr));
@@ -352,7 +352,7 @@ void init_copy_frame(seL4_BootInfo *bootinfo)
 }
 
 static void
-elf_load_frames(const char *elf_name, CDL_ObjID pd, const CDL_Model *spec,
+elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
         seL4_BootInfo *bootinfo)
 {
     unsigned long elf_size;
@@ -664,7 +664,7 @@ retype_untyped(seL4_CPtr free_slot, seL4_CPtr free_untyped,
 }
 
 static void
-create_objects(const CDL_Model *spec, seL4_BootInfo *bootinfo)
+create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
 {
     debug_printf("Creating objects...\n");
 
@@ -832,7 +832,7 @@ create_irq_cap(CDL_IRQ irq, seL4_CPtr free_slot)
 }
 
 static void
-create_irq_caps(const CDL_Model *spec)
+create_irq_caps(CDL_Model *spec)
 {
     debug_printf("Creating irq handler caps...\n");
 
@@ -869,7 +869,7 @@ duplicate_cap(CDL_ObjID object_id, int free_slot)
 }
 
 static void
-duplicate_caps(const CDL_Model *spec)
+duplicate_caps(CDL_Model *spec)
 {
     debug_printf("Duplicating CNodes...\n");
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
@@ -884,7 +884,7 @@ duplicate_caps(const CDL_Model *spec)
 
 /* Initialise TCBs */
 static void
-init_tcb(const CDL_Model *spec, CDL_ObjID tcb)
+init_tcb(CDL_Model *spec, CDL_ObjID tcb)
 {
     CDL_Object *cdl_tcb = get_spec_object(spec, tcb);
 
@@ -938,7 +938,7 @@ init_tcb(const CDL_Model *spec, CDL_ObjID tcb)
 }
 
 static void
-configure_thread(const CDL_Model *spec, CDL_ObjID tcb)
+configure_thread(CDL_Model *spec, CDL_ObjID tcb)
 {
     seL4_CPtr sel4_tcb = dup_caps(tcb);
 
@@ -1065,7 +1065,7 @@ configure_thread(const CDL_Model *spec, CDL_ObjID tcb)
 }
 
 static void
-init_tcbs(const CDL_Model *spec)
+init_tcbs(CDL_Model *spec)
 {
     debug_printf("Initialising TCBs...\n");
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
@@ -1081,7 +1081,7 @@ init_tcbs(const CDL_Model *spec)
 
 #ifndef CONFIG_CAPDL_LOADER_VERIFIED
 static void
-init_elf(const CDL_Model *spec, CDL_ObjID tcb, seL4_BootInfo *bootinfo)
+init_elf(CDL_Model *spec, CDL_ObjID tcb, seL4_BootInfo *bootinfo)
 {
     CDL_Object *cdl_tcb = get_spec_object(spec, tcb);
 
@@ -1094,7 +1094,7 @@ init_elf(const CDL_Model *spec, CDL_ObjID tcb, seL4_BootInfo *bootinfo)
 }
 
 static void
-init_elfs(const CDL_Model *spec, seL4_BootInfo *bootinfo)
+init_elfs(CDL_Model *spec, seL4_BootInfo *bootinfo)
 {
     debug_printf("Initialising ELFs...\n");
     debug_printf(" Available ELFs:\n");
@@ -1118,7 +1118,7 @@ init_elfs(const CDL_Model *spec, seL4_BootInfo *bootinfo)
 #endif //!CONFIG_CAPDL_LOADER_VERIFIED
 
 static void
-init_irq(const CDL_Model *spec, CDL_IRQ irq_no)
+init_irq(CDL_Model *spec, CDL_IRQ irq_no)
 {
     seL4_CPtr irq_handler_cap = irq_caps(irq_no);
 
@@ -1144,7 +1144,7 @@ init_irq(const CDL_Model *spec, CDL_IRQ irq_no)
 }
 
 static void
-init_irqs(const CDL_Model *spec)
+init_irqs(CDL_Model *spec)
 {
     debug_printf("Initialising IRQ handler caps...\n");
 
@@ -1159,7 +1159,7 @@ init_irqs(const CDL_Model *spec)
 #ifndef CONFIG_KERNEL_STABLE
 /* Initialise virtual address spaces */
 static void
-set_asid(const CDL_Model *spec UNUSED, CDL_ObjID page)
+set_asid(CDL_Model *spec UNUSED, CDL_ObjID page)
 {
     debug_printf("(%s)\n", CDL_Obj_Name(&spec->objects[page]));
 
@@ -1170,7 +1170,7 @@ set_asid(const CDL_Model *spec UNUSED, CDL_ObjID page)
 #endif //!CONFIG_KERNEL_STABLE
 
 static void
-init_pd_asid(const CDL_Model *spec UNUSED, CDL_ObjID pd)
+init_pd_asid(CDL_Model *spec UNUSED, CDL_ObjID pd)
 {
     debug_printf("(%s)\n", CDL_Obj_Name(&spec->objects[pd]));
 #ifndef CONFIG_KERNEL_STABLE
@@ -1179,7 +1179,7 @@ init_pd_asid(const CDL_Model *spec UNUSED, CDL_ObjID pd)
 }
 
 static void
-init_pd_asids(const CDL_Model *spec)
+init_pd_asids(CDL_Model *spec)
 {
     debug_printf("Initialising Page Directory ASIDs...\n");
 
@@ -1193,7 +1193,7 @@ init_pd_asids(const CDL_Model *spec)
 }
 
 static void
-map_page(const CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
+map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
          seL4_CapRights rights, seL4_Word page_vaddr, seL4_ARCH_VMAttributes vm_attribs)
 {
     CDL_ObjID page = CDL_Cap_ObjID(page_cap);
@@ -1237,6 +1237,10 @@ map_page(const CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
         }
 #endif
 
+        /* Store the cap used for mapping the page in the CDL_Cap in the
+         * corresponding page table/directory slot for later use. */
+        page_cap->mapped_frame_cap = sel4_page;
+
         // FIXME: Add support for super-pages.
         int error = seL4_ARCH_Page_Map(sel4_page, sel4_pd, page_vaddr, rights, vm_attribs);
         if (error) {
@@ -1276,7 +1280,7 @@ map_page(const CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
 }
 
 static void
-map_page_directory_slot(const CDL_Model *spec UNUSED, CDL_ObjID pd, CDL_CapSlot *pd_slot)
+map_page_directory_slot(CDL_Model *spec UNUSED, CDL_ObjID pd, CDL_CapSlot *pd_slot)
 {
     debug_printf("(%s, %d)\n", CDL_Obj_Name(&spec->objects[pd]), pd_slot->slot);
     CDL_Cap *page_cap = CDL_CapSlot_Cap(pd_slot);
@@ -1289,7 +1293,7 @@ map_page_directory_slot(const CDL_Model *spec UNUSED, CDL_ObjID pd, CDL_CapSlot 
 }
 
 static void
-map_page_directory(const CDL_Model *spec, CDL_ObjID pd)
+map_page_directory(CDL_Model *spec, CDL_ObjID pd)
 {
     debug_printf("(%s)\n", CDL_Obj_Name(&spec->objects[pd]));
 
@@ -1300,7 +1304,7 @@ map_page_directory(const CDL_Model *spec, CDL_ObjID pd)
 }
 
 static void
-map_page_table_slot(const CDL_Model *spec UNUSED, CDL_ObjID pd, CDL_ObjID pt UNUSED,
+map_page_table_slot(CDL_Model *spec UNUSED, CDL_ObjID pd, CDL_ObjID pt UNUSED,
                     seL4_Word pt_vaddr, CDL_CapSlot *pt_slot)
 {
     debug_printf("(%s, %s, %x, %d)\n", CDL_Obj_Name(&spec->objects[pd]),
@@ -1316,7 +1320,7 @@ map_page_table_slot(const CDL_Model *spec UNUSED, CDL_ObjID pd, CDL_ObjID pt UNU
 }
 
 static void
-map_page_table_slots(const CDL_Model *spec, CDL_ObjID pd, CDL_CapSlot *pd_slot)
+map_page_table_slots(CDL_Model *spec, CDL_ObjID pd, CDL_CapSlot *pd_slot)
 {
     CDL_Cap *page_cap = CDL_CapSlot_Cap(pd_slot);
     CDL_ObjID page = CDL_Cap_ObjID(page_cap);
@@ -1331,7 +1335,7 @@ map_page_table_slots(const CDL_Model *spec, CDL_ObjID pd, CDL_CapSlot *pd_slot)
 }
 
 static void
-map_page_directory_page_tables(const CDL_Model *spec, CDL_ObjID pd)
+map_page_directory_page_tables(CDL_Model *spec, CDL_ObjID pd)
 {
     CDL_Object *cdl_pd = get_spec_object(spec, pd);
     for (unsigned int slot_index = 0; slot_index < CDL_Obj_NumSlots(cdl_pd); slot_index++)
@@ -1339,7 +1343,7 @@ map_page_directory_page_tables(const CDL_Model *spec, CDL_ObjID pd)
 }
 
 static void
-init_vspace(const CDL_Model *spec)
+init_vspace(CDL_Model *spec)
 {
     debug_printf("Initialising VSpaces...\n");
 
@@ -1365,7 +1369,7 @@ init_vspace(const CDL_Model *spec)
 
 /* Initialise capability spaces */
 static void
-init_cnode_slot(const CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_CapSlot *cnode_slot)
+init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_CapSlot *cnode_slot)
 {
     CDL_Cap *target_cap = CDL_CapSlot_Cap(cnode_slot);
     CDL_ObjID target_cap_obj = CDL_Cap_ObjID(target_cap);
@@ -1388,6 +1392,7 @@ init_cnode_slot(const CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id,
 #endif
     int is_ep_cap = (target_cap_type == CDL_EPCap || target_cap_type == CDL_NotificationCap);
     int is_irq_handler_cap = (target_cap_type == CDL_IRQHandlerCap);
+    int is_frame_cap = (target_cap_type == CDL_FrameCap);
 #if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_IA32)
     int is_ioport_cap = (target_cap_type == CDL_IOPortsCap);
     int is_iospace_cap = (target_cap_type == CDL_IOSpaceCap);
@@ -1433,17 +1438,43 @@ init_cnode_slot(const CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id,
             seL4_AssertSuccess(error);
         }
     } else if ((mode == COPY) && !is_orig_cap) {
-        debug_printf("minting (with badge/guard %p)...\n", (void*)target_cap_data.words[0]);
-        int error = seL4_CNode_Mint(dest_root, dest_index, dest_depth,
-                                    src_root, src_index, src_depth, target_cap_rights, target_cap_data);
-        seL4_AssertSuccess(error);
+        if (is_frame_cap && target_cap->mapping_container_id != INVALID_OBJ_ID) {
+            /* The spec requires the frame cap in the current slot be the same one
+             * used to perform the mapping of the frame in some container (either
+             * a page table or page directory). */
+            CDL_ObjID container_id = target_cap->mapping_container_id;
+            seL4_Word slot_index = target_cap->mapping_slot;
+
+            /* Look up the container object which contains the mapping. */
+            CDL_Object *container = get_spec_object(spec, container_id);
+            assert(container);
+            assert(container->type == CDL_PT || container->type == CDL_PD);
+
+            /* When the frame was mapped in, a copy of the cap was first created,
+             * and the copy used for the mapping. This copy is the cap that must
+             * be moved into the current slot. */
+            CDL_Cap *frame_cap = get_cap_at(container, slot_index);
+            assert(frame_cap);
+            assert(frame_cap->type == CDL_FrameCap);
+            seL4_CPtr mapped_frame_cap = frame_cap->mapped_frame_cap;
+
+            /* Move the cap to the frame used for the mapping into the destination slot. */
+            int error = seL4_CNode_Move(dest_root, dest_index, dest_depth,
+                                        src_root, mapped_frame_cap, src_depth);
+            seL4_AssertSuccess(error);
+        } else {
+          debug_printf("minting (with badge/guard %p)...\n", (void*)target_cap_data.words[0]);
+          int error = seL4_CNode_Mint(dest_root, dest_index, dest_depth,
+                                      src_root, src_index, src_depth, target_cap_rights, target_cap_data);
+          seL4_AssertSuccess(error);
+        }
     } else {
         debug_printf("skipping\n");
     }
 }
 
 static void
-init_cnode(const CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode)
+init_cnode(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode)
 {
     CDL_Object *cdl_cnode = get_spec_object(spec, cnode);
     for (unsigned int slot_index = 0; slot_index < CDL_Obj_NumSlots(cdl_cnode); slot_index++) {
@@ -1462,7 +1493,7 @@ init_cnode(const CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode)
 }
 
 static void
-init_cspace(const CDL_Model *spec)
+init_cspace(CDL_Model *spec)
 {
     debug_printf("Copying Caps...\n");
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
@@ -1482,7 +1513,7 @@ init_cspace(const CDL_Model *spec)
 }
 
 static void
-start_threads(const CDL_Model *spec)
+start_threads(CDL_Model *spec)
 {
     debug_printf("Starting threads...\n");
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
@@ -1496,7 +1527,7 @@ start_threads(const CDL_Model *spec)
 }
 
 static void
-init_system(const CDL_Model *spec)
+init_system(CDL_Model *spec)
 {
     seL4_BootInfo *bootinfo = seL4_GetBootInfo();
 
