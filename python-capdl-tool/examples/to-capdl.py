@@ -16,4 +16,4 @@ import capdl
 elf = capdl.ELF('../tests/arm-elf/hello.bin')
 
 # Generate CapDL.
-print elf.get_spec()
+print(elf.get_spec())

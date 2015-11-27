@@ -41,4 +41,4 @@ cspace[1] = capdl.Cap(ut)
 spec = capdl.Spec()
 for obj in [tcb, ep, cspace, vspace, ut]:
     spec.add_object(obj)
-print spec
+print(spec)

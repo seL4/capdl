@@ -19,4 +19,4 @@ pc = capdl.create_address_space([
     ])
 
 # Print a CapDL spec for all the virtual address space objects.
-print pc.get_spec()
+print(pc.get_spec())
