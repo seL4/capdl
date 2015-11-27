@@ -78,7 +78,7 @@ class Cap(object):
             assert self.ports
             extra.append('ports: [%s..%s]' % (self.ports[0], self.ports[-1]))
 
-        extra = filter(lambda x: x != '', extra)
+        extra = [x for x in extra if x != '']
 
         return '%s%s' % (self.referent.name,
                          (' (%s)' % ', '.join(extra)) if extra else '')
