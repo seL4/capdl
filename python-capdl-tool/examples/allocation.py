@@ -11,6 +11,9 @@
 # The module Allocator.py contains an object and CSpace allocator. This example
 # shows how these can be used for convenience.
 
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
 # Add the root directory of this repository to your PYTHONPATH environment
 # variable to enable the following import.
 import capdl

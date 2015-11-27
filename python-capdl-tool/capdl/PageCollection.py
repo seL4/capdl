@@ -13,6 +13,9 @@ Wrapper around a dict of pages for some extra functionality. Only intended to
 be used internally.
 '''
 
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
 from .Cap import Cap
 from .Object import ASIDPool, PageDirectory, Frame, PageTable
 from .Spec import Spec

@@ -9,6 +9,9 @@
 # @TAG(NICTA_BSD)
 #
 
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
 from capdl import ELF
 
 elf = ELF('hello.bin')

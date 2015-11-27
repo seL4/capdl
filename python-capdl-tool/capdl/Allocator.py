@@ -8,6 +8,9 @@
 # @TAG(NICTA_BSD)
 #
 
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
 from .Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
     Notification, TCB, Untyped, IOPageTable, Object, IRQ, IOPorts, IODevice, \
     VCPU, ASIDPool

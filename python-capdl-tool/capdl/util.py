@@ -12,6 +12,9 @@
 Various internal utility functions. Pay no mind to this file.
 """
 
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
 # Size of a frame and page (applies to all architectures)
 FRAME_SIZE = 4096 # bytes
 PAGE_SIZE = 4096 # bytes

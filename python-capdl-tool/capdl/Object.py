@@ -12,6 +12,9 @@
 Definitions of kernel objects.
 """
 
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
 import math
 
 class Object(object):

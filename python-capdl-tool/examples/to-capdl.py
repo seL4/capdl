@@ -8,6 +8,9 @@
 # @TAG(NICTA_BSD)
 #
 
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
 # Add the root directory of this repository to your PYTHONPATH environment
 # variable to enable the following import.
 import capdl
