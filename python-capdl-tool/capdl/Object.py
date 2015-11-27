@@ -12,7 +12,6 @@
 Definitions of kernel objects.
 """
 
-import Cap
 import math
 
 class Object(object):
