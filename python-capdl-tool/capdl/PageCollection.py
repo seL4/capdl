@@ -53,39 +53,6 @@ class PageCollection(object):
         self._pages[vaddr]['execute'] |= execute
         self._pages[vaddr]['size'] = size
 
-    def add_pages(self, base, limit, read=False, write=False, execute=False):
-        '''Optimised, batched version of calling add_page in a loop. Prefer
-        add_page unless you're doing something performance critical. Note this
-        is incapable of dealing with large frames.'''
-        assert base % PAGE_SIZE == 0
-        # Permissions to default to a page we haven't created yet.
-        base_perm = {
-            'read':False,
-            'write':False,
-            'execute':False,
-        }
-        # Permissions to update an existing page.
-        d = {}
-        if read:
-            d['read'] = True
-        if write:
-            d['write'] = True
-        if execute:
-            d['execute'] = True
-        # The following requires a little explanation.
-        #  1. consume() to avoid accumulating a large unused list/generator in
-        #     memory.
-        #  2. Pre-construct d and base_perm to avoid the interpreter
-        #     repeatedly reconstructing them.
-        #  3. __setitem__() rather than 'self._pages[v] = ...' because we can't
-        #     use 'x = y' syntax inside a list comprehension.
-        #  4. A list comprehension because this is faster than a for loop or
-        #     map in this case.
-        #  5. xrange() because it is faster than range().
-        consume(self._pages.__setitem__(v,
-            dict(self._pages.get(v, base_perm).items() + d.items()))
-                for v in xrange(base, limit, PAGE_SIZE))
-
     def __getitem__(self, key):
         return self._pages[key]
 
