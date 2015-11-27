@@ -8,7 +8,7 @@
 # @TAG(NICTA_BSD)
 #
 
-from Object import IRQ, Object, PageTable
+from .Object import IRQ, Object, PageTable
 
 class Spec(object):
     """

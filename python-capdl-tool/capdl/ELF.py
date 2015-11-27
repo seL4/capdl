@@ -15,9 +15,9 @@ without elftools installed by not importing this particular file.
 """
 from elftools.elf.elffile import ELFFile
 from elftools.elf.constants import P_FLAGS
-from Object import TCB
-from util import PAGE_SIZE, round_down, page_sizes
-from PageCollection import PageCollection
+from .Object import TCB
+from .util import PAGE_SIZE, round_down, page_sizes
+from .PageCollection import PageCollection
 import os, re
 
 class ELF(object):

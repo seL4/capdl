@@ -8,7 +8,7 @@
 # @TAG(NICTA_BSD)
 #
 
-import Object
+from . import Object
 
 class Cap(object):
     """

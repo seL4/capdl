@@ -8,11 +8,11 @@
 # @TAG(NICTA_BSD)
 #
 
-from Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
+from .Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
     Notification, TCB, Untyped, IOPageTable, Object, IRQ, IOPorts, IODevice, \
     VCPU, ASIDPool
-from Spec import Spec
-from Cap import Cap
+from .Spec import Spec
+from .Cap import Cap
 import collections, os
 
 seL4_UntypedObject = 0
