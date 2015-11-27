@@ -208,16 +208,9 @@ class IRQ(ContainerObject):
         super(IRQ, self).__init__(name)
         self.number = number
 
-    def set_endpoint(self, notification):
-        # Allow the user to pass an object or cap.
-        if isinstance(notification, Object):
-            assert isinstance(notification, Notification)
-            c = Cap.Cap(notification)
-        else:
-            assert isinstance(notification, Cap.Cap)
-            assert isinstance(notification.referent, Notification)
-            c = notification
-        self[0] = c
+    def set_endpoint(self, notification_cap):
+        assert isinstance(notification_cap.referent, Notification)
+        self[0] = notification_cap
 
     def __repr__(self):
         # Note, in CapDL this is actually represented as a 0-sized CNode.
