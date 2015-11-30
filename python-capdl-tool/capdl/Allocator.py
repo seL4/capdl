@@ -140,7 +140,7 @@ class ObjectAllocator(object):
         elif type == seL4_IRQControl:
             if 'number' in kwargs and 'notification' in kwargs:
                 o = IRQ(name, kwargs['number'])
-                o.set_endpoint(kwargs['notification'])
+                o.set_notification(kwargs['notification'])
             else:
                 raise ValueError
         elif type == seL4_ASID_Pool:

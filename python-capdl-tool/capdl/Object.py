@@ -208,7 +208,7 @@ class IRQ(ContainerObject):
         super(IRQ, self).__init__(name)
         self.number = number
 
-    def set_endpoint(self, notification_cap):
+    def set_notification(self, notification_cap):
         assert isinstance(notification_cap.referent, Notification)
         self[0] = notification_cap
 
