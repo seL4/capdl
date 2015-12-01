@@ -13,11 +13,14 @@ Functionality related to handling ELF file input. This is the only section of
 this module that relies on elftools, so it is possible to use this module
 without elftools installed by not importing this particular file.
 """
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
 from elftools.elf.elffile import ELFFile
 from elftools.elf.constants import P_FLAGS
-from Object import TCB
-from util import PAGE_SIZE, round_down, page_sizes
-from PageCollection import PageCollection
+from .Object import TCB
+from .util import PAGE_SIZE, round_down, page_sizes
+from .PageCollection import PageCollection
 import os, re
 
 class ELF(object):

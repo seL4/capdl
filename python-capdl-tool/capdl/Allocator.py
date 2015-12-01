@@ -8,11 +8,14 @@
 # @TAG(NICTA_BSD)
 #
 
-from Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
+from .Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
     Notification, TCB, Untyped, IOPageTable, Object, IRQ, IOPorts, IODevice, \
     VCPU, ASIDPool
-from Spec import Spec
-from Cap import Cap
+from .Spec import Spec
+from .Cap import Cap
 import collections, os
 
 seL4_UntypedObject = 0
@@ -140,7 +143,7 @@ class ObjectAllocator(object):
         elif type == seL4_IRQControl:
             if 'number' in kwargs and 'notification' in kwargs:
                 o = IRQ(name, kwargs['number'])
-                o.set_endpoint(kwargs['notification'])
+                o.set_notification(kwargs['notification'])
             else:
                 raise ValueError
         elif type == seL4_ASID_Pool:

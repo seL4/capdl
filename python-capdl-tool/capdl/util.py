@@ -12,6 +12,9 @@
 Various internal utility functions. Pay no mind to this file.
 """
 
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
 # Size of a frame and page (applies to all architectures)
 FRAME_SIZE = 4096 # bytes
 PAGE_SIZE = 4096 # bytes
@@ -20,7 +23,7 @@ def round_down(n, alignment=FRAME_SIZE):
     """
     Round a number down to 'alignment'.
     """
-    return n / alignment * alignment
+    return n // alignment * alignment
 
 def page_sizes(arch, hyp=False):
     arch = arch.lower()
@@ -75,18 +78,18 @@ def page_table_index(arch, vaddr, hyp=False):
     The index of a page table within a containing page directory, derived from
     the virtual address of a location within that table's coverage.
     """
-    return vaddr / page_table_coverage(arch, hyp)
+    return vaddr // page_table_coverage(arch, hyp)
 
 def page_index(arch, vaddr, hyp=False):
     """
     The index of a page within a containing page table, derived from the
     virtual address of a location within that page.
     """
-    return vaddr % page_table_coverage(arch, hyp) / PAGE_SIZE
+    return vaddr % page_table_coverage(arch, hyp) // PAGE_SIZE
 
 def page_vaddr(vaddr):
     """
     The base virtual address of a page, derived from the virtual address of a
     location within that page.
     """
-    return vaddr / PAGE_SIZE * PAGE_SIZE
+    return vaddr // PAGE_SIZE * PAGE_SIZE

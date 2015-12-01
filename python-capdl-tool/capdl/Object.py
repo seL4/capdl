@@ -12,7 +12,9 @@
 Definitions of kernel objects.
 """
 
-import Cap
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
 import math
 
 class Object(object):
@@ -84,9 +86,9 @@ class Frame(Object):
 
     def __repr__(self):
         if self.size % (1024 * 1024) == 0:
-            size = '%dM' % (self.size / 1024 / 1024)
+            size = '%dM' % (self.size // 1024 // 1024)
         elif self.size % 1024 == 0:
-            size = '%dk' % (self.size / 1024)
+            size = '%dk' % (self.size // 1024)
         else:
             size = str(self.size)
         return '%(name)s = frame (%(size)s%(maybepaddr)s)' % {
@@ -180,7 +182,7 @@ class IOPorts(Object):
     def __repr__(self):
         return '%(name)s = io_ports (%(size)sk ports)' % \
             {'name':self.name,
-             'size':self.size / 1024}
+             'size':self.size // 1024}
 
 class IODevice(Object):
     def __init__(self, name, domainID, bus, dev, fun):
@@ -209,16 +211,9 @@ class IRQ(ContainerObject):
         super(IRQ, self).__init__(name)
         self.number = number
 
-    def set_endpoint(self, notification):
-        # Allow the user to pass an object or cap.
-        if isinstance(notification, Object):
-            assert isinstance(notification, Notification)
-            c = Cap.Cap(notification)
-        else:
-            assert isinstance(notification, Cap.Cap)
-            assert isinstance(notification.referent, Notification)
-            c = notification
-        self[0] = c
+    def set_notification(self, notification_cap):
+        assert isinstance(notification_cap.referent, Notification)
+        self[0] = notification_cap
 
     def __repr__(self):
         # Note, in CapDL this is actually represented as a 0-sized CNode.

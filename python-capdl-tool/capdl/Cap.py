@@ -8,7 +8,10 @@
 # @TAG(NICTA_BSD)
 #
 
-import Object
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
+from . import Object
 
 class Cap(object):
     """
