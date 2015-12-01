@@ -25,6 +25,8 @@ class Cap(object):
         self.badge = None
         self.cached = True
         self.ports = None
+        self.mapping_container = None
+        self.mapping_slot = None
 
     def set_guard(self, guard):
         assert isinstance(self.referent, Object.CNode)
@@ -54,6 +56,11 @@ class Cap(object):
         assert isinstance(self.referent, Object.IOPorts)
         self.ports = ports
 
+    def set_mapping(self, container, slot):
+        assert isinstance(self.referent, Object.Frame)
+        self.mapping_container = container
+        self.mapping_slot = slot
+
     def __repr__(self):
         extra = []
 
@@ -66,6 +73,9 @@ class Cap(object):
                  'X' if self.grant else ''))
         if isinstance(self.referent, Object.Frame) and not self.cached:
             extra.append('uncached')
+        if isinstance(self.referent, Object.Frame) and \
+            self.mapping_container is not None:
+            extra.append('mapping: (%s, %d)' % (self.mapping_container.name, self.mapping_slot))
         if (isinstance(self.referent, Object.Endpoint) or
             isinstance(self.referent, Object.Notification)) and \
            self.badge is not None:
