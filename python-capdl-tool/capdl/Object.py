@@ -15,7 +15,7 @@ Definitions of kernel objects.
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-import math
+import math, six
 
 class Object(object):
     """
@@ -49,7 +49,7 @@ class ContainerObject(Object):
             elif isinstance(index, int):
                 return '%s: ' % hex(index)
             else:
-                assert isinstance(index, str)
+                assert isinstance(index, six.string_types)
                 return '%s: ' % index
 
         return '%s {\n%s\n}' % (self.name,

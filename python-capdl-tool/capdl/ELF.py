@@ -21,7 +21,7 @@ from elftools.elf.constants import P_FLAGS
 from .Object import TCB
 from .util import PAGE_SIZE, round_down, page_sizes
 from .PageCollection import PageCollection
-import os, re
+import os, re, six
 
 class ELF(object):
     def __init__(self, elf, name=''):
@@ -30,7 +30,7 @@ class ELF(object):
         parameter 'elf', or a stream to ELF data. 'name' is only used when
         generating CapDL from the ELF file.
         """
-        if isinstance(elf, str):
+        if isinstance(elf, six.string_types):
             f = open(elf, 'rb')
         else:
             f = elf
