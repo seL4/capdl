@@ -418,7 +418,7 @@ printFileName file = text $ dropExtension $ takeFileName file
 
 printHeader :: String -> Doc
 printHeader name =
-    text "theory" <+> doubleQuotes (printFileName name) $+$ text "imports Types_D"
+    text "theory" <+> doubleQuotes (printFileName name) $+$ text "imports \"~~/../l4v/spec/capDL/Types_D\""
     $+$ text "begin"
 
 printFooter :: Doc
