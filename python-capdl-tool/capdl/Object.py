@@ -143,7 +143,7 @@ class Notification(Object):
 
 class TCB(ContainerObject):
     def __init__(self, name, ipc_buffer_vaddr=0x0, ip=0x0, sp=0x0, elf=None,
-            prio=254, init=None, domain=None, fault_ep_slot=0x0):
+            prio=254, init=None, domain=None, fault_ep_slot=None):
         super(TCB, self).__init__(name)
         self.addr = ipc_buffer_vaddr
         self.ip = ip
@@ -155,7 +155,9 @@ class TCB(ContainerObject):
         self.fault_ep_slot = fault_ep_slot
 
     def __repr__(self):
-        s = '%(name)s = tcb (addr: 0x%(addr)x, ip: 0x%(ip)x, sp: 0x%(sp)x, elf: %(elf)s, prio: %(prio)s, init: %(init)s, fault_ep: 0x%(fault_ep_slot)0.8x' % self.__dict__
+        s = '%(name)s = tcb (addr: 0x%(addr)x, ip: 0x%(ip)x, sp: 0x%(sp)x, elf: %(elf)s, prio: %(prio)s, init: %(init)s' % self.__dict__
+        if self.fault_ep_slot is not None:
+            s += ', fault_ep: 0x%0.8x' % self.fault_ep_slot
         if self.domain is not None:
             s += ', dom: %d' % self.domain
         s += ')'
