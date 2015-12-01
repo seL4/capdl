@@ -116,7 +116,7 @@ class ELF(object):
         TYPE = {"ignore": 1, "shared": 2, "persistent": 3, "guarded": 4}
         regex = re.compile("^(ignore_|shared_|persistent|guarded)");
         sections = [x for x in self._elf.iter_sections() if
-            regex.match(x.name)]
+            regex.match(_decode(x.name))]
 
         for seg in self._elf.iter_segments():
             if not seg['p_type'] == 'PT_LOAD':
