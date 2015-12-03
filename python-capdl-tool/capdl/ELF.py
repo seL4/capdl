@@ -21,7 +21,21 @@ from elftools.elf.constants import P_FLAGS
 from .Object import TCB
 from .util import PAGE_SIZE, round_down, page_sizes
 from .PageCollection import PageCollection
-import os, re
+import os, re, six
+
+def _decode(data):
+    '''
+    Decode ambiguous data retrieved from an ELF file.
+
+    Depending on the version of Python we are running, we may wind up with
+    ascii strings, UTF-8 or byte arrays. Only ASCII data can appear in ELF
+    files in places we are expecting text (this is not strictly true, but
+    `pyelftools` makes this assumption internally, so we may as well stick to
+    that) so we decode any byte array as ASCII.
+    '''
+    if isinstance(data, bytes):
+        return data.decode('ascii')
+    return data
 
 class ELF(object):
     def __init__(self, elf, name=''):
@@ -30,7 +44,7 @@ class ELF(object):
         parameter 'elf', or a stream to ELF data. 'name' is only used when
         generating CapDL from the ELF file.
         """
-        if isinstance(elf, str):
+        if isinstance(elf, six.string_types):
             f = open(elf, 'rb')
         else:
             f = elf
@@ -102,7 +116,7 @@ class ELF(object):
         TYPE = {"ignore": 1, "shared": 2, "persistent": 3, "guarded": 4}
         regex = re.compile("^(ignore_|shared_|persistent|guarded)");
         sections = [x for x in self._elf.iter_sections() if
-            regex.match(x.name)]
+            regex.match(_decode(x.name))]
 
         for seg in self._elf.iter_segments():
             if not seg['p_type'] == 'PT_LOAD':
@@ -116,7 +130,7 @@ class ELF(object):
             relevant_sections = filter(seg.section_in_segment, sections)
             for sec in relevant_sections:
                 region = [x for x in regions if
-                    sec['sh_addr'] in xrange(x['addr'], x['addr'] + x['size'])]
+                    sec['sh_addr'] in range(x['addr'], x['addr'] + x['size'])]
                 assert len(region) == 1
                 region = region[0]
                 orig_size = region['size']
@@ -126,7 +140,7 @@ class ELF(object):
                 # this section.
                 regions += [{'addr': sec['sh_addr'],
                              'size': sec['sh_size'],
-                             'type': TYPE[sec.name.split('_')[0]]},
+                             'type': TYPE[_decode(sec.name).split('_')[0]]},
                             {'addr': sec['sh_addr'] + sec['sh_size'],
                              'size': orig_size - region['size'] - sec['sh_size'],
                              'type': 0}]
