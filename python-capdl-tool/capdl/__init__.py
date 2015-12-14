@@ -25,5 +25,5 @@ from .Allocator import seL4_UntypedObject, seL4_TCBObject, seL4_EndpointObject, 
     seL4_AllRights, ObjectAllocator, CSpaceAllocator, seL4_FrameObject, \
     seL4_PageDirectoryObject, seL4_ARM_SectionObject, seL4_IA32_4M
 from .PageCollection import PageCollection, create_address_space
-from .util import page_table_vaddr, page_table_index, page_index, page_vaddr, \
-                 page_table_coverage
+from .util import page_index, page_sizes, page_table_coverage, \
+    page_table_index, page_table_vaddr, page_vaddr
