@@ -19,6 +19,21 @@ from __future__ import absolute_import, division, print_function, \
 FRAME_SIZE = 4096 # bytes
 PAGE_SIZE = 4096 # bytes
 
+def normalise_architecture(arch):
+    # Allow the user to be a bit hazy with their architecture description, and
+    # tweak it to match the values accepted by the CapDL translator.
+    NORMALISATION = {
+        'arm':'arm11',
+        'arm11':'arm11',
+        'arm_hyp':'arm11',
+        'ia32':'ia32',
+        'x86':'ia32',
+    }
+    try:
+        return NORMALISATION[arch.lower()]
+    except KeyError:
+        raise Exception('invalid architecture: %s' % arch)
+
 def round_down(n, alignment=FRAME_SIZE):
     """
     Round a number down to 'alignment'.
