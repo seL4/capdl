@@ -130,7 +130,7 @@ class ELF(object):
             relevant_sections = filter(seg.section_in_segment, sections)
             for sec in relevant_sections:
                 region = [x for x in regions if
-                    sec['sh_addr'] in range(x['addr'], x['addr'] + x['size'])]
+                    sec['sh_addr'] >= x['addr'] and sec['sh_addr'] < (x['addr'] + x['size'])]
                 assert len(region) == 1
                 region = region[0]
                 orig_size = region['size']
