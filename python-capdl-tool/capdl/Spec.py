@@ -12,6 +12,7 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
 from .Object import IRQ, Object, PageTable
+from .util import normalise_architecture
 
 class Spec(object):
     """
@@ -20,6 +21,17 @@ class Spec(object):
     def __init__(self, arch='arm11'):
         self.arch = arch
         self.objs = set()
+
+    @property
+    def arch(self):
+        return self._arch
+
+    @arch.setter
+    def arch(self, value):
+        if value is None:
+            self._arch = None
+        else:
+            self._arch = normalise_architecture(value)
 
     def add_object(self, obj):
         assert isinstance(obj, Object)
