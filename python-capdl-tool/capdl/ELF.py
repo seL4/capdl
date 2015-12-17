@@ -110,8 +110,7 @@ class ELF(object):
         containing booleans 'read', 'write' and 'execute' for the permissions
         of the page.
         """
-        pages = PageCollection(self._safe_name(), self.arch, infer_asid,
-            pd, self.hyp)
+        pages = PageCollection(self._safe_name(), self.arch, infer_asid, pd)
 
         # Various CAmkES output sections we are expecting to see in the ELF.
         TYPE = {"ignore": 1, "shared": 2, "persistent": 3, "guarded": 4}
@@ -162,8 +161,7 @@ class ELF(object):
                         vaddr += PAGE_SIZE
                 else:
                     # A range that is eligible for promotion.
-                    possible_pages = list(reversed(page_sizes(self.arch,
-                        self.hyp)))
+                    possible_pages = list(reversed(page_sizes(self.arch)))
                     vaddr = round_down(reg['addr'])
                     remain = reg['addr'] + reg['size'] - vaddr
                     while vaddr < reg['addr'] + reg['size']:
