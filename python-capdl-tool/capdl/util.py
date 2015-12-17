@@ -40,7 +40,7 @@ def round_down(n, alignment=FRAME_SIZE):
     """
     return n // alignment * alignment
 
-def page_sizes(arch, hyp=False):
+def page_sizes(arch):
     if normalise_architecture(arch) == 'arm11':
         if arch == 'arm_hyp':
             return [PAGE_SIZE,        # 4K
@@ -60,7 +60,7 @@ def page_sizes(arch, hyp=False):
 
     raise NotImplementedError
 
-def page_table_coverage(arch, hyp=False):
+def page_table_coverage(arch):
     """
     The number of bytes a page table covers.
     """
@@ -79,26 +79,26 @@ def page_table_coverage(arch, hyp=False):
         # enough version of pyelftools.
         raise NotImplementedError
 
-def page_table_vaddr(arch, vaddr, hyp=False):
+def page_table_vaddr(arch, vaddr):
     """
     The base virtual address of a page table, derived from the virtual address
     of a location within that table's coverage.
     """
-    return round_down(vaddr, page_table_coverage(arch, hyp))
+    return round_down(vaddr, page_table_coverage(arch))
 
-def page_table_index(arch, vaddr, hyp=False):
+def page_table_index(arch, vaddr):
     """
     The index of a page table within a containing page directory, derived from
     the virtual address of a location within that table's coverage.
     """
-    return vaddr // page_table_coverage(arch, hyp)
+    return vaddr // page_table_coverage(arch)
 
-def page_index(arch, vaddr, hyp=False):
+def page_index(arch, vaddr):
     """
     The index of a page within a containing page table, derived from the
     virtual address of a location within that page.
     """
-    return vaddr % page_table_coverage(arch, hyp) // PAGE_SIZE
+    return vaddr % page_table_coverage(arch) // PAGE_SIZE
 
 def page_vaddr(vaddr):
     """
