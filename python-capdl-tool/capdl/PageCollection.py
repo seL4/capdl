@@ -96,9 +96,9 @@ class PageCollection(object):
             page_cap = Cap(frame, read=page['read'], write=page['write'],
                 grant=page['execute'])
 
-            pt_vaddr = page_table_vaddr(self.arch, page_vaddr, self.hyp)
-            pt_index = page_table_index(self.arch, pt_vaddr, self.hyp)
-            if page['size'] >= page_table_coverage(self.arch, self.hyp):
+            pt_vaddr = page_table_vaddr(self.arch, page_vaddr)
+            pt_index = page_table_index(self.arch, pt_vaddr)
+            if page['size'] >= page_table_coverage(self.arch):
                 pt_counter += 1
                 pd[pt_index] = page_cap
             else:
@@ -110,7 +110,7 @@ class PageCollection(object):
                     pd[pt_index] = pt_cap
                     pts[pt_vaddr] = pt
                 pt = pd[pt_index].referent
-                p_index = page_index(self.arch, page_vaddr, self.hyp)
+                p_index = page_index(self.arch, page_vaddr)
                 pt[p_index] = page_cap
 
         # Cache the result for next time.
