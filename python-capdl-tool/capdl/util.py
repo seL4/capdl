@@ -42,7 +42,7 @@ def round_down(n, alignment=FRAME_SIZE):
 
 def page_sizes(arch, hyp=False):
     if normalise_architecture(arch) == 'arm11':
-        if arch == 'arm_hyp' or hyp:
+        if arch == 'arm_hyp':
             return [PAGE_SIZE,        # 4K
                     64 * 1024,        # 64K
                     2 * 1024 * 1024,  # 2M
@@ -55,7 +55,6 @@ def page_sizes(arch, hyp=False):
                     16 * 1024 * 1024] # 16M
 
     elif normalise_architecture(arch) == 'ia32':
-        assert not hyp, 'HYP mode is not valid on x86'
         return [PAGE_SIZE,       # 4K
                 4 * 1024 * 1024] # 4M
 
@@ -69,7 +68,7 @@ def page_table_coverage(arch, hyp=False):
         # On IA32 a page table covers 4M
         return 4 * 1024 * 1024
     elif normalise_architecture(arch) == 'arm11':
-        if arch == 'arm_hyp' or hyp:
+        if arch == 'arm_hyp':
             # In HYP mode a page table covers 2M
             return 2 * 1024 * 1024
         # On ARM a page table covers 1M
