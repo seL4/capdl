@@ -31,7 +31,7 @@ def consume(iterator):
     collections.deque(iterator, maxlen=0)
 
 class PageCollection(object):
-    def __init__(self, name='', arch='arm11', infer_asid=True, pd=None, hyp=None):
+    def __init__(self, name='', arch='arm11', infer_asid=True, pd=None):
         self.name = name
         self.arch = arch
         self._pages = {}
@@ -39,7 +39,6 @@ class PageCollection(object):
         self._asid = None
         self.infer_asid = infer_asid
         self._spec = None
-        self.hyp = hyp
 
     def add_page(self, vaddr, read=False, write=False, execute=False, size=PAGE_SIZE):
         if vaddr not in self._pages:
