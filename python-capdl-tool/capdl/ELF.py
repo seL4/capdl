@@ -52,12 +52,6 @@ class ELF(object):
         self.name = name
         self._symtab = None
         self.arch = arch or self.get_arch()
-        # HACK: To derive page mappings to back an ELF file, we need to know the
-        # paging structures. These are slightly different when the kernel is
-        # running in HYP mode. Unfortunately the build system doesn't seem to
-        # export this as a proper config variable, but this non-standard one is
-        # defined.
-        self.hyp = self.arch == 'arm_hyp' or os.environ.get('ARM_HYP', '') == '1'
 
     def get_entry_point(self):
         return self._elf['e_entry']
