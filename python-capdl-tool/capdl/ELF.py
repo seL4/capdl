@@ -38,7 +38,7 @@ def _decode(data):
     return data
 
 class ELF(object):
-    def __init__(self, elf, name=''):
+    def __init__(self, elf, name='', arch=None):
         """
         This constructor is overloaded and can accept either a string as the
         parameter 'elf', or a stream to ELF data. 'name' is only used when
@@ -51,12 +51,13 @@ class ELF(object):
         self._elf = ELFFile(f)
         self.name = name
         self._symtab = None
+        self.arch = arch or self.get_arch()
         # HACK: To derive page mappings to back an ELF file, we need to know the
         # paging structures. These are slightly different when the kernel is
         # running in HYP mode. Unfortunately the build system doesn't seem to
         # export this as a proper config variable, but this non-standard one is
         # defined.
-        self.hyp = os.environ.get('ARM_HYP', '') == '1'
+        self.hyp = self.arch == 'arm_hyp' or os.environ.get('ARM_HYP', '') == '1'
 
     def get_entry_point(self):
         return self._elf['e_entry']
@@ -109,7 +110,7 @@ class ELF(object):
         containing booleans 'read', 'write' and 'execute' for the permissions
         of the page.
         """
-        pages = PageCollection(self._safe_name(), self.get_arch(), infer_asid,
+        pages = PageCollection(self._safe_name(), self.arch, infer_asid,
             pd, self.hyp)
 
         # Various CAmkES output sections we are expecting to see in the ELF.
@@ -161,7 +162,7 @@ class ELF(object):
                         vaddr += PAGE_SIZE
                 else:
                     # A range that is eligible for promotion.
-                    possible_pages = list(reversed(page_sizes(self.get_arch(),
+                    possible_pages = list(reversed(page_sizes(self.arch,
                         self.hyp)))
                     vaddr = round_down(reg['addr'])
                     remain = reg['addr'] + reg['size'] - vaddr
