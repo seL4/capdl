@@ -20,6 +20,7 @@
 #endif
 
 #include <assert.h>
+#include <inttypes.h>
 
 #ifndef CONFIG_CAPDL_LOADER_VERIFIED
 #include <stdio.h>
@@ -534,8 +535,8 @@ parse_bootinfo(seL4_BootInfo *bootinfo)
     for (int i = 0; i < num_untyped; i++) {
         uintptr_t ut_paddr = bootinfo->untypedPaddrList[i];
         uintptr_t ut_size = bootinfo->untypedSizeBitsList[i];
-        debug_printf("    0x%08x - 0x%08x\n", (unsigned int) ut_paddr,
-                     (unsigned int) ut_paddr + (1 << ut_size));
+        debug_printf("    0x%016" PRIxPTR " - 0x%016" PRIxPTR "\n", ut_paddr,
+            ut_paddr + (1 << ut_size));
     }
 #endif
 
@@ -549,8 +550,8 @@ parse_bootinfo(seL4_BootInfo *bootinfo)
     for (int i = 0; i < num_device_untyped; i++) {
         uintptr_t ut_paddr = bootinfo->untypedPaddrList[i + offset];
         uintptr_t ut_size = bootinfo->untypedSizeBitsList[i + offset];
-        debug_printf("    0x%08x - 0x%08x\n", (unsigned int) ut_paddr,
-                     (unsigned int) ut_paddr + (1 << ut_size));
+        debug_printf("    0x%016" PRIxPTR " - 0x%016" PRIxPTR "\n", ut_paddr,
+            ut_paddr + (1 << ut_size));
     }
 #else
     debug_printf("  Device memory (%d)\n", bootinfo->numDeviceRegions);
@@ -1307,9 +1308,9 @@ static void
 map_page_table_slot(CDL_Model *spec UNUSED, CDL_ObjID pd, CDL_ObjID pt UNUSED,
                     seL4_Word pt_vaddr, CDL_CapSlot *pt_slot)
 {
-    debug_printf("(%s, %s, %x, %d)\n", CDL_Obj_Name(&spec->objects[pd]),
+    debug_printf("(%s, %s, 0x%" PRIxPTR ", %d)\n", CDL_Obj_Name(&spec->objects[pd]),
                                         CDL_Obj_Name(&spec->objects[pt]),
-                                        pt_vaddr, pt_slot->slot);
+                                        (uintptr_t)pt_vaddr, pt_slot->slot);
     CDL_Cap *page_cap = CDL_CapSlot_Cap(pt_slot);
 
     seL4_Word page_vaddr = pt_vaddr + (CDL_CapSlot_Slot(pt_slot) << FRAME_SIZE);
