@@ -21,6 +21,7 @@
 
 #include <assert.h>
 #include <inttypes.h>
+#include <limits.h>
 
 #ifndef CONFIG_CAPDL_LOADER_VERIFIED
 #include <stdio.h>
@@ -1272,7 +1273,7 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
          */
         if (!(vm_attribs & seL4_ARM_PageCacheable) && spec->objects[page].paddr == NULL) {
             seL4_Word size_bits = spec->objects[page].size_bits;
-            assert(size_bits <= sizeof(uintptr_t) * 8 - 1 && "illegal object size");
+            assert(size_bits <= sizeof(uintptr_t) * CHAR_BIT - 1 && "illegal object size");
             error = seL4_ARM_Page_CleanInvalidate_Data(sel4_page, 0, BIT(size_bits));
             seL4_AssertSuccess(error);
         }
