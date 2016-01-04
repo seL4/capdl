@@ -1035,10 +1035,10 @@ configure_thread(CDL_Model *spec, CDL_ObjID tcb)
         .eip = pc,
         .esp = sp,
 #ifdef CONFIG_CAPDL_LOADER_CC_REGISTERS
-        .eax = argc > 0 ? argv[0] : 0,
-        .ebx = argc > 1 ? argv[1] : 0,
-        .ecx = argc > 2 ? argv[2] : 0,
-        .edx = argc > 3 ? argv[3] : 0,
+        .eax = argc > 2 ? argv[2] : 0,
+        .ebx = argc > 3 ? argv[3] : 0,
+        .ecx = argc > 0 ? argv[0] : 0,
+        .edx = argc > 1 ? argv[1] : 0,
 #endif
 #endif
     };
