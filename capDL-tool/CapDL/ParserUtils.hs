@@ -85,7 +85,7 @@ name_ref = do
     return (n,rs)
 
 qname :: MapParser QName
-qname = sepBy1 name_ref dot
+qname = sepBy1 name_ref (symbol "/")
 
 keyw :: String -> a -> MapParser a
 keyw st v = do

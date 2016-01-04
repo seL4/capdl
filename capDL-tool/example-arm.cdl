@@ -41,19 +41,19 @@ rm_ut = ut {
 rm_ut_small[0] = ut {
   name_b
 }
-rm_ut_small[0].g = tcb
+rm_ut_small[0]/g = tcb
 
 irq_handler[3] = irq
 nic1_notification = notification
 
 cnode_booter = cnode (8 bits)
 
-name_b.name = ut (8 bits) { y[..2], z, a, b }
+name_b/name = ut (8 bits) { y[..2], z, a, b }
 
 name_b = ut (10 bits)
-name.name2.name3.x = tcb 
-name.a = tcb
-name.b = tcb
+name/name2/name3/x = tcb 
+name/a = tcb
+name/b = tcb
 y[5] = ep
 z = ep
 
