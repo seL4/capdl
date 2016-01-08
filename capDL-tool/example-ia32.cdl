@@ -58,9 +58,9 @@ cnode_booter = cnode (8 bits)
 name = ut (8 bits) { y, z }
 
 name_b = ut (10 bits)
-name.name3.x = tcb
-name.a = tcb
-name.b = tcb
+name/name3/x = tcb
+name/a = tcb
+name/b = tcb
 
 y = ep
 z = ep

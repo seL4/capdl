@@ -45,9 +45,9 @@ rm_ut = ut {
 name: ut { x, y, z }
 
 name: ut 
-name.name2.name3.x = tcb ..
-name.y =
-name.z =
+name/name2/name3/x = tcb ..
+name/y =
+name/z =
 
 caps
 

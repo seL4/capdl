@@ -188,7 +188,7 @@ This section describes the concrete syntax of capDL using the tokens defined abo
   ranges ::=  '[' ']' | '[' range (',' range)* ']' 
 
   name_ref ::= name ranges?
-  qname ::= name_ref ('.' name_ref)* 
+  qname ::= name_ref ('/' name_ref)* 
 \end{verbatim}
 
 \subsubsection{Object Declarations}
@@ -483,7 +483,7 @@ An object declaration section defines a set of objects. Each object name of type
   obj_decl ::= qname '=' object
 \end{verbatim}
 
-An object declaration has a potentially qualified name and dimension on the left hand side and an object content declaration on the right hand side. A qualified name \texttt{name1.name2.name3[n]} implicitly declares the untyped objects \texttt{name1} and \texttt{name2}. It also declares that \texttt{name2} is covered by \texttt{name1} and \texttt{name3} covered by \texttt{name2}. Giving a dimension \texttt{[n]} means that n objects \texttt{(name3, Just 0)} to \texttt{(name3, Just (n-1))} are declared, each with the same content described on the right hand side of the equation.
+An object declaration has a potentially qualified name and dimension on the left hand side and an object content declaration on the right hand side. A qualified name \texttt{name1/name2/name3[n]} implicitly declares the untyped objects \texttt{name1} and \texttt{name2}. It also declares that \texttt{name2} is covered by \texttt{name1} and \texttt{name3} covered by \texttt{name2}. Giving a dimension \texttt{[n]} means that n objects \texttt{(name3, Just 0)} to \texttt{(name3, Just (n-1))} are declared, each with the same content described on the right hand side of the equation.
 
 The right hand side is defined by the following syntax productions:
 
@@ -514,8 +514,8 @@ Writing
 
 \begin{verbatim}
 name1 = ut {
-  name2.name3 [n] = object
-  name2.name4 = object
+  name2/name3 [n] = object
+  name2/name4 = object
  ...
 }
 \end{verbatim}
@@ -523,8 +523,8 @@ name1 = ut {
 is equivalent to writing
 
 \begin{verbatim}
-name1.name2.name3 [n] = object
-name1.name2.name4 = object
+name1/name2/name3 [n] = object
+name1/name2/name4 = object
 ...
 \end{verbatim}
 
