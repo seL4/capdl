@@ -41,7 +41,7 @@ capDL_Lang = emptyDef {
     commentLine = "--",
     nestedComments = True,
     identStart = letter,
-    identLetter = alphaNum <|> oneOf "-_@",
+    identLetter = alphaNum <|> oneOf "-_@.",
     opStart = opLetter capDL_Lang,
     opLetter = oneOf ":=",
     reservedNames = ["objects", "caps"],
