@@ -23,6 +23,7 @@ def normalise_architecture(arch):
     # Allow the user to be a bit hazy with their architecture description, and
     # tweak it to match the values accepted by the CapDL translator.
     NORMALISATION = {
+        'aarch32':'arm11',
         'arm':'arm11',
         'arm11':'arm11',
         'arm_hyp':'arm11',
