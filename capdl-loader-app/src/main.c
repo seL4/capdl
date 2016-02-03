@@ -333,7 +333,11 @@ void init_copy_frame(seL4_BootInfo *bootinfo)
     seL4_CPtr copy_addr_frame = bootinfo->userImageFrames.start +
         ((uintptr_t)copy_addr_with_pt) / PAGE_SIZE_4K -
         ((uintptr_t)&__executable_start) / PAGE_SIZE_4K;
-    seL4_CPtr copy_addr_pt = bootinfo->userImagePTs.start +
+    /* We currently will assume that we are on a 32-bit platform
+     * that has a single PD, followed by all the PTs. So to find
+     * our PT in the paging objects list we just need to add 1
+     * to skip the PD */
+    seL4_CPtr copy_addr_pt = bootinfo->userImagePaging.start + 1 +
         PD_SLOT(((uintptr_t)copy_addr)) - PD_SLOT(((uintptr_t)&__executable_start));
 
     int error;
