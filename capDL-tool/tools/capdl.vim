@@ -27,6 +27,7 @@ syn keyword CapDLAttribute addr badge elf fault_ep_slot G guard guard_size init 
 syn match CapDLCPP "[ \t]*#.*$"
 syn match CapDLLiteral "\<\(0x\)\?[0-9]\+\(k\|M\)\?\( bits\)\?\>"
 syn match CapDLLiteral "\<0x[0-f]\+\>"
+syn keyword CapDLSymbolicSlot cspace vspace reply_slot caller_slot ipc_buffer_slot
 
 syn region Foldable start="{" end="}" fold transparent
 
@@ -42,3 +43,4 @@ hi def link CapDLIRQ Type
 hi def link CapDLAttribute Type
 hi def link CapDLCPP PreProc
 hi def link CapDLLiteral Constant
+hi def link CapDLSymbolicSlot Constant
