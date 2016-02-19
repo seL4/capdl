@@ -20,7 +20,7 @@ import CapDL.Model
 import Control.Exception (assert)
 import Data.List.Compat
 import Data.List.Utils
-import Data.Maybe (fromJust, fromMaybe)
+import Data.Maybe (isJust, fromJust, fromMaybe)
 import Prelude ()
 import Prelude.Compat
 import Data.Map as Map
@@ -356,22 +356,36 @@ sizeOf X86_64 PML4 {} = 4 * 2^10
 sizeOf X86_64 SC {} = 60
 sizeOf _ _ = 0
 
-{- A custom sorting function for CapDL objects. Essentially we want to sort the
- - objects in descending order of size for optimal runtime allocation, but we
- - also want to give some rudimentary finer control to the user producing the
- - input specification. For this, we sort the objects secondarily by their
- - name. This means the spec creator can name their objects to induce a
- - specific ordering for identically sized objects. This is primarily useful
- - for getting physically contiguous frames.
+objPaddr :: KernelObject Word -> Maybe Word
+objPaddr (Frame _ paddr) = paddr
+objPaddr (Untyped _ paddr) = paddr
+objPaddr _ = Nothing
+
+{- A custom sorting function for CapDL objects. We essentially want to treat
+ - this is two different list of objects, that have different requirements
+ - on their ordering. Objects that have a physical address are almost certainly
+ - being allocated from device untypeds and need to be allocated by the capDL
+ - loader in physical address order. Any other object will be allocated from
+ - regular untypeds and should be in descending order of size for optimal
+ - runtime allocation. But we also want to give some rudimentary finer control
+ - to the user producing the input specification. For this, we sort objects
+ - secondarily by their name. This means the spec creator can name their objects
+ - to induce a specific ordering for identically sized objects. This is primarily
+ - useful for getting physically contiguous frames.
  -}
 sorter :: Arch -> (ObjID, KernelObject Word) -> (ObjID, KernelObject Word) -> Ordering
 sorter arch a b =
-    if a_size == b_size
-       then fst a `compare` fst b
-       else b_size `compare` a_size -- Arguments reversed for largest to smallest
+    if has_paddr a || has_paddr b
+        then paddr a `compare` paddr b
+        else
+            if a_size == b_size
+                then fst a `compare` fst b
+                else b_size `compare` a_size -- Arguments reversed for largest to smallest
     where
         a_size = sizeOf arch $ snd a
         b_size = sizeOf arch $ snd b
+        has_paddr kobj = isJust (objPaddr (snd kobj))
+        paddr kobj = fromMaybe 1 (objPaddr (snd kobj))
 
 memberObjects ::  Map ObjID Int -> Arch -> [(ObjID, KernelObject Word)] -> IRQMap -> CDT ->
                   ObjMap Word -> String

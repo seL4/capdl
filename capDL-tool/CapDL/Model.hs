@@ -174,7 +174,7 @@ data KernelObject a
     | PML4 { slots :: CapMap a }
     | Frame {
         vmSizeBits :: Word,
-        paddr :: Maybe Word }
+        maybePaddr :: Maybe Word }
 
 -- X86 specific objects
     | IOPorts { size :: Word } -- only one in the system
