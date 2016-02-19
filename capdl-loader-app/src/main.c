@@ -513,8 +513,11 @@ sort_untypeds(seL4_BootInfo *bootinfo)
     seL4_Word count[CONFIG_WORD_SIZE] = {0};
 
     // Count how many untypeds there are of each size.
-    for (seL4_Word untyped_index = 0; untyped_index != untyped_end - untyped_start; untyped_index++)
-        count[bootinfo->untypedSizeBitsList[untyped_index]] += 1;
+    for (seL4_Word untyped_index = 0; untyped_index != untyped_end - untyped_start; untyped_index++) {
+        if (!bootinfo->untypedList[untyped_index].isDevice) {
+            count[bootinfo->untypedList[untyped_index].sizeBits] += 1;
+        }
+    }
 
     // Calculate the starting index for each untyped.
     seL4_Word total = 0;
@@ -526,13 +529,21 @@ sort_untypeds(seL4_BootInfo *bootinfo)
 
     // Store untypeds in untyped_cptrs array.
     for (seL4_Word untyped_index = 0; untyped_index != untyped_end - untyped_start; untyped_index++) {
-        debug_printf("Untyped %3ld (cptr=0x%lx) is of size %2ld. Placing in slot %ld...\n",
-                     (long)untyped_index, (long)(untyped_start + untyped_index),
-                     (long)bootinfo->untypedSizeBitsList[untyped_index],
-                     (long)count[bootinfo->untypedSizeBitsList[untyped_index]]);
+        if (bootinfo->untypedList[untyped_index].isDevice) {
+            debug_printf("Untyped %3d (cptr=%p) (addr=%p) is of size %2d. Skipping as it is device\n",
+                         untyped_index, (void*)(untyped_start + untyped_index),
+                         (void*)bootinfo->untypedList[untyped_index].paddr,
+                         bootinfo->untypedList[untyped_index].sizeBits);
+        } else {
+            debug_printf("Untyped %3d (cptr=%p) (addr=%p) is of size %2d. Placing in slot %d...\n",
+                         untyped_index, (void*)(untyped_start + untyped_index),
+                         (void*)bootinfo->untypedList[untyped_index].paddr,
+                         bootinfo->untypedList[untyped_index].sizeBits,
+                         count[bootinfo->untypedList[untyped_index].sizeBits]);
 
-        untyped_cptrs[count[bootinfo->untypedSizeBitsList[untyped_index]]] = untyped_start +  untyped_index;
-        count[bootinfo->untypedSizeBitsList[untyped_index]] += 1;
+            untyped_cptrs[count[bootinfo->untypedList[untyped_index].sizeBits]] = untyped_start +  untyped_index;
+            count[bootinfo->untypedList[untyped_index].sizeBits] += 1;
+        }
     }
 
 }
@@ -637,43 +648,82 @@ static int find_device_untyped(void *paddr, int obj_size, seL4_CPtr free_slot, C
     return error;
 }
 #else
-static int find_device_frame(void *paddr, int size_bits, seL4_CPtr free_slot, CDL_ObjID obj_id,
-        seL4_BootInfo *bootinfo) {
-    for (unsigned int i = 0; i < bootinfo->numDeviceRegions; i++) {
-
-        int region_frame_size_bits = bootinfo->deviceRegions[i].frameSizeBits;
-
-        /* Search each of the frames that make up this region to see if
-         * we can find one whose base matches the address we're looking
-         * for.
-         */
-        for (unsigned int j = 0; j < bootinfo->deviceRegions[i].frames.end -
-                bootinfo->deviceRegions[i].frames.start + 1; j++) {
-
-            if (bootinfo->deviceRegions[i].basePaddr +
-                    BIT(region_frame_size_bits) * j == (seL4_Word)paddr) {
-                /* We found it. */
-
-                if (region_frame_size_bits != size_bits) {
-                    die("Device frame %p is %d bits, not %d bits as expected\n",
-                        (void*)paddr, region_frame_size_bits, size_bits);
+static int find_device_object(void *paddr, seL4_Word type, int size_bits, seL4_CPtr free_slot,
+        CDL_ObjID obj_id, seL4_BootInfo *bootinfo) {
+    /* Assume we are allocating from a device untyped. Do a linear search for it */
+    int error;
+    seL4_CPtr hold_slot = 0;
+    for (unsigned int i = 0; i < bootinfo->untyped.end - bootinfo->untyped.start; i++) {
+        if (bootinfo->untypedList[i].paddr <= (uintptr_t)paddr &&
+            bootinfo->untypedList[i].paddr + BIT(bootinfo->untypedList[i].sizeBits) >= (uintptr_t)paddr + BIT(size_bits)) {
+            /* just allocate objects until we get the one we want. To do this
+             * correctly we cannot just destroy the cap we allocate, since
+             * if it's the only frame from the untyped this will reset the
+             * freeIndex in the kernel, resulting in the next allocation
+             * giving the same object. To prevent this we need to hold
+             * a single allocation to (lock) the untyped, allowing us to
+             * allocate and delete over the rest of the untyped. In order
+             * to get a free slot we assume that the slot immediately after
+             * us is not yet allocated. We'll give it back though :) */
+            while (1) {
+                error = seL4_Untyped_Retype(bootinfo->untyped.start + i, type, size_bits,
+                                            seL4_CapInitThreadCNode, 0, 0, free_slot, 1);
+                if (error) {
+                    return -1;
                 }
-
-                seL4_CPtr root = seL4_CapInitThreadCNode;
-                int index = bootinfo->deviceRegions[i].frames.start + j;
-                int depth = 32;
-
-                int err = seL4_CNode_Copy(root, free_slot, depth,
-                    root, index, depth, seL4_AllRights);
-                seL4_AssertSuccess(err);
-                add_sel4_cap(obj_id, ORIG, free_slot);
-                return 0;
+                seL4_ARCH_Page_GetAddress_t addr UNUSED = seL4_ARCH_Page_GetAddress(free_slot);
+                if (addr.error) {
+                    /* if this fails assume it's an untyped and create a temporary frame in it
+                     * to get the address from */
+                    error = seL4_Untyped_Retype(free_slot, seL4_frame_type(seL4_PageBits), seL4_PageBits,
+                                                seL4_CapInitThreadCNode, 0, 0, free_slot + 2, 1);
+                    if (error) {
+                        return -1;
+                    }
+                    addr = seL4_ARCH_Page_GetAddress(free_slot + 2);
+                    error = seL4_CNode_Delete(seL4_CapInitThreadCNode, free_slot + 2, CONFIG_WORD_SIZE);
+                    seL4_AssertSuccess(error);
+                    if (addr.error) {
+                        return -1;
+                    }
+                }
+                if (addr.paddr == (uintptr_t)paddr) {
+                    /* nailed it */
+                    add_sel4_cap(obj_id, ORIG, free_slot);
+                    /* delete any holding cap */
+                    if (hold_slot) {
+                        error = seL4_CNode_Delete(seL4_CapInitThreadCNode, hold_slot, CONFIG_WORD_SIZE);
+                        seL4_AssertSuccess(error);
+                    }
+                    return 0;
+                }
+                if (addr.paddr > (uintptr_t)paddr) {
+                    /* device frames probably not ordered by physical address */
+                    return -1;
+                }
+                /* if we are currently using a hold slot we can just delete the cap, otherwise start the hold */
+                if (hold_slot) {
+                    error = seL4_CNode_Delete(seL4_CapInitThreadCNode, free_slot, CONFIG_WORD_SIZE);
+                    seL4_AssertSuccess(error);
+                } else {
+                    hold_slot = free_slot + 1;
+                    error = seL4_CNode_Move(seL4_CapInitThreadCNode, hold_slot, CONFIG_WORD_SIZE, seL4_CapInitThreadCNode, free_slot, CONFIG_WORD_SIZE);
+                    seL4_AssertSuccess(error);
+                }
             }
         }
     }
-
-    /* We failed to find this device frame. */
     return -1;
+}
+
+static int find_device_frame(void *paddr, int size_bits, seL4_CPtr free_slot, CDL_ObjID obj_id,
+        seL4_BootInfo *bootinfo) {
+    return find_device_object(paddr, seL4_frame_type(size_bits), size_bits, free_slot, obj_id, bootinfo);
+}
+
+static int find_device_untyped(void *paddr, int size_bits, seL4_CPtr free_slot, CDL_ObjID obj_id,
+        seL4_BootInfo *bootinfo) {
+    return find_device_object(paddr, seL4_UntypedObject, size_bits, free_slot, obj_id, bootinfo);
 }
 #endif
 
@@ -788,7 +838,6 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
         if (capdl_obj_type == CDL_Untyped && obj->paddr != NULL) {
             debug_printf(" device untyped, paddr = %p, size_bits = %d\n", obj->paddr, obj_size);
 
-#ifdef CONFIG_KERNEL_STABLE
             /* This is a device untyped. Look for it in bootinfo. */
             if (find_device_untyped(obj->paddr, obj_size, free_slot, obj_id, bootinfo) == seL4_NoError) {
                 /* We found and added the frame. */
@@ -796,7 +845,6 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
                 free_slot_index++;
                 continue;
             }
-#endif
 
             die("Failed to find device untyped at paddr = %p, size_bits = %d\n", obj->paddr, obj_size);
         }
