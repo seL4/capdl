@@ -23,7 +23,7 @@ syn keyword CapDLKeyword arch caps objects arm11 ia32
 syn match CapDLIRQMap "\<irq maps\>"
 syn match CapDLIRQ "\<irq\>\( maps\)\@!"
 syn keyword CapDLObject notification asid_pool cnode ep frame io_device io_ports io_pt pd pt tcb ut
-syn keyword CapDLAttribute addr badge elf fault_ep_slot G guard guard_size init ip prio sp R RG RX RW RWG RWX W WG WX paddr cached uncached
+syn keyword CapDLAttribute addr badge dom elf fault_ep_slot G guard guard_size init ip prio sp R RG RX RW RWG RWX W WG WX paddr cached uncached
 syn match CapDLCPP "[ \t]*#.*$"
 syn match CapDLLiteral "\<\(0x\)\?[0-9]\+\(k\|M\)\?\( bits\)\?\>"
 syn match CapDLLiteral "\<0x[0-f]\+\>"
