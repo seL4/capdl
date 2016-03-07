@@ -30,14 +30,14 @@
 #define CDL_VM_CacheDisabled        seL4_ARM_ParityEnabled
 #define CDL_VM_WriteThrough         0
 
-#elif defined(ARCH_IA32)
+#elif defined(ARCH_X86)
 
 #define PT_SIZE          10
 #define FRAME_SIZE       12
 
 #define CDL_VM_CacheEnabled         0
-#define CDL_VM_CacheDisabled        seL4_IA32_CacheDisabled
-#define CDL_VM_WriteThrough         seL4_IA32_WriteThrough
+#define CDL_VM_CacheDisabled        seL4_X86_CacheDisabled
+#define CDL_VM_WriteThrough         seL4_X86_WriteThrough
 
 #endif
 
@@ -47,7 +47,7 @@
 typedef enum {
 #if defined(ARCH_ARM)
     CDL_Arch_ARM
-#elif defined(ARCH_IA32)
+#elif defined(ARCH_X86)
     CDL_Arch_IA32
 #endif
 } CDL_Arch;
@@ -79,7 +79,7 @@ typedef enum {
     CDL_PDCap,
     CDL_ASIDControlCap,
     CDL_ASIDPoolCap,
-#if defined(ARCH_IA32)
+#if defined(ARCH_X86)
     CDL_IOPortsCap,
     CDL_IOSpaceCap,
 #endif
@@ -143,14 +143,14 @@ typedef enum {
     CDL_PT            = seL4_ARM_PageTableObject,
     CDL_PD            = seL4_ARM_PageDirectoryObject,
     CDL_Frame         = seL4_ARM_SmallPageObject,
-#elif defined(ARCH_IA32)
-    CDL_PT            = seL4_IA32_PageTableObject,
-    CDL_PD            = seL4_IA32_PageDirectoryObject,
-    CDL_Frame         = seL4_IA32_4K,
+#elif defined(ARCH_X86)
+    CDL_PT            = seL4_X86_PageTableObject,
+    CDL_PD            = seL4_X86_PageDirectoryObject,
+    CDL_Frame         = seL4_X86_4K,
 #endif
     CDL_ASIDPool      = seL4_ObjectTypeCount + 1,
     CDL_Interrupt     = seL4_ObjectTypeCount + 2,
-#if defined(ARCH_IA32)
+#if defined(ARCH_X86)
     CDL_IOPorts       = seL4_ObjectTypeCount + 3,
     CDL_IODevice      = seL4_ObjectTypeCount + 4,
 #endif

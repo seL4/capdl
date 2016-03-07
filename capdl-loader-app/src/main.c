@@ -308,11 +308,11 @@ seL4_frame_type(int size)
             return seL4_ARM_SectionObject;
         case 24:
             return seL4_ARM_SuperSectionObject;
-#elif defined(CONFIG_ARCH_IA32)
+#elif defined(CONFIG_ARCH_X86)
         case 12:
-            return seL4_IA32_4K;
+            return seL4_X86_4K;
         case 22:
-            return seL4_IA32_4M;
+            return seL4_X86_LargePageObject;
 #endif
         default:
             die("illegal frame size");
@@ -703,7 +703,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
         debug_printf("Creating object %s in slot %d, from untyped %x...\n", CDL_Obj_Name(obj), free_slot, untyped_cptr);
 #endif
 
-#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_IA32)
+#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_X86)
         if (capdl_obj_type == CDL_IOPorts) {
             seL4_CPtr root = seL4_CapInitThreadCNode;
             int index = seL4_CapIOPort;
@@ -743,7 +743,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
 #endif
 
         // Never create Interrupt objects here
-#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_IA32)
+#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_X86)
         if (capdl_obj_type == CDL_Interrupt || capdl_obj_type == CDL_IOPorts || capdl_obj_type == CDL_IODevice) {
 #else
         if (capdl_obj_type == CDL_Interrupt) {
@@ -786,7 +786,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
         }
 
         // Create object
-#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_IA32)
+#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_X86)
         if (capdl_obj_type != CDL_Interrupt && capdl_obj_type != CDL_IOPorts && capdl_obj_type != CDL_IODevice) {
 #else
         if (capdl_obj_type != CDL_Interrupt) {
@@ -963,7 +963,7 @@ configure_thread(CDL_Model *spec, CDL_ObjID tcb)
     /* On ARM, the first four arguments go in registers. */
     reg_args = 4;
 #endif
-#if defined(ARCH_IA32) && defined(CONFIG_CAPDL_LOADER_CC_REGISTERS)
+#if defined(ARCH_X86) && defined(CONFIG_CAPDL_LOADER_CC_REGISTERS)
     reg_args = 4;
 #endif
 
@@ -1035,7 +1035,7 @@ configure_thread(CDL_Model *spec, CDL_ObjID tcb)
         .r1 = argc > 1 ? argv[1] : 0,
         .r2 = argc > 2 ? argv[2] : 0,
         .r3 = argc > 3 ? argv[3] : 0,
-#elif defined(ARCH_IA32)
+#elif defined(ARCH_X86)
         .eip = pc,
         .esp = sp,
 #ifdef CONFIG_CAPDL_LOADER_CC_REGISTERS
@@ -1399,7 +1399,7 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
     int is_ep_cap = (target_cap_type == CDL_EPCap || target_cap_type == CDL_NotificationCap);
     int is_irq_handler_cap = (target_cap_type == CDL_IRQHandlerCap);
     int is_frame_cap = (target_cap_type == CDL_FrameCap);
-#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_IA32)
+#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_X86)
     int is_ioport_cap = (target_cap_type == CDL_IOPortsCap);
     int is_iospace_cap = (target_cap_type == CDL_IOSpaceCap);
 #endif
@@ -1414,7 +1414,7 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
 
     // Use an original cap to reference the object to copy.
     seL4_CPtr src_root = seL4_CapInitThreadCNode;
-#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_IA32)
+#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_X86)
     int src_index;
     if (is_ioport_cap) {
         src_index = seL4_CapIOPort;
