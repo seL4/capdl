@@ -17,7 +17,8 @@ import CapDL.ParserUtils
 
 import Text.ParserCombinators.Parsec
 
-import Data.Word
+import Prelude ()
+import Prelude.Compat
 
 obj_decl_or_ref :: MapParser (Either KODecl NameRef)
 obj_decl_or_ref =

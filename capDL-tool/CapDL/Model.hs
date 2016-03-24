@@ -11,7 +11,8 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 module CapDL.Model where
 
-import Data.Word
+import Prelude ()
+import Prelude.Compat
 import Data.Map
 import Data.Set
 import Data.Data

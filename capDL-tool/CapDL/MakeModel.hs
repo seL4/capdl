@@ -16,9 +16,10 @@ import CapDL.Model
 import CapDL.AST
 import CapDL.State
 
-import Data.Word
+import Prelude ()
+import Prelude.Compat
 import Data.Maybe
-import Data.List
+import Data.List.Compat
 import Data.Either as Either
 import Data.Data
 import qualified Data.Set as Set

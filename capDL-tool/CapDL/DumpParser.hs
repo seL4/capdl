@@ -16,10 +16,11 @@ import CapDL.ParserUtils
 
 import Text.ParserCombinators.Parsec
 
-import Data.Word
+import Prelude ()
+import Prelude.Compat
 import qualified Data.Set as Set
 import qualified Data.Map as Map
-import Data.List
+import Data.List.Compat
 import Data.List.Split
 import Data.Ord
 import Numeric

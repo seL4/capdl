@@ -18,10 +18,11 @@ module CapDL.PrintC where
 import CapDL.Model
 
 import Control.Exception (assert)
-import Data.List
+import Data.List.Compat
 import Data.List.Utils
 import Data.Maybe (fromJust, fromMaybe)
-import Data.Word
+import Prelude ()
+import Prelude.Compat
 import Data.Map as Map
 import Data.Set as Set
 import Data.Bits
@@ -170,7 +171,7 @@ memberSlots objs obj_id slots irqNode cdt ms =
 
 printInit :: [Word] -> String
 printInit argv =
-    "{" ++ Data.List.Utils.join ", " (Data.List.map show argv) ++ "}"
+    "{" ++ Data.List.Utils.join ", " (Data.List.Compat.map show argv) ++ "}"
 
 showObjectFields :: Map ObjID Int -> ObjID -> KernelObject Word -> IRQMap -> CDT -> ObjMap Word -> String
 showObjectFields _ _ Endpoint _ _ _ = ".type = CDL_Endpoint,"
@@ -300,7 +301,7 @@ memberObjects obj_ids _ objs irqNode cdt objs' =
 memberIRQs :: Map ObjID Int -> IRQMap -> Arch -> String
 memberIRQs objs irqNode _ =
     ".irqs = {" +++
-    (join ", " $ Data.List.map (\k -> show $ case Map.lookup k irqNode of
+    (join ", " $ Data.List.Compat.map (\k -> show $ case Map.lookup k irqNode of
         Just i -> fromJust $ Map.lookup i objs
         _ -> -1) [0..(CONFIG_CAPDL_LOADER_MAX_IRQS - 1)]) +++
     "},"
@@ -327,4 +328,4 @@ printC (Model arch objs irqNode cdt _) _ _ =
     where
         objs_sz = length $ Map.toList objs
         objs' = sortBy (sorter arch) $ Map.toList objs
-        obj_ids = Map.fromList $ flip zip [0..] $ Prelude.map fst objs'
+        obj_ids = Map.fromList $ flip zip [0..] $ Prelude.Compat.map fst objs'

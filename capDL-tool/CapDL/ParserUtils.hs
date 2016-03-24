@@ -19,7 +19,8 @@ import Text.ParserCombinators.Parsec
 import qualified Text.ParserCombinators.Parsec.Token as PT
 import Text.ParserCombinators.Parsec.Language
 
-import Data.Word
+import Prelude ()
+import Prelude.Compat
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 

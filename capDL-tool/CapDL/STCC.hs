@@ -17,15 +17,15 @@ module CapDL.STCC(
 import CapDL.Matrix
 import CapDL.Model
 
-import Control.Monad
-
+import Control.Monad.Compat
 import Data.Map ( Map )
 import qualified Data.Map as Map
 
 import Data.Set ( Set )
 import qualified Data.Set as Set
 
-import Data.Word ( Word )
+import Prelude ()
+import Prelude.Compat
 
 type ObjDictionary = Map ObjID Int
 

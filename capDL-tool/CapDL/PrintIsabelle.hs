@@ -14,8 +14,9 @@ import CapDL.Model
 import CapDL.PrintUtils (logBase2, printAsid)
 
 import Text.PrettyPrint
-import Data.List
-import Data.Word
+import Data.List.Compat
+import Prelude ()
+import Prelude.Compat
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.Maybe
@@ -181,7 +182,7 @@ printCapMap ms irqNode covers real slots =
 printCaps' :: ObjMap Word -> ObjID -> IRQMap -> CoverMap -> Bool -> CapMap Word -> Doc
 printCaps' ms id irqNode covers real slots = constdefs name "cdl_cap_map" $+$
     doubleQuotes (text name <+> equiv <+> printCapMap ms irqNode covers real slots)
-	where name = capsName id
+    where name = capsName id
 
 printCaps :: ObjMap Word -> ObjID -> IRQMap -> CoverMap -> KernelObject Word -> Doc
 printCaps ms id irqNode covers (PT slots) =
@@ -274,7 +275,7 @@ printObj ms irqNode covers (id, obj) = printCaps ms id irqNode covers obj $+$
     doubleQuotes (text name <+> equiv <+> text "Types_D." <> printObj' ms id obj)
     $+$ text "" $+$
     (if hasSlots obj then printLemmaObjectSlots id $+$ text "" else text "")
-	where name = showID id
+    where name = showID id
 
 -- This will cause a problem if an actual object is called empty_irq_node
 printEmptyIrqNode :: Doc

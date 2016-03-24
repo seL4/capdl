@@ -14,7 +14,8 @@ import CapDL.PrintUtils
 
 import Text.PrettyPrint
 import Data.Maybe (fromMaybe)
-import Data.Word
+import Prelude ()
+import Prelude.Compat
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 

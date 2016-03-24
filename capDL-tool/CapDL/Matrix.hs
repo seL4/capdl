@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 --
 -- Copyright 2014, NICTA
 --
@@ -23,7 +24,8 @@ module CapDL.Matrix(
 
 import Data.Array.IO
 
-import Data.Word
+import Prelude ()
+import Prelude.Compat
 
 import Data.Map (Map)
 import qualified Data.Map as Map

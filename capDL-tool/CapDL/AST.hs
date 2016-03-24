@@ -13,7 +13,8 @@ module CapDL.AST where
 
 import CapDL.Model
 
-import Data.Word
+import Prelude ()
+import Prelude.Compat
 import Data.Data
 
 -- AST

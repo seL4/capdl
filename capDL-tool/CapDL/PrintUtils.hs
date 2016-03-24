@@ -15,7 +15,8 @@ module CapDL.PrintUtils where
 import CapDL.Model
 
 import Text.PrettyPrint
-import Data.Word
+import Prelude ()
+import Prelude.Compat
 import qualified Data.Set as Set
 import Numeric
 

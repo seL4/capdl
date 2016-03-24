@@ -14,8 +14,9 @@ import CapDL.Model
 import CapDL.PrintUtils
 
 import Text.PrettyPrint
-import Data.List
-import Data.Word
+import Data.List.Compat
+import Prelude ()
+import Prelude.Compat
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 
