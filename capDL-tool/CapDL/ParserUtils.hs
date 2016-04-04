@@ -109,7 +109,7 @@ parse_either a b =
 parse_arch :: MapParser Arch
 parse_arch = do
     reserved "arch"
-    keyw "ia32" IA32 <|> keyw "arm11" ARM11
+    keyw "ia32" IA32 <|> keyw "arm11" ARM11 <|> keyw "x86_64" X86_64
 
 object_type :: MapParser KOType
 object_type =
@@ -122,6 +122,8 @@ object_type =
     <|> keyw "asid_pool" ASIDPool_T
     <|> keyw "pt" PT_T
     <|> keyw "pd" PD_T
+    <|> keyw "pml4" PML4_T
+    <|> keyw "pdpt" PDPT_T
     <|> keyw "frame" Frame_T
     <|> keyw "io_ports" IOPorts_T
     <|> keyw "io_device" IODevice_T

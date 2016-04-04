@@ -164,6 +164,8 @@ prettyObjParams obj = case obj of
     ASIDPool {} -> text "asid_pool"
     PT {} -> text "pt"
     PD {} -> text "pd"
+    PML4 {} -> text "pml4"
+    PDPT {} -> text "pdpt"
     Frame vmSz paddr -> text "frame" <+> maybeParensList [prettyVMSize vmSz, prettyPaddr paddr]
 
     IOPT _ level -> text "io_pt" <+> maybeParensList [prettyLevel level]
@@ -333,3 +335,4 @@ same (name1, obj1) (name2, obj2) =
 
 prettyArch ARM11 = text "arm11"
 prettyArch IA32  = text "ia32"
+prettyArch X86_64 = text "x86_64"
