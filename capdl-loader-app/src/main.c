@@ -309,9 +309,9 @@ seL4_frame_type(int size)
         case 24:
             return seL4_ARM_SuperSectionObject;
 #elif defined(CONFIG_ARCH_X86)
-        case 12:
+        case seL4_PageBits:
             return seL4_X86_4K;
-        case 22:
+        case seL4_LargePageBits:
             return seL4_X86_LargePageObject;
 #endif
         default:
@@ -343,7 +343,7 @@ void init_copy_frame(seL4_BootInfo *bootinfo)
     int error;
 
     for (int i = 0; i < sizeof(copy_addr_with_pt) / PAGE_SIZE_4K; i++) {
-#ifdef ARCH_ARM
+#ifdef CONFIG_ARCH_ARM
         error = seL4_ARM_Page_Unify_Instruction(copy_addr_frame + i, 0, PAGE_SIZE_4K);
         seL4_AssertSuccess(error);
 #endif
@@ -374,7 +374,7 @@ elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
     debug_printf("   ELF loading %s (from %p)... \n", elf_name, elf_file);
 
     for (int i = 0; i < elf_getNumProgramHeaders(elf_file); i++) {
-        debug_printf("    to %p... ", (void*)(uint32_t)elf_getProgramHeaderVaddr(elf_file, i));
+        debug_printf("    to %p... ", (void*)(uintptr_t)elf_getProgramHeaderVaddr(elf_file, i));
 
         size_t f_len = elf_getProgramHeaderFileSize(elf_file, i);
         uintptr_t dest = elf_getProgramHeaderVaddr(elf_file, i);
@@ -396,7 +396,7 @@ elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
             size_t sel4_page_size = get_frame_size(pd, vaddr, spec);
 
             seL4_ARCH_VMAttributes attribs = seL4_ARCH_Default_VMAttributes;
-#ifdef ARCH_ARM
+#ifdef CONFIG_ARCH_ARM
             attribs |= seL4_ARM_ExecuteNever;
 #endif
 
@@ -431,7 +431,7 @@ elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
             }
             memcpy((void *) (copy_addr + vaddr % sel4_page_size), (void *) (src + vaddr - dest), len);
 
-#ifdef ARCH_ARM
+#ifdef CONFIG_ARCH_ARM
             error = seL4_ARM_Page_Unify_Instruction(sel4_page, 0, sel4_page_size);
             seL4_AssertSuccess(error);
 #endif
@@ -446,15 +446,16 @@ elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
             vaddr += len;
         }
 
-        /* This better be a 32-bit ELF for what we're about to do. */
-        assert(((struct Elf32_Header*)elf_file)->e_ident[EI_CLASS] == ELFCLASS32);
-
-        debug_printf(" Marking header as loaded\n");
         /* Overwrite the section type so that next time this section is
          * encountered it will be skipped as it is not considered loadable. A
          * bit of a hack, but fine for now.
          */
-        elf32_getProgramHeaderTable(elf_file)[i].p_type = PT_NULL;
+        debug_printf(" Marking header as loaded\n");
+        if (((struct Elf32_Header*)elf_file)->e_ident[EI_CLASS] == ELFCLASS32) {
+            elf32_getProgramHeaderTable(elf_file)[i].p_type = PT_NULL;
+        } else if (((struct Elf64_Header*)elf_file)->e_ident[EI_CLASS] == ELFCLASS64) {
+            elf64_getProgramHeaderTable(elf_file)[i].p_type = PT_NULL;
+        }
     }
 }
 #endif //!CONFIG_CAPDL_LOADER_VERIFIED
@@ -479,7 +480,7 @@ sort_untypeds(seL4_BootInfo *bootinfo)
 
     debug_printf("Sorting untypeds...\n");
 
-    seL4_Word count[32] = {0};
+    seL4_Word count[CONFIG_WORD_SIZE] = {0};
 
     // Count how many untypeds there are of each size.
     for (seL4_Word untyped_index = 0; untyped_index != untyped_end - untyped_start; untyped_index++)
@@ -487,7 +488,7 @@ sort_untypeds(seL4_BootInfo *bootinfo)
 
     // Calculate the starting index for each untyped.
     seL4_Word total = 0;
-    for (seL4_Word size = 32 - 1; size != 0; size--) {
+    for (seL4_Word size = CONFIG_WORD_SIZE - 1; size != 0; size--) {
         seL4_Word oldCount = count[size];
         count[size] = total;
         total += oldCount;
@@ -495,10 +496,10 @@ sort_untypeds(seL4_BootInfo *bootinfo)
 
     // Store untypeds in untyped_cptrs array.
     for (seL4_Word untyped_index = 0; untyped_index != untyped_end - untyped_start; untyped_index++) {
-        debug_printf("Untyped %3d (cptr=%x) is of size %2d. Placing in slot %d...\n",
-                     untyped_index, untyped_start + untyped_index,
-                     bootinfo->untypedSizeBitsList[untyped_index],
-                     count[bootinfo->untypedSizeBitsList[untyped_index]]);
+        debug_printf("Untyped %3ld (cptr=%lx) is of size %2ld. Placing in slot %ld...\n",
+                     (long)untyped_index, (long)(untyped_start + untyped_index),
+                     (long)bootinfo->untypedSizeBitsList[untyped_index],
+                     (long)count[bootinfo->untypedSizeBitsList[untyped_index]]);
 
         untyped_cptrs[count[bootinfo->untypedSizeBitsList[untyped_index]]] = untyped_start +  untyped_index;
         count[bootinfo->untypedSizeBitsList[untyped_index]] += 1;
@@ -532,7 +533,7 @@ parse_bootinfo(seL4_BootInfo *bootinfo)
      */
     assert(free_slot_end - free_slot_start >= CONFIG_CAPDL_LOADER_MAX_OBJECTS);
 
-    debug_printf("  %d free cap slots, from %d to %d\n", free_slot_end - free_slot_start, free_slot_start, free_slot_end);
+    debug_printf("  %ld free cap slots, from %ld to %ld\n", (long)(free_slot_end - free_slot_start), (long)free_slot_start, (long)free_slot_end);
 
 #if CONFIG_CAPDL_LOADER_PRINT_UNTYPEDS
     int num_untyped = bootinfo->untyped.end - bootinfo->untyped.start;
@@ -700,14 +701,14 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
         int obj_size = 0;
 
 #ifdef CONFIG_CAPDL_LOAD_PRINT_CAPDL_OBJECTS
-        debug_printf("Creating object %s in slot %d, from untyped %x...\n", CDL_Obj_Name(obj), free_slot, untyped_cptr);
+        debug_printf("Creating object %s in slot %ld, from untyped %lx...\n", CDL_Obj_Name(obj), (long)free_slot, (long)untyped_cptr);
 #endif
 
-#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_X86)
+#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(CONFIG_ARCH_X86)
         if (capdl_obj_type == CDL_IOPorts) {
             seL4_CPtr root = seL4_CapInitThreadCNode;
             int index = seL4_CapIOPort;
-            int depth = 32;
+            int depth = CONFIG_WORD_SIZE;
 
             int err = seL4_CNode_Copy(root, free_slot, depth,
                 root, index, depth, seL4_AllRights);
@@ -743,7 +744,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
 #endif
 
         // Never create Interrupt objects here
-#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_X86)
+#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(CONFIG_ARCH_X86)
         if (capdl_obj_type == CDL_Interrupt || capdl_obj_type == CDL_IOPorts || capdl_obj_type == CDL_IODevice) {
 #else
         if (capdl_obj_type == CDL_Interrupt) {
@@ -786,7 +787,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
         }
 
         // Create object
-#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_X86)
+#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(CONFIG_ARCH_X86)
         if (capdl_obj_type != CDL_Interrupt && capdl_obj_type != CDL_IOPorts && capdl_obj_type != CDL_IODevice) {
 #else
         if (capdl_obj_type != CDL_Interrupt) {
@@ -829,7 +830,7 @@ create_irq_cap(CDL_IRQ irq, seL4_CPtr free_slot)
 {
     seL4_CPtr root = seL4_CapInitThreadCNode;
     int index = free_slot;
-    int depth = 32;
+    int depth = CONFIG_WORD_SIZE;
 
     int error = seL4_IRQControl_Get(seL4_CapIRQControl, irq, root, index, depth);
     seL4_AssertSuccess(error);
@@ -861,11 +862,11 @@ duplicate_cap(CDL_ObjID object_id, int free_slot)
 
     seL4_CPtr dest_root = seL4_CapInitThreadCNode;
     int dest_index = free_slot;
-    int dest_depth = 32;
+    int dest_depth = CONFIG_WORD_SIZE;
 
     seL4_CPtr src_root = seL4_CapInitThreadCNode;
     int src_index = orig_caps(object_id);
-    int src_depth = 32;
+    int src_depth = CONFIG_WORD_SIZE;
 
     int error = seL4_CNode_Copy(dest_root, dest_index, dest_depth,
                                 src_root, src_index, src_depth, rights);
@@ -959,11 +960,11 @@ configure_thread(CDL_Model *spec, CDL_ObjID tcb)
         die("TCB %s's stack pointer is not dword-aligned", CDL_Obj_Name(&spec->objects[tcb]));
     }
     int reg_args = 0;
-#if defined(ARCH_ARM)
+#if defined(CONFIG_ARCH_ARM)
     /* On ARM, the first four arguments go in registers. */
     reg_args = 4;
 #endif
-#if defined(ARCH_X86) && defined(CONFIG_CAPDL_LOADER_CC_REGISTERS)
+#if defined(CONFIG_ARCH_IA32) && defined(CONFIG_CAPDL_LOADER_CC_REGISTERS)
     reg_args = 4;
 #endif
 
@@ -997,7 +998,7 @@ configure_thread(CDL_Model *spec, CDL_ObjID tcb)
          * spec with stack pointers that point outside the ELF image.
          */
         seL4_ARCH_VMAttributes attribs = seL4_ARCH_Default_VMAttributes;
-#ifdef ARCH_ARM
+#ifdef CONFIG_ARCH_ARM
         attribs |= seL4_ARM_ExecuteNever;
 #endif
         int error = seL4_ARCH_Page_Map(frame, seL4_CapInitThreadPD, (seL4_Word)copy_addr_with_pt,
@@ -1017,10 +1018,10 @@ configure_thread(CDL_Model *spec, CDL_ObjID tcb)
             *(uintptr_t*)(copy_addr_with_pt + sp % PAGE_SIZE_4K) = argv[i];
         }
 
-#ifdef ARCH_ARM
+#ifdef CONFIG_ARCH_ARM
         error = seL4_ARM_Page_Unify_Instruction(frame, 0, PAGE_SIZE_4K);
         seL4_AssertSuccess(error);
-#endif //ARCH_ARM
+#endif //CONFIG_ARCH_ARM
         error = seL4_ARCH_Page_Unmap(frame);
         seL4_AssertSuccess(error);
 #endif //CONFIG_CAPDL_LOADER_CC_REGISTERS
@@ -1028,14 +1029,14 @@ configure_thread(CDL_Model *spec, CDL_ObjID tcb)
 #endif //!CONFIG_CAPDL_LOADER_VERIFIED
 
     seL4_UserContext regs = {
-#if defined(ARCH_ARM)
+#if defined(CONFIG_ARCH_ARM)
         .pc = pc,
         .sp = sp,
         .r0 = argc > 0 ? argv[0] : 0,
         .r1 = argc > 1 ? argv[1] : 0,
         .r2 = argc > 2 ? argv[2] : 0,
         .r3 = argc > 3 ? argv[3] : 0,
-#elif defined(ARCH_X86)
+#elif defined(CONFIG_ARCH_IA32)
         .eip = pc,
         .esp = sp,
 #ifdef CONFIG_CAPDL_LOADER_CC_REGISTERS
@@ -1195,7 +1196,7 @@ init_pd_asids(CDL_Model *spec)
                          CDL_Obj_Name(&spec->objects[obj_id]));
             init_pd_asid(spec, obj_id);
         }
-    }    
+    }
 }
 
 static void
@@ -1221,8 +1222,8 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
         /* hack to support shared frames: create a new cap for each mapping */
         int dest_index = get_free_slot();
 
-        int error_0 = seL4_CNode_Copy(seL4_CapInitThreadCNode, dest_index, 32,
-                                      seL4_CapInitThreadCNode, sel4_page, 32, seL4_AllRights);
+        int error_0 = seL4_CNode_Copy(seL4_CapInitThreadCNode, dest_index, CONFIG_WORD_SIZE,
+                                      seL4_CapInitThreadCNode, sel4_page, CONFIG_WORD_SIZE, seL4_AllRights);
         seL4_AssertSuccess(error_0);
 
         next_free_slot();
@@ -1237,7 +1238,7 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
             rights |= seL4_CanRead;
         }
 
-#ifdef ARCH_ARM
+#ifdef CONFIG_ARCH_ARM
         if (!(rights & seL4_CanGrant)) {
             vm_attribs |= seL4_ARM_ExecuteNever;
         }
@@ -1263,7 +1264,7 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
             debug_printf(" -> %p (error = %d)\n", (void*)page_vaddr, error);
             seL4_AssertSuccess(error);
         }
-#ifdef ARCH_ARM
+#ifdef CONFIG_ARCH_ARM
         /* When seL4 creates a new frame object it zeroes the associated memory
          * through a cached kernel mapping. If we are configuring a cached
          * mapping for the target, standard coherence protocols ensure
@@ -1399,7 +1400,7 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
     int is_ep_cap = (target_cap_type == CDL_EPCap || target_cap_type == CDL_NotificationCap);
     int is_irq_handler_cap = (target_cap_type == CDL_IRQHandlerCap);
     int is_frame_cap = (target_cap_type == CDL_FrameCap);
-#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_X86)
+#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(CONFIG_ARCH_X86)
     int is_ioport_cap = (target_cap_type == CDL_IOPortsCap);
     int is_iospace_cap = (target_cap_type == CDL_IOSpaceCap);
 #endif
@@ -1414,7 +1415,7 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
 
     // Use an original cap to reference the object to copy.
     seL4_CPtr src_root = seL4_CapInitThreadCNode;
-#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(ARCH_X86)
+#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(CONFIG_ARCH_X86)
     int src_index;
     if (is_ioport_cap) {
         src_index = seL4_CapIOPort;
@@ -1429,7 +1430,7 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
     int src_index = is_irq_handler_cap ? irq_caps(target_cap_irq) : orig_caps(target_cap_obj);
 #endif
 
-    uint8_t src_depth = 32;
+    uint8_t src_depth = CONFIG_WORD_SIZE;
 
     if ((mode == MOVE) && is_orig_cap) {
         if (is_ep_cap || is_irq_handler_cap) {

@@ -11,33 +11,37 @@
 #ifndef CAPDL_H__
 #define CAPDL_H__
 
+#include <autoconf.h>
 #include <sel4/types.h>
 #include <sel4utils/mapping.h>
 #include <autoconf.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
-#if defined(ARCH_ARM)
+#define FRAME_SIZE      seL4_PageBits
 
-#if defined(ARM_HYP)
-#define PT_SIZE          9
+#define CDL_VM_CacheEnabled         seL4_ARCH_Default_VMAttributes
+#define CDL_VM_CacheDisabled        seL4_ARCH_Uncached_VMAttributes
+
+#if defined(CONFIG_ARCH_ARM)
+
+/* ARM does not support write through */
+#define CDL_VM_WriteThrough         CDL_VM_CacheDisabled
+/* Note that this is the number of bits translated by the PT
+ * not the size of the actual PT object */
+#ifdef ARM_HYP
+#define PT_SIZE 9
 #else
-#define PT_SIZE          8
+#define PT_SIZE 8
 #endif
-#define FRAME_SIZE       12
 
-#define CDL_VM_CacheEnabled         seL4_ARM_PageCacheable
-#define CDL_VM_CacheDisabled        seL4_ARM_ParityEnabled
-#define CDL_VM_WriteThrough         0
+#elif defined(CONFIG_ARCH_X86)
 
-#elif defined(ARCH_X86)
-
-#define PT_SIZE          10
-#define FRAME_SIZE       12
-
-#define CDL_VM_CacheEnabled         0
-#define CDL_VM_CacheDisabled        seL4_X86_CacheDisabled
 #define CDL_VM_WriteThrough         seL4_X86_WriteThrough
+
+#ifdef CONFIG_ARCH_IA32
+#define PT_SIZE         10
+#endif
 
 #endif
 
@@ -45,9 +49,9 @@
 
 /* Arch: Supported architectures: */
 typedef enum {
-#if defined(ARCH_ARM)
+#if defined(CONFIG_ARCH_ARM)
     CDL_Arch_ARM
-#elif defined(ARCH_X86)
+#elif defined(CONFIG_ARCH_X86)
     CDL_Arch_IA32
 #endif
 } CDL_Arch;
@@ -79,7 +83,7 @@ typedef enum {
     CDL_PDCap,
     CDL_ASIDControlCap,
     CDL_ASIDPoolCap,
-#if defined(ARCH_X86)
+#if defined(CONFIG_ARCH_X86)
     CDL_IOPortsCap,
     CDL_IOSpaceCap,
 #endif
@@ -91,10 +95,10 @@ typedef struct {
         CDL_CapData_Guard = seL4_CapData_Guard,
         CDL_CapData_Raw,
     } tag;
-    uint32_t guard_bits;
-    uint32_t guard_size;
-    uint32_t badge;
-    uint32_t data;
+    seL4_Word guard_bits;
+    seL4_Word guard_size;
+    seL4_Word badge;
+    seL4_Word data;
 } CDL_CapData;
 
 typedef struct {
@@ -139,18 +143,18 @@ typedef enum {
     CDL_TCB           = seL4_TCBObject,
     CDL_CNode         = seL4_CapTableObject,
     CDL_Untyped       = seL4_UntypedObject,
-#if defined(ARCH_ARM)
+#if defined(CONFIG_ARCH_ARM)
     CDL_PT            = seL4_ARM_PageTableObject,
     CDL_PD            = seL4_ARM_PageDirectoryObject,
     CDL_Frame         = seL4_ARM_SmallPageObject,
-#elif defined(ARCH_X86)
+#elif defined(CONFIG_ARCH_X86)
     CDL_PT            = seL4_X86_PageTableObject,
     CDL_PD            = seL4_X86_PageDirectoryObject,
     CDL_Frame         = seL4_X86_4K,
 #endif
     CDL_ASIDPool      = seL4_ObjectTypeCount + 1,
     CDL_Interrupt     = seL4_ObjectTypeCount + 2,
-#if defined(ARCH_X86)
+#if defined(CONFIG_ARCH_X86)
     CDL_IOPorts       = seL4_ObjectTypeCount + 3,
     CDL_IODevice      = seL4_ObjectTypeCount + 4,
 #endif
@@ -231,16 +235,16 @@ static inline const char *CDL_Obj_Name(CDL_Object *obj) {
 static inline CDL_ObjectType CDL_Obj_Type(CDL_Object *obj)                { return obj->type; }
 static inline seL4_Word      CDL_Obj_SizeBits(CDL_Object *obj)            { return obj->size_bits; }
 static inline seL4_Word      CDL_Obj_NumSlots(CDL_Object *obj)            { return obj->slots.num; }
-static inline CDL_CapSlot *  
+static inline CDL_CapSlot *
 CDL_Obj_GetSlot(CDL_Object *obj, seL4_Word i)      { return &obj->slots.slot[i]; }
 
-static inline void *     
+static inline void *
 CDL_TCB_DriverInfo(CDL_Object *obj)          { return obj->tcb_extra.driverinfo; }
 
-static inline seL4_Word      
+static inline seL4_Word
 CDL_TCB_DriverInfo_Addr(CDL_Object *obj)     { return obj->tcb_extra.driverinfo_addr; }
-              
-static inline seL4_Word      
+
+static inline seL4_Word
 CDL_TCB_IPCBuffer_Addr(CDL_Object *obj)      { return obj->tcb_extra.ipcbuffer_addr; }
 
 static inline uint8_t
@@ -249,10 +253,10 @@ CDL_TCB_Priority(CDL_Object *obj)            { return obj->tcb_extra.priority; }
 static inline uint32_t
 CDL_TCB_Domain(CDL_Object *obj)             { return obj->tcb_extra.domain; }
 
-static inline seL4_Word      
+static inline seL4_Word
 CDL_TCB_PC(CDL_Object *obj)                  { return obj->tcb_extra.pc; }
 
-static inline seL4_Word      
+static inline seL4_Word
 CDL_TCB_SP(CDL_Object *obj)                  { return obj->tcb_extra.sp; }
 
 static inline const char *
