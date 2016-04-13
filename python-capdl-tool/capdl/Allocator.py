@@ -62,6 +62,7 @@ class ObjectAllocator(object):
             return o
 
         self.counter += 1
+        frame_type = [page for page in self.spec.arch.get_pages() if page.object == type]
         if type == seL4_UntypedObject:
             size_bits = kwargs.get('size_bits', 12)
             paddr = kwargs.get('paddr', None)
@@ -79,28 +80,12 @@ class ObjectAllocator(object):
             if 'size' not in kwargs:
                 kwargs['size'] = 4096
             o = Frame(name, **kwargs)
-        elif type == seL4_IA32_4K or type == seL4_ARM_SmallPageObject:
-            o = Frame(name, 4096, **kwargs) # 4K
-        elif type == seL4_ARM_LargePageObject:
-            o = Frame(name, 64 * 1024, **kwargs) # 64K
-        elif type == seL4_ARM_SectionObject:
-            if os.environ.get('ARM_HYP', '') == '1':
-                o = Frame(name, 2 * 1024 * 1024, **kwargs) # 2M
-            else:
-                o = Frame(name, 1024 * 1024, **kwargs) # 1M
-        elif type == seL4_ARM_SuperSectionObject:
-            if os.environ.get('ARM_HYP', '') == '1':
-                o = Frame(name, 32 * 1024 * 1024, **kwargs) # 32M
-            else:
-                o = Frame(name, 16 * 1024 * 1024, **kwargs) # 16M
         elif type == seL4_IA32_PageTableObject or type == seL4_ARM_PageTableObject:
             o = PageTable(name)
-        elif type in [seL4_IA32_PageDirectoryObject,
-                      seL4_ARM_PageDirectoryObject,
-                      seL4_PageDirectoryObject]:
+        elif type == self.spec.arch.vspace().object:
+            o = self.spec.arch.vspace().make_object(name)
+        elif type == seL4_PageDirectoryObject:
             o = PageDirectory(name)
-        elif type == seL4_IA32_4M:
-            o = Frame(name, 4096 * 1024, **kwargs) # 4M
         elif type == seL4_IA32_IOPageTableObject:
             o = IOPageTable(name)
         elif type == seL4_IA32_IOPort:
@@ -122,6 +107,8 @@ class ObjectAllocator(object):
                 raise ValueError
         elif type == seL4_ASID_Pool:
             o = ASIDPool(name)
+        elif len(frame_type) == 1:
+            o = Frame(name, frame_type[0].get_size(), **kwargs)
         else:
             raise Exception('Invalid object type %s' % type)
         self.spec.add_object(o)
