@@ -12,7 +12,7 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
 from .Object import IRQ, Object, PageTable
-from .util import normalise_architecture
+from .util import lookup_architecture
 
 class Spec(object):
     """
@@ -31,7 +31,7 @@ class Spec(object):
         if value is None:
             self._arch = None
         else:
-            self._arch = normalise_architecture(value)
+            self._arch = lookup_architecture(value)
 
     def add_object(self, obj):
         assert isinstance(obj, Object)
@@ -54,7 +54,7 @@ class Spec(object):
                'irq maps {\n%(irqs)s\n}' % {
 
             # Architecture; arm11 or ia32
-            'arch':self.arch,
+            'arch':self.arch.capdl_name(),
 
             # Kernel objects
             'objs':'\n'.join(sorted(str(x) for x in self.objs)),
