@@ -330,9 +330,37 @@ void init_copy_frame(seL4_BootInfo *bootinfo)
      * address in our address space. The flush is probably not
      * required, but doesn't hurt to be cautious.
      */
+
+    /* Find the number of frames in the user image according to
+     * bootinfo, and compare that to the number of frames backing
+     * the image computed by comparing start and end symbols. If
+     * these numbers are different, assume the image was padded
+     * to the left. */
+    unsigned int num_user_image_frames_reported =
+        bootinfo->userImageFrames.end - bootinfo->userImageFrames.start;
+    unsigned int num_user_image_frames_measured =
+        (ROUND_UP((uintptr_t)&_end, PAGE_SIZE_4K) -
+        (uintptr_t)&__executable_start) / PAGE_SIZE_4K;
+
+    if (num_user_image_frames_reported < num_user_image_frames_measured) {
+        ZF_LOGE("Too few frames caps in bootinfo to back user image");
+        return;
+    }
+
+    size_t additional_user_image_bytes =
+        (num_user_image_frames_reported - num_user_image_frames_measured) * PAGE_SIZE_4K;
+
+    if (additional_user_image_bytes > (uintptr_t)&__executable_start) {
+        ZF_LOGE("User image padding too high to fit before start symbol");
+        return;
+    }
+
+    uintptr_t lowest_mapped_vaddr =
+        (uintptr_t)&__executable_start - additional_user_image_bytes;
+
     seL4_CPtr copy_addr_frame = bootinfo->userImageFrames.start +
         ((uintptr_t)copy_addr_with_pt) / PAGE_SIZE_4K -
-        ((uintptr_t)&__executable_start) / PAGE_SIZE_4K;
+        lowest_mapped_vaddr / PAGE_SIZE_4K;
     /* We currently will assume that we are on a 32-bit platform
      * that has a single PD, followed by all the PTs. So to find
      * our PT in the paging objects list we just need to add 1
