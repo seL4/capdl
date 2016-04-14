@@ -17,10 +17,9 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
 from .Cap import Cap
-from .Object import ASIDPool, PageDirectory, Frame, PageTable
+from .Object import ASIDPool, Frame
 from .Spec import Spec
-from .util import page_table_vaddr, page_table_index, page_index, round_down, \
-    PAGE_SIZE, page_table_coverage, lookup_architecture
+from .util import round_down, PAGE_SIZE, lookup_architecture
 import collections
 
 def consume(iterator):
@@ -86,9 +85,10 @@ class PageCollection(object):
         if asid is not None:
             spec.add_object(asid)
 
-        # Construct frames and infer page tables from the pages.
-        pts = {}
-        pt_counter = 0
+        # Construct frames and infer page objects from the pages.
+        vspace = spec.arch.vspace()
+        object_counter = 0
+        objects = {}
         for page_counter, (page_vaddr, page) in enumerate(self._pages.items()):
             frame = Frame('frame_%s_%04d' % (self.name, page_counter),
                 page['size'])
@@ -96,22 +96,24 @@ class PageCollection(object):
             page_cap = Cap(frame, read=page['read'], write=page['write'],
                 grant=page['execute'])
 
-            pt_vaddr = page_table_vaddr(self.arch, page_vaddr)
-            pt_index = page_table_index(self.arch, pt_vaddr)
-            if page['size'] >= page_table_coverage(self.arch):
-                pt_counter += 1
-                vspace_root[pt_index] = page_cap
-            else:
-                if pt_vaddr not in pts:
-                    pt = PageTable('pt_%s_%04d' % (self.name, pt_counter))
-                    pt_counter += 1
-                    spec.add_object(pt)
-                    pt_cap = Cap(pt)
-                    vspace_root[pt_index] = pt_cap
-                    pts[pt_vaddr] = pt
-                pt = vspace_root[pt_index].referent
-                p_index = page_index(self.arch, page_vaddr)
-                pt[p_index] = page_cap
+            # Walk the hierarchy, creating missing objects until we can
+            # insert the frame
+            level = vspace
+            parent = vspace_root
+            while level.child is not None and page['size'] < level.child.coverage:
+                level = level.child
+                object_vaddr = level.base_vaddr(page_vaddr)
+                object_index = level.parent_index(object_vaddr)
+                if (level, object_vaddr) not in objects:
+                    object = level.make_object('%s_%s_%04d' % (level.type_name, self.name, object_counter))
+                    object_counter += 1
+                    spec.add_object(object)
+                    object_cap = Cap(object)
+                    parent[object_index] = object_cap
+                    objects[(level, object_vaddr)] = object
+                parent = parent[object_index].referent
+            object_counter += 1
+            parent[level.child_index(page_vaddr)] = page_cap
 
         # Cache the result for next time.
         assert self._spec is None
