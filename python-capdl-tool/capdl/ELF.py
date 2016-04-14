@@ -185,7 +185,7 @@ class ELF(object):
             tcb = TCB('tcb_%s' % self._safe_name(), ip=self.get_entry_point(),
                 elf=self.name)
             spec.add_object(tcb)
-            tcb['vspace'] = pages.get_page_directory()[1]
+            tcb['vspace'] = pages.get_vspace_root()[1]
 
         return spec
 

@@ -20,7 +20,7 @@ from .Cap import Cap
 from .Object import ASIDPool, PageDirectory, Frame, PageTable
 from .Spec import Spec
 from .util import page_table_vaddr, page_table_index, page_index, round_down, \
-    PAGE_SIZE, page_table_coverage
+    PAGE_SIZE, page_table_coverage, lookup_architecture
 import collections
 
 def consume(iterator):
@@ -31,11 +31,11 @@ def consume(iterator):
     collections.deque(iterator, maxlen=0)
 
 class PageCollection(object):
-    def __init__(self, name='', arch='arm11', infer_asid=True, pd=None):
+    def __init__(self, name='', arch='arm11', infer_asid=True, vspace_root=None):
         self.name = name
         self.arch = arch
         self._pages = {}
-        self._pd = pd
+        self._vspace_root = vspace_root
         self._asid = None
         self.infer_asid = infer_asid
         self._spec = None
@@ -61,15 +61,16 @@ class PageCollection(object):
     def __iter__(self):
         return self._pages.__iter__()
 
-    def get_page_directory(self):
-        if not self._pd:
-            self._pd = PageDirectory('pd_%s' % self.name)
-        return self._pd, Cap(self._pd)
+    def get_vspace_root(self):
+        if not self._vspace_root:
+            vspace = lookup_architecture(self.arch).vspace()
+            self._vspace_root = vspace.get_make_object()('%s_%s' % (vspace.get_type_name(), self.name))
+        return self._vspace_root, Cap(self._vspace_root)
 
     def get_asid(self):
         if not self._asid and self.infer_asid:
             self._asid = ASIDPool('asid_%s' % self.name)
-            self._asid[0] = self.get_page_directory()[1]
+            self._asid[0] = self.get_vspace_root()[1]
         return self._asid
 
     def get_spec(self):
@@ -79,8 +80,8 @@ class PageCollection(object):
         spec = Spec(self.arch)
 
         # Page directory and ASID.
-        pd, pd_cap = self.get_page_directory()
-        spec.add_object(pd)
+        vspace_root, vspace_root_cap = self.get_vspace_root()
+        spec.add_object(vspace_root)
         asid = self.get_asid()
         if asid is not None:
             spec.add_object(asid)
@@ -99,16 +100,16 @@ class PageCollection(object):
             pt_index = page_table_index(self.arch, pt_vaddr)
             if page['size'] >= page_table_coverage(self.arch):
                 pt_counter += 1
-                pd[pt_index] = page_cap
+                vspace_root[pt_index] = page_cap
             else:
                 if pt_vaddr not in pts:
                     pt = PageTable('pt_%s_%04d' % (self.name, pt_counter))
                     pt_counter += 1
                     spec.add_object(pt)
                     pt_cap = Cap(pt)
-                    pd[pt_index] = pt_cap
+                    vspace_root[pt_index] = pt_cap
                     pts[pt_vaddr] = pt
-                pt = pd[pt_index].referent
+                pt = vspace_root[pt_index].referent
                 p_index = page_index(self.arch, page_vaddr)
                 pt[p_index] = page_cap
 
