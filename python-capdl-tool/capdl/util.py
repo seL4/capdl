@@ -21,19 +21,21 @@ from .Object import seL4_IA32_4M, seL4_IA32_4K, seL4_ARM_SectionObject, \
     seL4_ARM_SuperSectionObject, seL4_ARM_SmallPageObject, seL4_ARM_LargePageObject, \
     seL4_IA32_PageDirectoryObject, seL4_IA32_PageTableObject, \
     seL4_ARM_PageDirectoryObject, seL4_ARM_PageTableObject, \
-    PageTable, PageDirectory
+    seL4_X64_PML4, seL4_X64_PDPT, seL4_IA32_2M, seL4_X64_1G, \
+    PageTable, PageDirectory, PML4, PDPT
 
 # Size of a frame and page (applies to all architectures)
 FRAME_SIZE = 4096 # bytes
 PAGE_SIZE = 4096 # bytes
 
-SIZE_4GB = 4 * 1024 * 1024 * 1024
-SIZE_32M = 32 * 1024 * 1024
-SIZE_16M = 16 * 1024 * 1024
-SIZE_4M = 4 * 1024 * 1024
-SIZE_2M = 2 * 1024 * 1024
-SIZE_1M = 1024 * 1024
 SIZE_64K = 64 * 1024
+SIZE_1M = 1024 * 1024
+SIZE_2M = 2 * SIZE_1M
+SIZE_4M = 4 * SIZE_1M
+SIZE_16M = 16 * SIZE_1M
+SIZE_32M = 32 * SIZE_1M
+SIZE_1GB = 1 * 1024 * 1024 * 1024
+SIZE_4GB = 4 * SIZE_1GB
 
 class Frame:
     def __init__(self, size, object):
@@ -118,6 +120,21 @@ class IA32Arch(Arch):
     def ipc_buffer_size(self):
         return 512
 
+class X64Arch(Arch):
+    def capdl_name(self):
+        return "x86_64"
+    def vspace(self):
+        return make_levels([
+            Level(2 ** 48, [], seL4_X64_PML4, PML4, "pml4"),
+            Level(2 ** 39, [Frame(SIZE_1GB, seL4_X64_1G)], seL4_X64_PDPT, PDPT, "pdpt"),
+            Level(2 ** 30, [Frame(SIZE_2M, seL4_IA32_2M)], seL4_IA32_PageDirectoryObject, PageDirectory, "pd"),
+            Level(2 ** 21, [Frame(PAGE_SIZE, seL4_IA32_4K)], seL4_IA32_PageTableObject, PageTable, "pt"),
+        ])
+    def word_size_bits(self):
+        return 64
+    def ipc_buffer_size(self):
+        return 1024
+
 class ARM32Arch(Arch):
     def capdl_name(self):
         return "arm11"
@@ -152,11 +169,13 @@ def lookup_architecture(arch):
         'arm_hyp':'arm_hyp',
         'ia32':'ia32',
         'x86':'ia32',
+        'x86_64':'x86_64'
     }
     arch_map = {
         'aarch32': ARM32Arch(),
         'arm_hyp': ARMHypArch(),
         'ia32': IA32Arch(),
+        'x86_64': X64Arch()
     }
     try:
         return arch_map[normalise[arch.lower()]]

@@ -31,16 +31,20 @@ seL4_ARM_PageTableObject = 9
 seL4_ARM_PageDirectoryObject = 10
 
 seL4_IA32_4K = 15
-seL4_IA32_4M = 16
-seL4_IA32_PageTableObject = 17
-seL4_IA32_PageDirectoryObject = 18
-seL4_IA32_IOPageTableObject = 19
-seL4_IA32_IOPort = 20
-seL4_IA32_IOSpace = 21
-seL4_IA32_VCPU = 22
+seL4_IA32_2M = 16
+seL4_IA32_4M = 17
+seL4_X64_1G = 18
+seL4_IA32_PageTableObject = 19
+seL4_IA32_PageDirectoryObject = 20
+seL4_X64_PDPT = 21
+seL4_X64_PML4 = 22
+seL4_IA32_IOPageTableObject = 23
+seL4_IA32_IOPort = 24
+seL4_IA32_IOSpace = 25
+seL4_IA32_VCPU = 26
 
-seL4_FrameObject = 25
-seL4_IRQControl = 26
+seL4_FrameObject = 27
+seL4_IRQControl = 28
 
 seL4_PageDirectoryObject = 30
 seL4_ASID_Pool = 31
@@ -140,6 +144,14 @@ class PageTable(ContainerObject):
 class PageDirectory(ContainerObject):
     def __repr__(self):
         return '%s = pd' % self.name
+
+class PDPT(ContainerObject):
+    def __repr__(self):
+        return '%s = pdpt' % self.name
+
+class PML4(ContainerObject):
+    def __repr__(self):
+        return '%s = pml4' % self.name
 
 class ASIDPool(ContainerObject):
     def __repr__(self):
