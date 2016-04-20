@@ -163,6 +163,9 @@ class TCB(ContainerObject):
         s += ')'
         return s
 
+    def set_fault_ep_slot(self, fault_ep_slot):
+        self.fault_ep_slot = fault_ep_slot
+
 class Untyped(Object):
     def __init__(self, name, size_bits=12, paddr=None):
         super(Untyped, self).__init__(name)
