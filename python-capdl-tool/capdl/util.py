@@ -115,6 +115,8 @@ class IA32Arch(Arch):
         ])
     def word_size_bits(self):
         return 32
+    def ipc_buffer_size(self):
+        return 512
 
 class ARM32Arch(Arch):
     def capdl_name(self):
@@ -126,6 +128,8 @@ class ARM32Arch(Arch):
         ])
     def word_size_bits(self):
         return 32
+    def ipc_buffer_size(self):
+        return 512
 
 class ARMHypArch(Arch):
     def capdl_name(self):
@@ -137,6 +141,8 @@ class ARMHypArch(Arch):
         ])
     def word_size_bits(self):
         return 32
+    def ipc_buffer_size(self):
+        return 512
 
 def lookup_architecture(arch):
     normalise = {
