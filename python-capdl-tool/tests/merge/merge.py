@@ -26,11 +26,11 @@ spec1 = capdl.Spec()
 spec1.add_object(a)
 spec2 = capdl.Spec()
 spec1.merge(spec2)
-assert spec1.objs == [a]
+assert spec1.objs == set([a])
 
 spec1 = capdl.Spec()
 spec1.add_object(a)
 spec2 = capdl.Spec()
 spec2.add_object(b)
 spec1.merge(spec2)
-assert spec1.objs == [a, b]
+assert spec1.objs == set([a, b])
