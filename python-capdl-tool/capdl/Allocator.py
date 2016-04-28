@@ -13,14 +13,14 @@ from __future__ import absolute_import, division, print_function, \
 
 from .Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
     Notification, TCB, Untyped, IOPageTable, Object, IRQ, IOPorts, IODevice, \
-    VCPU, ASIDPool, seL4_UntypedObject, seL4_TCBObject, seL4_EndpointObject, \
+    VCPU, ASIDPool, SC, seL4_UntypedObject, seL4_TCBObject, seL4_EndpointObject, \
     seL4_NotificationObject, seL4_CapTableObject, seL4_ARM_SmallPageObject, seL4_ARM_LargePageObject, \
     seL4_ARM_SectionObject, seL4_ARM_SuperSectionObject, seL4_ARM_PageTableObject, \
     seL4_ARM_PageDirectoryObject, seL4_IA32_4K, seL4_IA32_4M, seL4_IA32_PageTableObject, \
     seL4_IA32_PageDirectoryObject, seL4_IA32_IOPageTableObject, seL4_IA32_IOPort, \
     seL4_IA32_IOSpace, seL4_IA32_VCPU, seL4_FrameObject, seL4_IRQControl, \
-    seL4_PageDirectoryObject, seL4_ASID_Pool, seL4_CanRead, seL4_CanWrite, seL4_CanGrant, \
-    seL4_AllRights
+    seL4_PageDirectoryObject, seL4_ASID_Pool, seL4_SchedContextObject, seL4_SchedControlObject, \
+    seL4_CanRead, seL4_CanWrite, seL4_CanGrant, seL4_AllRights
 from .Spec import Spec
 from .Cap import Cap
 import collections, os
@@ -109,6 +109,8 @@ class ObjectAllocator(object):
             o = ASIDPool(name)
         elif len(frame_type) == 1:
             o = Frame(name, frame_type[0].get_size(), **kwargs)
+        elif type == seL4_SchedContextObject:
+            o = SC(name)
         else:
             raise Exception('Invalid object type %s' % type)
         self.spec.add_object(o)

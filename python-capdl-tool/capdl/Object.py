@@ -45,6 +45,9 @@ seL4_IRQControl = 26
 seL4_PageDirectoryObject = 30
 seL4_ASID_Pool = 31
 
+seL4_SchedContextObject = 32
+seL4_SchedControlObject = 33
+
 seL4_CanRead = 1
 seL4_CanWrite = 2
 seL4_CanGrant = 4
@@ -176,19 +179,23 @@ class Notification(Object):
 
 class TCB(ContainerObject):
     def __init__(self, name, ipc_buffer_vaddr=0x0, ip=0x0, sp=0x0, elf=None,
-            prio=254, init=None, domain=None, fault_ep_slot=None):
+            prio=254, max_prio=254, crit=3, max_crit=3, init=None, domain=None, fault_ep_slot=None):
         super(TCB, self).__init__(name)
         self.addr = ipc_buffer_vaddr
         self.ip = ip
         self.sp = sp
         self.elf = elf or ''
         self.prio = prio
+        self.max_prio = max_prio
+        self.crit = crit
+        self.max_crit = max_crit
         self.init = init or []
         self.domain = domain
         self.fault_ep_slot = fault_ep_slot
 
     def __repr__(self):
-        s = '%(name)s = tcb (addr: 0x%(addr)x, ip: 0x%(ip)x, sp: 0x%(sp)x, elf: %(elf)s, prio: %(prio)s, init: %(init)s' % self.__dict__
+        s = '%(name)s = tcb (addr: 0x%(addr)x, ip: 0x%(ip)x, sp: 0x%(sp)x, elf: %(elf)s, prio: %(prio)s, \
+               max_prio: %(max_prio)s, crit: %(crit)s, max_crit: %(max_crit)s, init: %(init)s' % self.__dict__
         if self.fault_ep_slot is not None:
             s += ', fault_ep: 0x%0.8x' % self.fault_ep_slot
         if self.domain is not None:
@@ -260,3 +267,14 @@ class IRQ(ContainerObject):
 class VCPU(Object):
     def __repr__(self):
         return '%s = vcpu' % self.name
+
+class SC(Object):
+    def __init__(self, name, period=0x0, budget=0x0, flags=0x0):
+        super(SC, self).__init__(name)
+        self.period = period
+        self.budget = budget
+        self.flags = flags
+
+    def __repr__(self):
+        s = '%(name)s = sc (period: %(period)s, budget: %(budget)s, flags: %(flags)s)' % self.__dict__
+        return s
