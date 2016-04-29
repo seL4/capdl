@@ -928,10 +928,12 @@ init_sc(CDL_Model *spec, CDL_ObjID sc)
 
     debug_printf("budget: %llu, period: %llu\n", budget, period);
 
-    seL4_CPtr seL4_sc = orig_caps(sc);
+    seL4_CPtr UNUSED seL4_sc = orig_caps(sc);
 
+#ifdef CONFIG_KERNEL_RT
     int error = seL4_SchedControl_Configure(seL4_CapSchedControl, seL4_sc, budget, period, 0);
     seL4_AssertSuccess(error);
+#endif
 }
 
 static void
@@ -979,12 +981,9 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
 
     seL4_Word ipcbuffer_addr = CDL_TCB_IPCBuffer_Addr(cdl_tcb);
     uint8_t priority = CDL_TCB_Priority(cdl_tcb);
-    uint8_t max_priority = CDL_TCB_MaxPriority(cdl_tcb);
-    uint8_t criticality = CDL_TCB_Criticality(cdl_tcb);
-    uint8_t max_criticality = CDL_TCB_MaxCriticality(cdl_tcb);
-    seL4_Prio_t prio;
-    seL4_Prio_ptr_new(&prio, (seL4_Uint32) priority, (seL4_Uint32) max_priority,
-                             (seL4_Uint32) criticality, (seL4_Uint32) max_criticality);
+    uint8_t UNUSED max_priority = CDL_TCB_MaxPriority(cdl_tcb);
+    uint8_t UNUSED criticality = CDL_TCB_Criticality(cdl_tcb);
+    uint8_t UNUSED max_criticality = CDL_TCB_MaxCriticality(cdl_tcb);
 
     seL4_CPtr sel4_tcb = orig_caps(tcb);
 
@@ -992,19 +991,29 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     seL4_CPtr sel4_vspace_root = orig_caps(CDL_Cap_ObjID(cdl_vspace_root));
     seL4_CPtr sel4_ipcbuffer   = cdl_ipcbuffer ? orig_caps(CDL_Cap_ObjID(cdl_ipcbuffer)) : 0;
     seL4_CPtr sel4_fault_ep    = cdl_tcb->tcb_extra.fault_ep;
-    seL4_CPtr sel4_sc          = cdl_sc ? orig_caps(CDL_Cap_ObjID(cdl_sc)) : 0;
-    seL4_CPtr sel4_tempfault_ep= cdl_tempfault_ep ? orig_caps(CDL_Cap_ObjID(cdl_tempfault_ep)) : 0;
+    seL4_CPtr UNUSED sel4_sc          = cdl_sc ? orig_caps(CDL_Cap_ObjID(cdl_sc)) : 0;
+    seL4_CPtr UNUSED sel4_tempfault_ep= cdl_tempfault_ep ? orig_caps(CDL_Cap_ObjID(cdl_tempfault_ep)) : 0;
 
     seL4_CapData_t sel4_cspace_root_data = cdl_cspace_root == NULL ? (seL4_CapData_t){{0}} : get_capData(CDL_Cap_Data(cdl_cspace_root));
     seL4_CapData_t sel4_vspace_root_data = get_capData(CDL_Cap_Data(cdl_vspace_root));
 
-    int error = seL4_TCB_Configure(sel4_tcb, sel4_fault_ep, sel4_tempfault_ep,
-                                   prio,
-                                   sel4_sc,
-                                   sel4_cspace_root, sel4_cspace_root_data,
-                                   sel4_vspace_root, sel4_vspace_root_data,
-                                   ipcbuffer_addr, sel4_ipcbuffer);
+    int error;
+#ifdef CONFIG_KERNEL_RT
+    seL4_Prio_t prio;
+    seL4_Prio_ptr_new(&prio, (seL4_Uint32) priority, (seL4_Uint32) max_priority,
+                             (seL4_Uint32) criticality, (seL4_Uint32) max_criticality);
 
+    error = seL4_TCB_Configure(sel4_tcb, sel4_fault_ep, sel4_tempfault_ep,
+                               prio, sel4_sc,
+                               sel4_cspace_root, sel4_cspace_root_data,
+                               sel4_vspace_root, sel4_vspace_root_data,
+                               ipcbuffer_addr, sel4_ipcbuffer);
+#else
+    error = seL4_TCB_Configure(sel4_tcb, sel4_fault_ep, priority,
+                               sel4_cspace_root, sel4_cspace_root_data,
+                               sel4_vspace_root, sel4_vspace_root_data,
+                               ipcbuffer_addr, sel4_ipcbuffer);
+#endif
     seL4_AssertSuccess(error);
 
 #ifdef SEL4_DEBUG_KERNEL
@@ -1142,10 +1151,12 @@ configure_thread(CDL_Model *spec, CDL_ObjID tcb)
                                         &global_user_context);
     seL4_AssertSuccess(error);
 
-    uint32_t domain = CDL_TCB_Domain(cdl_tcb);
+    uint32_t UNUSED domain = CDL_TCB_Domain(cdl_tcb);
     debug_printf("  Assigning thread to domain %u...\n", domain);
+#if defined(CONFIG_KERNEL_MASTER) || defined(CONFIG_KERNEL_STABLE)
     error = seL4_DomainSet_Set(seL4_CapDomain, domain, sel4_tcb);
     seL4_AssertSuccess(error);
+#endif
 }
 
 static void
@@ -1634,7 +1645,9 @@ init_system(CDL_Model *spec)
     init_elfs(spec, bootinfo);
 #endif
     init_vspace(spec);
-    init_scs(spec);
+    if (config_set(CONFIG_KERNEL_RT)) {
+        init_scs(spec);
+    }
     init_tcbs(spec);
     init_cspace(spec);
     start_threads(spec);

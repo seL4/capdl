@@ -145,7 +145,6 @@ typedef enum {
     CDL_TCB           = seL4_TCBObject,
     CDL_CNode         = seL4_CapTableObject,
     CDL_Untyped       = seL4_UntypedObject,
-    CDL_SchedContext  = seL4_SchedContextObject,
 #if defined(CONFIG_ARCH_ARM)
     CDL_PT            = seL4_ARM_PageTableObject,
     CDL_PD            = seL4_ARM_PageDirectoryObject,
@@ -160,6 +159,11 @@ typedef enum {
 #if defined(CONFIG_ARCH_X86)
     CDL_IOPorts       = seL4_ObjectTypeCount + 3,
     CDL_IODevice      = seL4_ObjectTypeCount + 4,
+#endif
+#ifdef CONFIG_KERNEL_RT
+    CDL_SchedContext  = seL4_SchedContextObject,
+#else
+    CDL_SchedContext  = seL4_ObjectTypeCount + 5,
 #endif
 } CDL_ObjectType;
 
