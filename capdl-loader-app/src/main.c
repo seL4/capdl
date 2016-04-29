@@ -917,6 +917,35 @@ duplicate_caps(CDL_Model *spec)
     }
 }
 
+/* Initialise SCs */
+static void
+init_sc(CDL_Model *spec, CDL_ObjID sc)
+{
+    CDL_Object *cdl_sc = get_spec_object(spec, sc);
+
+    uint64_t budget = CDL_SC_Budget(cdl_sc);
+    uint64_t period = CDL_SC_Period(cdl_sc);
+
+    debug_printf("budget: %llu, period: %llu\n", budget, period);
+
+    seL4_CPtr seL4_sc = orig_caps(sc);
+
+    int error = seL4_SchedControl_Configure(seL4_CapSchedControl, seL4_sc, budget, period, 0);
+    seL4_AssertSuccess(error);
+}
+
+static void
+init_scs(CDL_Model *spec)
+{
+    debug_printf("Initialising SCs...\n");
+    for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
+        if (spec->objects[obj_id].type == CDL_SchedContext) {
+            debug_printf(" Initialising %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
+            init_sc(spec, obj_id);
+        }
+    }
+}
+
 /* Initialise TCBs */
 static void
 init_tcb(CDL_Model *spec, CDL_ObjID tcb)
@@ -938,8 +967,24 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
         debug_printf("  Warning: TCB has no IPC buffer\n");
     }
 
+    CDL_Cap *cdl_sc   = get_cap_at(cdl_tcb, CDL_TCB_SC_Slot);
+    if (cdl_sc == NULL) {
+        debug_printf("  Warning: TCB has no scheduling context\n");
+    }
+
+    CDL_Cap *cdl_tempfault_ep   = get_cap_at(cdl_tcb, CDL_TCB_TemporalFaultEP_Slot);
+    if (cdl_tempfault_ep == NULL) {
+        debug_printf("  Warning: TCB has no temporal fault endpoint\n");
+    }
+
     seL4_Word ipcbuffer_addr = CDL_TCB_IPCBuffer_Addr(cdl_tcb);
     uint8_t priority = CDL_TCB_Priority(cdl_tcb);
+    uint8_t max_priority = CDL_TCB_MaxPriority(cdl_tcb);
+    uint8_t criticality = CDL_TCB_Criticality(cdl_tcb);
+    uint8_t max_criticality = CDL_TCB_MaxCriticality(cdl_tcb);
+    seL4_Prio_t prio;
+    seL4_Prio_ptr_new(&prio, (seL4_Uint32) priority, (seL4_Uint32) max_priority,
+                             (seL4_Uint32) criticality, (seL4_Uint32) max_criticality);
 
     seL4_CPtr sel4_tcb = orig_caps(tcb);
 
@@ -947,11 +992,15 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     seL4_CPtr sel4_vspace_root = orig_caps(CDL_Cap_ObjID(cdl_vspace_root));
     seL4_CPtr sel4_ipcbuffer   = cdl_ipcbuffer ? orig_caps(CDL_Cap_ObjID(cdl_ipcbuffer)) : 0;
     seL4_CPtr sel4_fault_ep    = cdl_tcb->tcb_extra.fault_ep;
+    seL4_CPtr sel4_sc          = cdl_sc ? orig_caps(CDL_Cap_ObjID(cdl_sc)) : 0;
+    seL4_CPtr sel4_tempfault_ep= cdl_tempfault_ep ? orig_caps(CDL_Cap_ObjID(cdl_tempfault_ep)) : 0;
 
     seL4_CapData_t sel4_cspace_root_data = cdl_cspace_root == NULL ? (seL4_CapData_t){{0}} : get_capData(CDL_Cap_Data(cdl_cspace_root));
     seL4_CapData_t sel4_vspace_root_data = get_capData(CDL_Cap_Data(cdl_vspace_root));
 
-    int error = seL4_TCB_Configure(sel4_tcb, sel4_fault_ep, priority,
+    int error = seL4_TCB_Configure(sel4_tcb, sel4_fault_ep, sel4_tempfault_ep,
+                                   prio,
+                                   sel4_sc,
                                    sel4_cspace_root, sel4_cspace_root_data,
                                    sel4_vspace_root, sel4_vspace_root_data,
                                    ipcbuffer_addr, sel4_ipcbuffer);
@@ -1585,6 +1634,7 @@ init_system(CDL_Model *spec)
     init_elfs(spec, bootinfo);
 #endif
     init_vspace(spec);
+    init_scs(spec);
     init_tcbs(spec);
     init_cspace(spec);
     start_threads(spec);
