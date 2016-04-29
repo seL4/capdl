@@ -95,6 +95,18 @@ prettyPrio :: Maybe Integer -> Doc
 prettyPrio Nothing = empty
 prettyPrio (Just prio) = text "prio:" <+> (text $ show prio)
 
+prettyMaxPrio :: Maybe Integer -> Doc
+prettyMaxPrio Nothing = empty
+prettyMaxPrio (Just max_prio) = text "max_prio:" <+> (text $ show max_prio)
+
+prettyCrit :: Maybe Integer -> Doc
+prettyCrit Nothing = empty
+prettyCrit (Just crit) = text "crit:" <+> (text $ show crit)
+
+prettyMaxCrit :: Maybe Integer -> Doc
+prettyMaxCrit Nothing = empty
+prettyMaxCrit (Just max_crit) = text "max_crit:" <+> (text $ show max_crit)
+
 prettyDom :: Integer -> Doc
 prettyDom dom = text "dom:" <+> (text $ show dom)
 
@@ -104,9 +116,10 @@ prettyFaultEP (Just fault_ep) = text "fault_ep:" <+> (text $ show fault_ep)
 
 prettyExtraInfo :: Maybe TCBExtraInfo -> Doc
 prettyExtraInfo Nothing = empty
-prettyExtraInfo (Just (TCBExtraInfo addr ip sp elf prio)) =
+prettyExtraInfo (Just (TCBExtraInfo addr ip sp elf prio max_prio crit max_crit)) =
     hsep $ punctuate comma $ filter (not . isEmpty)
-                   [prettyAddr addr, prettyIP ip, prettySP sp, prettyElf elf, prettyPrio prio]
+                   [prettyAddr addr, prettyIP ip, prettySP sp, prettyElf elf, prettyPrio prio, prettyMaxPrio max_prio, prettyCrit crit, prettyMaxCrit max_crit]
+
 
 prettyInitArguments :: [Word] -> Doc
 prettyInitArguments [] = empty
@@ -115,6 +128,24 @@ prettyInitArguments init =
 
 prettyDomainID :: Word -> Doc
 prettyDomainID dom = text "domainID:" <+> num dom
+
+prettyPeriod :: Maybe Word -> Doc
+prettyPeriod Nothing = empty
+prettyPeriod (Just period) = text "period:" <+> (text $ show period)
+
+prettyBudget :: Maybe Word -> Doc
+prettyBudget Nothing = empty
+prettyBudget (Just budget) = text "budget:" <+> (text $ show budget)
+
+prettyFlags :: Maybe Integer -> Doc
+prettyFlags Nothing = empty
+prettyFlags (Just flags) = text "flags:" <+> (text $ show flags)
+
+prettySCExtraInfo :: Maybe SCExtraInfo -> Doc
+prettySCExtraInfo Nothing = empty
+prettySCExtraInfo (Just (SCExtraInfo period budget flags)) =
+    hsep $ punctuate comma $ filter (not . isEmpty)
+              [prettyPeriod period, prettyBudget budget, prettyFlags flags]
 
 prettyPCIDevice :: (Word, Word, Word) -> Doc
 prettyPCIDevice (pci_bus, pci_dev, pci_fun) =
@@ -139,6 +170,7 @@ prettyObjParams obj = case obj of
     IODevice _ dom pci -> text "io_device" <+> maybeParensList [prettyDomainID dom,
                                                                 prettyPCIDevice pci]
     VCPU {} -> text "vcpu"
+    SC extra -> text "sc" <+> maybeParensList [prettySCExtraInfo extra]
 
 capParams [] = empty
 capParams xs = parens (hsep $ punctuate comma xs)
@@ -247,6 +279,7 @@ printCap cap = case cap of
     ASIDControlCap -> text asidControl
     IRQControlCap -> text irqControl
     DomainCap -> text domain
+    SchedControlCap -> text schedControl
     _ -> text $ fst $ objID cap
 
 sameName :: ObjID -> ObjID -> Bool

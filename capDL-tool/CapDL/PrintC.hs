@@ -146,6 +146,11 @@ showCap objs (IOSpaceCap id) _ is_orig ms =
     where pci = pciDevice $ fromJust $ Map.lookup id ms
           dom = domainID $ fromJust $ Map.lookup id ms
 showCap objs (VCPUCap id) _ _ _ = "{.type = CDL_VCPUCap, .obj_id = " ++ showObjID objs id ++ "}"
+showCap _ SchedControlCap _ _ _ =
+    "{.type = CDL_SchedControlCap}"
+showCap objs (SCCap id) _ is_orig _ =
+    "{.type = CDL_SCCap, .obj_id = " ++ showObjID objs id ++
+    ", .is_orig = " ++ is_orig ++ "}"
 showCap _ x _ _ _ = assert False $
     "UNSUPPORTED CAP TYPE: " ++ show x
     -- These are not supported by the initialiser itself.
@@ -181,6 +186,9 @@ showObjectFields objs obj_id (TCB slots faultEndpoint info domain argv) _ _ _ =
     ".tcb_extra = {" +++
     ".ipcbuffer_addr = " ++ show ipcbuffer_addr ++ "," +++
     ".priority = " ++ show priority ++ "," +++
+    ".max_priority = " ++ show max_priority ++ "," +++
+    ".criticality = " ++ show criticality ++ "," +++
+    ".max_criticality = " ++ show max_criticality ++ "," +++
     ".pc = " ++ show pc ++ "," +++
     ".sp = " ++ show stack ++ "," +++
     ".elf_name = " ++ show elf_name ++ "," +++
@@ -193,6 +201,9 @@ showObjectFields objs obj_id (TCB slots faultEndpoint info domain argv) _ _ _ =
     where
         ipcbuffer_addr = case info of {Just i -> ipcBufferAddr i; _ -> 0}
         priority = case info of {Just i -> case prio i of {Just p -> p; _ -> 125}; _ -> 125}
+        max_priority = case info of {Just i -> case max_prio i of {Just p -> p; _ -> 125}; _ -> 125}
+        criticality = case info of {Just i -> case crit i of {Just p -> p; _ -> 125}; _ -> 125}
+        max_criticality = case info of {Just i -> case max_crit i of {Just p -> p; _ -> 125}; _ -> 125}
         pc = case info of {Just i -> case ip i of {Just v -> v; _ -> 0}; _ -> 0}
         stack = case info of {Just i -> case sp i of {Just v -> v; _ -> 0}; _ -> 0}
         elf_name = case info of {Just i -> case elf i of {Just e -> e; _ -> ""}; _ -> ""}
@@ -233,6 +244,16 @@ showObjectFields objs obj_id (ASIDPool slots) _ _ _ =
 showObjectFields _ _ (IODevice _ _ _) _ _ _ =
     ".type = CDL_IODevice,"
 showObjectFields _ _ VCPU _ _ _ = ".type = CDL_VCPU,"
+showObjectFields _ _ (SC info) _ _ _ =
+    ".type = CDL_SchedContext," +++
+    ".sc_extra = {" +++
+      ".period = " ++ show period_ ++ "," +++
+       ".budget = " ++ show budget_ ++ "," +++
+    "},"
+    where
+    period_ = case info of {Just i -> case period i of {Just p -> p; _ -> 0}; _ -> 0}
+    budget_ = case info of {Just i -> case budget i of {Just p -> p; _ -> 0}; _ -> 0}
+
 showObjectFields _ _ x _ _ _ = assert False $
     "UNSUPPORTED OBJECT TYPE: " ++ show x
 
@@ -266,9 +287,11 @@ sizeOf _ IODevice {} = 1
 sizeOf IA32 TCB {} = 2^10
 sizeOf IA32 PD {} = 4 * 2^10
 sizeOf IA32 PT {} = 4 * 2^10
+sizeOf IA32 SC {} = 60
 sizeOf ARM11 TCB {} = 512
 sizeOf ARM11 PD {} = 16 * 2^10
 sizeOf ARM11 PT {} = 2^10
+sizeOf ARM11 SC {} = 60
 sizeOf _ _ = 0
 
 {- A custom sorting function for CapDL objects. Essentially we want to sort the

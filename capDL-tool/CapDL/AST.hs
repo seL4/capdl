@@ -42,6 +42,21 @@ data TCBExtraParam =
       elf :: String }
   | Prio {
       prio :: Integer }
+  | MaxPrio {
+      max_prio :: Integer }
+  | Crit {
+      crit :: Integer }
+  | MaxCrit {
+      max_crit :: Integer }
+   deriving (Show, Eq, Ord, Typeable, Data)
+
+data SCExtraParam =
+    Period {
+      period :: Word }
+  | Budget {
+      budget :: Word }
+  | Flags {
+      flags :: Integer }
    deriving (Show, Eq, Ord, Typeable, Data)
 
 
@@ -58,6 +73,8 @@ data ObjParam =
       size :: Word }
   | TCBExtraParam {
       extraParam :: TCBExtraParam }
+  | SCExtraParam {
+      sc_extraParam :: SCExtraParam }
   | InitArguments {
       arguments :: [Word] }
   | DomainID {
