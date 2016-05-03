@@ -247,8 +247,8 @@ showObjectFields _ _ VCPU _ _ _ = ".type = CDL_VCPU,"
 showObjectFields _ _ (SC info) _ _ _ =
     ".type = CDL_SchedContext," +++
     ".sc_extra = {" +++
-      ".period = " ++ show period_ ++ "," +++
-       ".budget = " ++ show budget_ ++ "," +++
+        ".period = " ++ show period_ ++ "," +++
+        ".budget = " ++ show budget_ ++ "," +++
     "},"
     where
     period_ = case info of {Just i -> case period i of {Just p -> p; _ -> 0}; _ -> 0}
