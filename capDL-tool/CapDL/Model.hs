@@ -16,6 +16,7 @@ import Prelude.Compat
 import Data.Map
 import Data.Set
 import Data.Data
+import Data.Word
 
 -- Supported architectures:
 data Arch = IA32 | ARM11 deriving (Eq, Show)
@@ -123,8 +124,8 @@ data TCBExtraInfo = TCBExtraInfo {
     deriving (Eq, Show)
 
 data SCExtraInfo = SCExtraInfo {
-    period :: Maybe Word,
-    budget :: Maybe Word,
+    period :: Maybe Word64,
+    budget :: Maybe Word64,
     flags :: Maybe Integer }
     deriving (Eq, Show)
 

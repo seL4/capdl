@@ -23,6 +23,7 @@ import Prelude ()
 import Prelude.Compat
 import qualified Data.Set as Set
 import qualified Data.Map as Map
+import Data.Word
 
 data Maps = Maps {
     refMap :: Map.Map Name ObjID,
@@ -76,6 +77,11 @@ number = do
 
 integer :: MapParser Integer
 integer = do
+    n <- natural
+    return $ fromIntegral n
+
+integer64 :: MapParser Word64
+integer64 = do
     n <- natural
     return $ fromIntegral n
 
@@ -269,14 +275,14 @@ sc_period :: MapParser SCExtraParam
 sc_period = do
     reserved "period"
     colon
-    n <- number
+    n <- integer64
     return $ Period n
 
 sc_budget :: MapParser SCExtraParam
 sc_budget = do
     reserved "budget"
     colon
-    n <- number
+    n <- integer64
     return $ Budget n
 
 sc_flags :: MapParser SCExtraParam

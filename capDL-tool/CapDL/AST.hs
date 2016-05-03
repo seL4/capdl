@@ -16,6 +16,7 @@ import CapDL.Model
 import Prelude ()
 import Prelude.Compat
 import Data.Data
+import Data.Word
 
 -- AST
 
@@ -52,9 +53,9 @@ data TCBExtraParam =
 
 data SCExtraParam =
     Period {
-      period :: Word }
+      period :: Word64 }
   | Budget {
-      budget :: Word }
+      budget :: Word64 }
   | Flags {
       flags :: Integer }
    deriving (Show, Eq, Ord, Typeable, Data)

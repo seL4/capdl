@@ -22,6 +22,7 @@ import Data.Maybe
 import Data.List.Compat
 import Data.Either as Either
 import Data.Data
+import Data.Word
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Control.Monad.State as ST
@@ -247,12 +248,12 @@ getInitArguments [] = []
 getInitArguments (InitArguments init : _) = init
 getInitArguments (_ : xs) = getInitArguments xs
 
-getSCperiod :: [ObjParam] -> Maybe Word
+getSCperiod :: [ObjParam] -> Maybe Word64
 getSCperiod [] = Nothing
 getSCperiod (SCExtraParam (Period period) : _) = Just period
 getSCperiod (_ : xs) = getSCperiod xs
 
-getSCbudget :: [ObjParam] -> Maybe Word
+getSCbudget :: [ObjParam] -> Maybe Word64
 getSCbudget [] = Nothing
 getSCbudget (SCExtraParam (Budget budget) : _) = Just budget
 getSCbudget (_ : xs) = getSCbudget xs

@@ -18,6 +18,7 @@ import Text.PrettyPrint
 import Prelude ()
 import Prelude.Compat
 import qualified Data.Set as Set
+import Data.Word
 import Numeric
 
 listSucc :: Enum a => [a] -> [a]
@@ -129,11 +130,11 @@ prettyInitArguments init =
 prettyDomainID :: Word -> Doc
 prettyDomainID dom = text "domainID:" <+> num dom
 
-prettyPeriod :: Maybe Word -> Doc
+prettyPeriod :: Maybe Word64 -> Doc
 prettyPeriod Nothing = empty
 prettyPeriod (Just period) = text "period:" <+> (text $ show period)
 
-prettyBudget :: Maybe Word -> Doc
+prettyBudget :: Maybe Word64 -> Doc
 prettyBudget Nothing = empty
 prettyBudget (Just budget) = text "budget:" <+> (text $ show budget)
 
