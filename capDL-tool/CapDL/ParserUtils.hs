@@ -285,18 +285,18 @@ sc_budget = do
     n <- integer64
     return $ Budget n
 
-sc_flags :: MapParser SCExtraParam
-sc_flags = do
-    reserved "flags"
+sc_data :: MapParser SCExtraParam
+sc_data = do
+    reserved "data"
     colon
-    n <- integer
-    return $ Flags n
+    n <- number
+    return $ SCData n
 
 sc_extra_param :: MapParser ObjParam
 sc_extra_param = do
     param <-   (sc_period
             <|> sc_budget
-            <|> sc_flags)
+            <|> sc_data)
     return $ SCExtraParam param
 
 object_param :: MapParser ObjParam

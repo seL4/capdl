@@ -258,17 +258,17 @@ getSCbudget [] = Nothing
 getSCbudget (SCExtraParam (Budget budget) : _) = Just budget
 getSCbudget (_ : xs) = getSCbudget xs
 
-getSCflags :: [ObjParam] -> Maybe Integer
-getSCflags [] = Nothing
-getSCflags (SCExtraParam (Flags flags) : _) = Just flags
-getSCflags (_ : xs) = getSCflags xs
+getSCdata :: [ObjParam] -> Maybe Word
+getSCdata [] = Nothing
+getSCdata (SCExtraParam (SCData scData) : _) = Just scData
+getSCdata (_ : xs) = getSCdata xs
 
 getSCExtraInfo :: Name -> [ObjParam] -> Maybe SCExtraInfo
 getSCExtraInfo n params =
     -- FIXME: This is really hacky hardcoding the acceptable combinations of attributes.
-    case (getSCperiod params, getSCbudget params, getSCflags params) of
-        (Just period, Just budget, Just flags) ->
-            Just $ SCExtraInfo (Just period) (Just budget) (Just flags)
+    case (getSCperiod params, getSCbudget params, getSCdata params) of
+        (Just period, Just budget, Just scData) ->
+            Just $ SCExtraInfo (Just period) (Just budget) (Just scData)
         (Just period, Just budget, Nothing) ->
             Just $ SCExtraInfo (Just period) (Just budget) Nothing
         (Nothing, Nothing, Nothing) -> Nothing

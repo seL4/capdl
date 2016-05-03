@@ -138,15 +138,15 @@ prettyBudget :: Maybe Word64 -> Doc
 prettyBudget Nothing = empty
 prettyBudget (Just budget) = text "budget:" <+> (text $ show budget)
 
-prettyFlags :: Maybe Integer -> Doc
-prettyFlags Nothing = empty
-prettyFlags (Just flags) = text "flags:" <+> (text $ show flags)
+prettySCData :: Maybe Word -> Doc
+prettySCData Nothing = empty
+prettySCData (Just scData) = text "data:" <+> (text $ show scData)
 
 prettySCExtraInfo :: Maybe SCExtraInfo -> Doc
 prettySCExtraInfo Nothing = empty
-prettySCExtraInfo (Just (SCExtraInfo period budget flags)) =
+prettySCExtraInfo (Just (SCExtraInfo period budget scData)) =
     hsep $ punctuate comma $ filter (not . isEmpty)
-              [prettyPeriod period, prettyBudget budget, prettyFlags flags]
+              [prettyPeriod period, prettyBudget budget, prettySCData scData]
 
 prettyPCIDevice :: (Word, Word, Word) -> Doc
 prettyPCIDevice (pci_bus, pci_dev, pci_fun) =

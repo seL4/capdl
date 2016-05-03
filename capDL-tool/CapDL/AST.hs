@@ -56,8 +56,8 @@ data SCExtraParam =
       period :: Word64 }
   | Budget {
       budget :: Word64 }
-  | Flags {
-      flags :: Integer }
+  | SCData {
+      scData :: Word }
    deriving (Show, Eq, Ord, Typeable, Data)
 
 

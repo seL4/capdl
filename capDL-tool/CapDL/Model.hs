@@ -126,7 +126,7 @@ data TCBExtraInfo = TCBExtraInfo {
 data SCExtraInfo = SCExtraInfo {
     period :: Maybe Word64,
     budget :: Maybe Word64,
-    flags :: Maybe Integer }
+    scData :: Maybe Word }
     deriving (Eq, Show)
 
 --
