@@ -927,7 +927,7 @@ init_sc(CDL_Model *spec, CDL_ObjID sc)
     uint64_t UNUSED period = CDL_SC_Period(cdl_sc);
     seL4_Word UNUSED data = CDL_SC_Data(cdl_sc);
 
-    debug_printf("budget: %llu, period: %llu\n", budget, period);
+    debug_printf("budget: %llu, period: %llu, data: %u\n", budget, period, data);
 
     seL4_CPtr UNUSED seL4_sc = orig_caps(sc);
 
