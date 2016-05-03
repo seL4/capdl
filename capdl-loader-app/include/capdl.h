@@ -187,6 +187,7 @@ typedef struct {
 typedef struct {
     uint64_t period;
     uint64_t budget;
+    seL4_Word data;
 } CDL_SCExtraInfo;
 
 typedef struct {
@@ -294,5 +295,8 @@ CDL_SC_Period(CDL_Object *obj)               { return obj->sc_extra.period; }
 
 static inline uint64_t
 CDL_SC_Budget(CDL_Object *obj)               { return obj->sc_extra.budget; }
+
+static inline seL4_Word
+CDL_SC_Data(CDL_Object *obj)               { return obj->sc_extra.data; }
 
 #endif

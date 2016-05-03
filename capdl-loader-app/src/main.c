@@ -925,13 +925,14 @@ init_sc(CDL_Model *spec, CDL_ObjID sc)
 
     uint64_t budget = CDL_SC_Budget(cdl_sc);
     uint64_t period = CDL_SC_Period(cdl_sc);
+    seL4_Word data = CDL_SC_Data(cdl_sc);
 
     debug_printf("budget: %llu, period: %llu\n", budget, period);
 
     seL4_CPtr UNUSED seL4_sc = orig_caps(sc);
 
 #ifdef CONFIG_KERNEL_RT
-    int error = seL4_SchedControl_Configure(seL4_CapSchedControl, seL4_sc, budget, period, 0);
+    int error = seL4_SchedControl_Configure(seL4_CapSchedControl, seL4_sc, budget, period, data);
     seL4_AssertSuccess(error);
 #endif
 }
