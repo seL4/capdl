@@ -923,9 +923,9 @@ init_sc(CDL_Model *spec, CDL_ObjID sc)
 {
     CDL_Object *cdl_sc = get_spec_object(spec, sc);
 
-    uint64_t budget = CDL_SC_Budget(cdl_sc);
-    uint64_t period = CDL_SC_Period(cdl_sc);
-    seL4_Word data = CDL_SC_Data(cdl_sc);
+    uint64_t UNUSED budget = CDL_SC_Budget(cdl_sc);
+    uint64_t UNUSED period = CDL_SC_Period(cdl_sc);
+    seL4_Word UNUSED data = CDL_SC_Data(cdl_sc);
 
     debug_printf("budget: %llu, period: %llu\n", budget, period);
 
