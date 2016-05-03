@@ -248,25 +248,25 @@ getInitArguments [] = []
 getInitArguments (InitArguments init : _) = init
 getInitArguments (_ : xs) = getInitArguments xs
 
-getSCperiod :: [ObjParam] -> Maybe Word64
-getSCperiod [] = Nothing
-getSCperiod (SCExtraParam (Period period) : _) = Just period
-getSCperiod (_ : xs) = getSCperiod xs
+getSCPeriod :: [ObjParam] -> Maybe Word64
+getSCPeriod [] = Nothing
+getSCPeriod (SCExtraParam (Period period) : _) = Just period
+getSCPeriod (_ : xs) = getSCPeriod xs
 
-getSCbudget :: [ObjParam] -> Maybe Word64
-getSCbudget [] = Nothing
-getSCbudget (SCExtraParam (Budget budget) : _) = Just budget
-getSCbudget (_ : xs) = getSCbudget xs
+getSCBudget :: [ObjParam] -> Maybe Word64
+getSCBudget [] = Nothing
+getSCBudget (SCExtraParam (Budget budget) : _) = Just budget
+getSCBudget (_ : xs) = getSCBudget xs
 
-getSCdata :: [ObjParam] -> Maybe Word
-getSCdata [] = Nothing
-getSCdata (SCExtraParam (SCData scData) : _) = Just scData
-getSCdata (_ : xs) = getSCdata xs
+getSCData :: [ObjParam] -> Maybe Word
+getSCData [] = Nothing
+getSCData (SCExtraParam (SCData scData) : _) = Just scData
+getSCData (_ : xs) = getSCData xs
 
 getSCExtraInfo :: Name -> [ObjParam] -> Maybe SCExtraInfo
 getSCExtraInfo n params =
     -- FIXME: This is really hacky hardcoding the acceptable combinations of attributes.
-    case (getSCperiod params, getSCbudget params, getSCdata params) of
+    case (getSCPeriod params, getSCBudget params, getSCData params) of
         (Just period, Just budget, Just scData) ->
             Just $ SCExtraInfo (Just period) (Just budget) (Just scData)
         (Just period, Just budget, Nothing) ->
