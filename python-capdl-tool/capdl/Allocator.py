@@ -108,7 +108,7 @@ class ObjectAllocator(object):
         elif type == seL4_ASID_Pool:
             o = ASIDPool(name)
         elif len(frame_type) == 1:
-            o = Frame(name, frame_type[0].get_size(), **kwargs)
+            o = Frame(name, frame_type[0].size, **kwargs)
         elif type == seL4_SchedContextObject:
             o = SC(name)
         else:
