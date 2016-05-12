@@ -119,6 +119,8 @@ object_type =
     <|> keyw "cnode" CNode_T
     <|> keyw "ut" Untyped_T
     <|> keyw "irq" IrqSlot_T
+    <|> keyw "ioapic_irq" IOAPICIrqSlot_T
+    <|> keyw "msi_irq" MSIIrqSlot_T
     <|> keyw "asid_pool" ASIDPool_T
     <|> keyw "pt" PT_T
     <|> keyw "pd" PD_T
@@ -301,6 +303,78 @@ sc_extra_param = do
             <|> sc_data)
     return $ SCExtraParam param
 
+ioapic_irq_ioapic :: MapParser IOAPICIRQExtraParam
+ioapic_irq_ioapic = do
+    reserved "ioapic_num"
+    colon
+    n <- number
+    return $ IOAPIC n
+
+ioapic_irq_pin :: MapParser IOAPICIRQExtraParam
+ioapic_irq_pin = do
+    reserved "ioapic_pin"
+    colon
+    n <- number
+    return $ Pin n
+
+ioapic_irq_level :: MapParser IOAPICIRQExtraParam
+ioapic_irq_level = do
+    reserved "ioapic_level"
+    colon
+    n <- number
+    return $ Level n
+
+ioapic_irq_polarity :: MapParser IOAPICIRQExtraParam
+ioapic_irq_polarity = do
+    reserved "ioapic_polarity"
+    colon
+    n <- number
+    return $ Polarity n
+
+ioapic_irq_extra_param :: MapParser ObjParam
+ioapic_irq_extra_param = do
+    param <-   (ioapic_irq_ioapic
+            <|> ioapic_irq_pin
+            <|> ioapic_irq_level
+            <|> ioapic_irq_polarity)
+    return $ IOAPICIRQExtraParam param
+
+msi_irq_handle :: MapParser MSIIRQExtraParam
+msi_irq_handle = do
+    reserved "msi_handle"
+    colon
+    n <- number
+    return $ MSIHandle n
+
+msi_irq_pci_bus :: MapParser MSIIRQExtraParam
+msi_irq_pci_bus = do
+    reserved "msi_pci_bus"
+    colon
+    n <- number
+    return $ MSIPCIBus n
+
+msi_irq_pci_dev :: MapParser MSIIRQExtraParam
+msi_irq_pci_dev = do
+    reserved "msi_pci_dev"
+    colon
+    n <- number
+    return $ MSIPCIDev n
+
+msi_irq_pci_fun :: MapParser MSIIRQExtraParam
+msi_irq_pci_fun = do
+    reserved "msi_pci_fun"
+    colon
+    n <- number
+    return $ MSIPCIFun n
+
+msi_irq_extra_param :: MapParser ObjParam
+msi_irq_extra_param = do
+    param <-   (msi_irq_handle
+            <|> msi_irq_pci_bus
+            <|> msi_irq_pci_dev
+            <|> msi_irq_pci_fun)
+    return $ MSIIRQExtraParam param
+
 object_param :: MapParser ObjParam
 object_param =
         try obj_bit_size
@@ -315,6 +389,8 @@ object_param =
     <|> domain_id
     <|> pci_device
     <|> sc_extra_param
+    <|> ioapic_irq_extra_param
+    <|> msi_irq_extra_param
 
 object_params :: MapParser [ObjParam]
 object_params =

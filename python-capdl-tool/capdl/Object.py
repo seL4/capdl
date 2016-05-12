@@ -264,6 +264,30 @@ class IRQ(ContainerObject):
         # Note, in CapDL this is actually represented as a 0-sized CNode.
         return '%s = irq' % self.name
 
+class IOAPICIRQ(IRQ):
+    def __init__(self, name, vector=None, ioapic=None, pin=None, level=None, polarity=None):
+        super(IOAPICIRQ, self).__init__(name, number=vector)
+        self.ioapic = ioapic
+        self.pin = pin
+        self.level = level
+        self.polarity = polarity
+
+    def __repr__(self):
+        return '%s = ioapic_irq (ioapic_num:%d, ioapic_pin:%d, ioapic_level:%d, ioapic_polarity:%d)' % (self.name, \
+            self.ioapic, self.pin, self.level, self.polarity)
+
+class MSIIRQ(IRQ):
+    def __init__(self, name, vector=None, handle=None, bus=None, dev=None, fun=None):
+        super(MSIIRQ, self).__init__(name, number=vector)
+        self.handle = handle
+        self.bus = bus
+        self.dev = dev
+        self.fun = fun
+
+    def __repr__(self):
+        return '%s = msi_irq (msi_handle:%d, msi_pci_bus:%d, msi_pci_dev:%d, msi_pci_fun:%d)' % (self.name, \
+            self.handle, self.bus, self.dev, self.fun)
+
 class VCPU(Object):
     def __repr__(self):
         return '%s = vcpu' % self.name

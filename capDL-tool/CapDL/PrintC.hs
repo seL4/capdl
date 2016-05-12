@@ -112,6 +112,16 @@ showCap _ (IRQHandlerCap id) irqNode is_orig _ =
     ", .is_orig = " ++ is_orig ++
     ", .irq = " ++ show (lookupByValue (\x -> x == id) irqNode) ++ "}"
     -- Caps have obj_ids, or IRQs, but not both.
+showCap _ (IRQIOAPICHandlerCap id) irqNode is_orig _ =
+    "{.type = CDL_IRQHandlerCap, .obj_id = INVALID_OBJ_ID" ++
+    ", .is_orig = " ++ is_orig ++
+    ", .irq = " ++ show (lookupByValue (\x -> x == id) irqNode) ++ "}"
+    -- Caps have obj_ids, or IRQs, but not both.
+showCap _ (IRQMSIHandlerCap id) irqNode is_orig _ =
+    "{.type = CDL_IRQHandlerCap, .obj_id = INVALID_OBJ_ID" ++
+    ", .is_orig = " ++ is_orig ++
+    ", .irq = " ++ show (lookupByValue (\x -> x == id) irqNode) ++ "}"
+    -- Caps have obj_ids, or IRQs, but not both.
 showCap objs (FrameCap id rights _ cached maybe_mapping) _ is_orig _ =
     "{.type = CDL_FrameCap, .obj_id = " ++ showObjID objs id ++
     ", .is_orig = " ++ is_orig ++
@@ -226,6 +236,26 @@ showObjectFields objs obj_id (CNode slots sizeBits) irqNode cdt ms =
         -- a hack to assume that any 0-sized CNode is an interrupt, but this is
         -- an illegal size for a valid CNode so everything should work out.
         t = if sizeBits == 0 then "CDL_Interrupt" else "CDL_CNode"
+showObjectFields objs obj_id (IOAPICIrq slots ioapic pin level polarity) irqNode cdt ms =
+    ".type = CDL_IOAPICInterrupt, " +++
+    ".size_bits = 0, " +++
+    memberSlots objs obj_id slots irqNode cdt ms +++
+    ".ioapicirq_extra = {" +++
+        ".ioapic = " ++ show ioapic ++ "," +++
+        ".ioapic_pin = " ++ show pin ++ "," +++
+        ".level = " ++ show level ++ "," +++
+        ".polarity = " ++ show polarity ++ "," +++
+    "},"
+showObjectFields objs obj_id (MSIIrq slots handle bus dev fun) irqNode cdt ms =
+    ".type = CDL_MSIInterrupt, " +++
+    ".size_bits = 0, " +++
+    memberSlots objs obj_id slots irqNode cdt ms +++
+    ".msiirq_extra = {" +++
+        ".handle = " ++ show handle ++ "," +++
+        ".pci_bus = " ++ show bus ++ "," +++
+        ".pci_dev = " ++ show dev ++ "," +++
+        ".pci_fun = " ++ show fun ++ "," +++
+    "},"
 showObjectFields _ _ (Untyped size_bits paddr) _ _ _ =
     ".type = CDL_Untyped," +++
     ".size_bits = " ++ show sizeBits ++ "," +++

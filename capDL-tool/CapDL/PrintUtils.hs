@@ -152,6 +152,30 @@ prettyPCIDevice :: (Word, Word, Word) -> Doc
 prettyPCIDevice (pci_bus, pci_dev, pci_fun) =
     num pci_bus <> colon <> num pci_dev <> text "." <> num pci_fun
 
+prettyIOAPICNum :: Word -> Doc
+prettyIOAPICNum ioapic = text "ioapic_num:" <+> (text $ show ioapic)
+
+prettyIOAPICPin :: Word -> Doc
+prettyIOAPICPin pin = text "ioapic_pin:" <+> (text $ show pin)
+
+prettyIOAPICLevel :: Word -> Doc
+prettyIOAPICLevel level = text "ioapic_level:" <+> (text $ show level)
+
+prettyIOAPICPolarity :: Word -> Doc
+prettyIOAPICPolarity polarity = text "ioapic_polarity:" <+> (text $ show polarity)
+
+prettyMSIHandle :: Word -> Doc
+prettyMSIHandle handle = text "msi_handle:" <+> (text $ show handle)
+
+prettyMSIPCIBus :: Word -> Doc
+prettyMSIPCIBus bus = text "msi_pci_bus:" <+> (text $ show bus)
+
+prettyMSIPCIDev :: Word -> Doc
+prettyMSIPCIDev dev = text "msi_pci_dev:" <+> (text $ show dev)
+
+prettyMSIPCIFun :: Word -> Doc
+prettyMSIPCIFun fun = text "msi_pci_fun:" <+> (text $ show fun)
+
 prettyObjParams obj = case obj of
     Endpoint -> text "ep"
     Notification -> text "notification"
@@ -174,6 +198,8 @@ prettyObjParams obj = case obj of
                                                                 prettyPCIDevice pci]
     VCPU {} -> text "vcpu"
     SC extra -> text "sc" <+> maybeParensList [prettySCExtraInfo extra]
+    IOAPICIrq _ ioapic pin level polarity -> text "ioapic_irq" <+> maybeParensList[prettyIOAPICNum ioapic, prettyIOAPICPin pin, prettyIOAPICLevel level, prettyIOAPICPolarity polarity]
+    MSIIrq _ handle bus dev fun -> text "msi_irq" <+> maybeParensList[prettyMSIHandle handle, prettyMSIPCIBus bus, prettyMSIPCIDev dev, prettyMSIPCIFun fun]
 
 capParams [] = empty
 capParams xs = parens (hsep $ punctuate comma xs)

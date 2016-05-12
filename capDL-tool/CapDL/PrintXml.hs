@@ -112,6 +112,8 @@ showObjectName IODevice {} = "IODevice"
 showObjectName IOPT {} = "IOPT"
 showObjectName VCPU {} = "VCPU"
 showObjectName SC {} = "SC"
+showObjectName IOAPICIrq {} = "IOAPICIrq"
+showObjectName MSIIrq {} = "MSIIrq"
 
 --
 -- Get a cap's name.
@@ -127,6 +129,8 @@ showCapName CNodeCap {} = "CNodeCap"
 showCapName TCBCap {} = "TCBCap"
 showCapName IRQControlCap = "IRQControlCap"
 showCapName IRQHandlerCap {} = "IRQHandlerCap"
+showCapName IRQIOAPICHandlerCap {} = "IRQIOAPICHandlerCap"
+showCapName IRQMSIHandlerCap {} = "IRQMSIHandlerCap"
 showCapName DomainCap = "DomainCap"
 showCapName FrameCap {} = "FrameCap"
 showCapName PTCap {} = "PTCap"

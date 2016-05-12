@@ -326,6 +326,8 @@ koType (IODevice {}) = IODevice_T
 koType (IOPT {}) = IOPT_T
 koType (VCPU {}) = VCPU_T
 koType (SC {}) = SC_T
+koType (IOAPICIrq {}) = IOAPICIrqSlot_T
+koType (MSIIrq {}) = MSIIrqSlot_T
 
 objAt :: (KernelObject Word -> Bool) -> ObjID -> Model Word -> Bool
 objAt p ref = maybe False p . maybeObject ref
@@ -355,6 +357,8 @@ capTyp (IOPTCap {}) = IOPT_T
 capTyp (VCPUCap {}) = VCPU_T
 capTyp (SCCap {}) = SC_T
 capTyp SchedControlCap = CNode_T
+capTyp (IRQIOAPICHandlerCap {}) = IOAPICIrqSlot_T
+capTyp (IRQMSIHandlerCap {}) = MSIIrqSlot_T
 capTyp _ = error "cap has no object"
 
 checkTypAt :: Cap -> Model Word -> ObjID -> Word -> Logger Bool
@@ -383,6 +387,8 @@ validCapArch _ (ASIDPoolCap {}) = True
 validCapArch _ ASIDControlCap = True
 validCapArch _ (SCCap {}) = True
 validCapArch _ SchedControlCap = True
+validCapArch IA32 (IRQIOAPICHandlerCap {}) = True
+validCapArch IA32 (IRQMSIHandlerCap {}) = True
 validCapArch IA32 (IOPortsCap {}) = True
 validCapArch IA32 IOSpaceMasterCap = True
 validCapArch IA32 (IOSpaceCap {}) = True
@@ -428,6 +434,8 @@ validObjArch IA32 (IOPorts {}) = True
 validObjArch IA32 (IODevice {}) = True
 validObjArch IA32 (IOPT {}) = True
 validObjArch IA32 (VCPU {}) = True
+validObjArch IA32 (IOAPICIrq {}) = True
+validObjArch IA32 (MSIIrq {}) = True
 validObjArch X86_64 (PML4 {}) = True
 validObjArch X86_64 (PDPT {}) = True
 validObjArch _ _ = False
@@ -532,6 +540,8 @@ checkCovers m = do
 
 isIRQ :: KernelObject Word -> Bool
 isIRQ (CNode _ 0) = True --check irqNode
+isIRQ (IOAPICIrq _ _ _ _ _) = True
+isIRQ (MSIIrq _ _ _ _ _) = True
 isIRQ _ = False
 
 validIRQ :: Model Word -> ObjID -> Bool

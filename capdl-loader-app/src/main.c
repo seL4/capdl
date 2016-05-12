@@ -674,7 +674,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
 
         // Never create Interrupt objects here
 #if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(CONFIG_ARCH_X86)
-        if (capdl_obj_type == CDL_Interrupt || capdl_obj_type == CDL_IOPorts || capdl_obj_type == CDL_IODevice) {
+        if (capdl_obj_type == CDL_Interrupt || capdl_obj_type == CDL_IOPorts || capdl_obj_type == CDL_IODevice || capdl_obj_type == CDL_IOAPICInterrupt || capdl_obj_type == CDL_MSIInterrupt) {
 #else
         if (capdl_obj_type == CDL_Interrupt) {
 #endif
@@ -706,7 +706,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
 
         // Create object
 #if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(CONFIG_ARCH_X86)
-        if (capdl_obj_type != CDL_Interrupt && capdl_obj_type != CDL_IOPorts && capdl_obj_type != CDL_IODevice) {
+        if (capdl_obj_type != CDL_Interrupt && capdl_obj_type != CDL_IOPorts && capdl_obj_type != CDL_IODevice && capdl_obj_type != CDL_IOAPICInterrupt && capdl_obj_type != CDL_MSIInterrupt) {
 #else
         if (capdl_obj_type != CDL_Interrupt) {
 #endif
@@ -744,13 +744,29 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
 }
 
 static void
-create_irq_cap(CDL_IRQ irq, seL4_CPtr free_slot)
+create_irq_cap(CDL_IRQ irq, CDL_Object *obj, seL4_CPtr free_slot)
 {
     seL4_CPtr root = seL4_CapInitThreadCNode;
     int index = free_slot;
     int depth = CONFIG_WORD_SIZE;
+    int error;
 
-    int error = seL4_IRQControl_Get(seL4_CapIRQControl, irq, root, index, depth);
+#ifdef CONFIG_ARCH_X86
+    if (CDL_Obj_Type(obj) == CDL_IOAPICInterrupt) {
+        error = seL4_IRQControl_GetIOAPIC(seL4_CapIRQControl, root, index, depth, \
+                      obj->ioapicirq_extra.ioapic, obj->ioapicirq_extra.ioapic_pin, \
+                      obj->ioapicirq_extra.level, obj->ioapicirq_extra.polarity, \
+                      irq);
+    } else if (CDL_Obj_Type(obj) == CDL_MSIInterrupt) {
+        error = seL4_IRQControl_GetMSI(seL4_CapIRQControl, root, index, depth, \
+                    obj->msiirq_extra.pci_bus, obj->msiirq_extra.pci_dev, \
+                    obj->msiirq_extra.pci_fun, obj->msiirq_extra.handle, irq);
+    } else {
+#endif
+        error = seL4_IRQControl_Get(seL4_CapIRQControl, irq, root, index, depth);
+#ifdef CONFIG_ARCH_X86
+    }
+#endif
     seL4_AssertSuccess(error);
 
     add_sel4_cap(irq, IRQ, index);
@@ -766,7 +782,7 @@ create_irq_caps(CDL_Model *spec)
             seL4_CPtr free_slot = get_free_slot();
 
             debug_printf(" Creating irq handler cap for IRQ %d...\n", irq);
-            create_irq_cap(irq, free_slot);
+            create_irq_cap(irq, &spec->objects[spec->irqs[irq]], free_slot);
             next_free_slot();
         }
     }
@@ -1109,7 +1125,11 @@ init_irq(CDL_Model *spec, CDL_IRQ irq_no)
     seL4_CPtr irq_handler_cap = irq_caps(irq_no);
 
     CDL_Object *cdl_irq = get_spec_object(spec, spec->irqs[irq_no]);
+#ifdef CONFIG_ARCH_X86
+    assert(cdl_irq->type == CDL_Interrupt || cdl_irq->type == CDL_IOAPICInterrupt || cdl_irq->type == CDL_MSIInterrupt);
+#else
     assert(cdl_irq->type == CDL_Interrupt);
+#endif
     assert(cdl_irq != NULL);
 
     if (cdl_irq->size_bits != 0) {

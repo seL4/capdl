@@ -274,6 +274,46 @@ getSCExtraInfo n params =
         (Nothing, Nothing, Nothing) -> Nothing
         params -> error $ "Incorrect extra sc parameters: " ++ n ++ show params
 
+getIOAPICIrqIoapic :: [ObjParam] -> Word
+getIOAPICIrqIoapic [] = error $ "Incorrect ioapic irq parameters"
+getIOAPICIrqIoapic (IOAPICIRQExtraParam (IOAPIC ioapic) : _) = ioapic
+getIOAPICIrqIoapic (_ : xs) = getIOAPICIrqIoapic xs
+
+getIOAPICIrqPin :: [ObjParam] -> Word
+getIOAPICIrqPin [] = error $ "Incorrect ioapic irq parameters"
+getIOAPICIrqPin (IOAPICIRQExtraParam (Pin pin) : _) = pin
+getIOAPICIrqPin (_ : xs) = getIOAPICIrqPin xs
+
+getIOAPICIrqLevel :: [ObjParam] -> Word
+getIOAPICIrqLevel [] = error $ "Incorrect ioapic irq parameters"
+getIOAPICIrqLevel (IOAPICIRQExtraParam (Level level) : _) = level
+getIOAPICIrqLevel (_ : xs) = getIOAPICIrqLevel xs
+
+getIOAPICIrqPolarity :: [ObjParam] -> Word
+getIOAPICIrqPolarity [] = error $ "Incorrect ioapic irq parameters"
+getIOAPICIrqPolarity (IOAPICIRQExtraParam (Polarity polarity) : _) = polarity
+getIOAPICIrqPolarity (_ : xs) = getIOAPICIrqPolarity xs
+
+getMSIIrqHandle :: [ObjParam] -> Word
+getMSIIrqHandle [] = error $ "Incorrect msi irq parameters"
+getMSIIrqHandle (MSIIRQExtraParam (MSIHandle handle) : _) = handle
+getMSIIrqHandle (_ : xs) = getMSIIrqHandle xs
+
+getMSIIrqPCIBus :: [ObjParam] -> Word
+getMSIIrqPCIBus [] = error $ "Incorrect msi irq parameters"
+getMSIIrqPCIBus (MSIIRQExtraParam (MSIPCIBus bus) : _) = bus
+getMSIIrqPCIBus (_ : xs) = getMSIIrqPCIBus xs
+
+getMSIIrqPCIDev :: [ObjParam] -> Word
+getMSIIrqPCIDev [] = error $ "Incorrect msi irq parameters"
+getMSIIrqPCIDev (MSIIRQExtraParam (MSIPCIDev dev) : _) = dev
+getMSIIrqPCIDev (_ : xs) = getMSIIrqPCIDev xs
+
+getMSIIrqPCIFun :: [ObjParam] -> Word
+getMSIIrqPCIFun [] = error $ "Incorrect msi irq parameters"
+getMSIIrqPCIFun (MSIIRQExtraParam (MSIPCIFun fun) : _) = fun
+getMSIIrqPCIFun (_ : xs) = getMSIIrqPCIFun xs
+
 getMaybeBitSize :: [ObjParam] -> Maybe Word
 getMaybeBitSize [] = Nothing
 getMaybeBitSize (BitSize x : _) = Just x
@@ -356,6 +396,10 @@ validObjPars (Obj IOPorts_T ps []) = subsetConstrs ps [PortsSize undefined]
 validObjPars (Obj IODevice_T ps []) = subsetConstrs ps [DomainID undefined, PCIDevice undefined]
 validObjPars (Obj SC_T ps []) =
   subsetConstrs ps (replicate (numConstrs (Addr undefined)) (SCExtraParam undefined))
+validObjPars (Obj IOAPICIrqSlot_T ps []) =
+  subsetConstrs ps (replicate (numConstrs (Addr undefined)) (IOAPICIRQExtraParam undefined))
+validObjPars (Obj MSIIrqSlot_T ps []) =
+  subsetConstrs ps (replicate (numConstrs (Addr undefined)) (MSIIRQExtraParam undefined))
 validObjPars obj = null (params obj)
 
 objectOf :: Name -> KO -> KernelObject Word
@@ -378,6 +422,8 @@ objectOf n obj =
         Obj IOPorts_T ps [] -> IOPorts (getPortsSize ps)
         Obj IODevice_T ps [] -> IODevice Map.empty (getDomainID n ps) (getPCIDevice n ps)
         Obj IrqSlot_T [] [] -> CNode Map.empty 0
+        Obj IOAPICIrqSlot_T ps [] -> IOAPICIrq Map.empty (getIOAPICIrqIoapic ps) (getIOAPICIrqPin ps) (getIOAPICIrqLevel ps) (getIOAPICIrqPolarity ps)
+        Obj MSIIrqSlot_T ps [] -> MSIIrq Map.empty (getMSIIrqHandle ps) (getMSIIrqPCIBus ps) (getMSIIrqPCIDev ps) (getMSIIrqPCIFun ps)
         Obj VCPU_T [] [] -> VCPU
         Obj SC_T ps [] -> SC (getSCExtraInfo n ps)
         Obj _ _ (_:_) ->
@@ -568,6 +614,8 @@ objCapOf containerName obj objRef params =
         IODevice {} -> IOSpaceCap objRef
         VCPU {} -> VCPUCap objRef
         SC {} -> SCCap objRef
+        IOAPICIrq {} -> IRQIOAPICHandlerCap objRef
+        MSIIrq {} -> IRQMSIHandlerCap objRef
     else error ("Incorrect params for cap to " ++ printID objRef ++ " in " ++
                 printID containerName)
 

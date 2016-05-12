@@ -74,6 +74,10 @@ data Cap
         | TCBCap { capObj :: ObjID }
         | IRQControlCap
         | IRQHandlerCap { capObj :: ObjID }
+        | IRQIOAPICHandlerCap {
+            capObj :: ObjID }
+        | IRQMSIHandlerCap {
+            capObj :: ObjID }
         | DomainCap
         | SCCap { capObj :: ObjID }
         | SchedControlCap
@@ -110,6 +114,7 @@ data Cap
         | IOSpaceCap { capObj :: ObjID }
         | IOPTCap { capObj :: ObjID }
         | VCPUCap { capObj :: ObjID }
+
         deriving (Eq, Ord, Show)
 
 
@@ -181,7 +186,18 @@ data KernelObject a
         slots :: CapMap a,
         level :: Word }
     | VCPU
-
+    | IOAPICIrq {
+        slots :: CapMap a,
+        ioapic :: Word,
+        ioapic_pin :: Word,
+        ioapic_level :: Word,
+        ioapic_polarity :: Word }
+    | MSIIrq {
+        slots :: CapMap a,
+        handle :: Word,
+        bus :: Word,
+        dev :: Word,
+        fun :: Word }
     deriving (Eq, Show)
 
 
@@ -192,6 +208,8 @@ data KOType
     | CNode_T
     | Untyped_T
     | IrqSlot_T
+    | IOAPICIrqSlot_T
+    | MSIIrqSlot_T
     | ASIDPool_T
     | PT_T
     | PD_T
@@ -350,5 +368,7 @@ hasSlots (PDPT {})      = True
 hasSlots (PML4 {})      = True
 hasSlots (IODevice {})  = True
 hasSlots (IOPT {})      = True
+hasSlots (IOAPICIrq {}) = True
+hasSlots (MSIIrq {})    = True
 hasSlots _              = False
 

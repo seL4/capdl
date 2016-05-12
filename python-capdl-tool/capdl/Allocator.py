@@ -20,7 +20,7 @@ from .Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
     seL4_IA32_PageDirectoryObject, seL4_IA32_IOPageTableObject, seL4_IA32_IOPort, \
     seL4_IA32_IOSpace, seL4_IA32_VCPU, seL4_FrameObject, seL4_IRQControl, \
     seL4_PageDirectoryObject, seL4_ASID_Pool, seL4_SchedContextObject, seL4_SchedControlObject, \
-    seL4_CanRead, seL4_CanWrite, seL4_CanGrant, seL4_AllRights
+    seL4_CanRead, seL4_CanWrite, seL4_CanGrant, seL4_AllRights, IOAPICIRQ, MSIIRQ
 from .Spec import Spec
 from .Cap import Cap
 import collections, os
@@ -102,6 +102,16 @@ class ObjectAllocator(object):
         elif type == seL4_IRQControl:
             if 'number' in kwargs and 'notification' in kwargs:
                 o = IRQ(name, kwargs['number'])
+                o.set_notification(kwargs['notification'])
+            elif 'vector' in kwargs and 'notification' in kwargs and 'ioapic' in kwargs \
+                    and 'ioapic_pin' in kwargs and 'level' in kwargs and 'polarity' in kwargs:
+                o = IOAPICIRQ(name, kwargs['vector'], kwargs['ioapic'], kwargs['ioapic_pin'],
+                    kwargs['level'], kwargs['polarity'])
+                o.set_notification(kwargs['notification'])
+            elif 'vector' in kwargs and 'notification' in kwargs and 'handle' in kwargs \
+                    and 'pci_bus' in kwargs and 'pci_dev' in kwargs and 'pci_fun' in kwargs:
+                o = MSIIRQ(name, kwargs['vector'], kwargs['handle'], kwargs['pci_bus'],
+                    kwargs['pci_dev'], kwargs['pci_fun'])
                 o.set_notification(kwargs['notification'])
             else:
                 raise ValueError

@@ -60,6 +60,27 @@ data SCExtraParam =
       scData :: Word }
    deriving (Show, Eq, Ord, Typeable, Data)
 
+data IOAPICIRQExtraParam =
+    IOAPIC {
+        ioapic :: Word }
+  | Pin {
+        pin :: Word }
+  | Level {
+        ioapic_level :: Word }
+  | Polarity {
+        polarity :: Word }
+    deriving (Show, Eq, Ord, Typeable, Data)
+
+data MSIIRQExtraParam =
+    MSIHandle {
+        handle :: Word }
+  | MSIPCIBus {
+        bus :: Word }
+  | MSIPCIDev {
+        dev :: Word }
+  | MSIPCIFun {
+        fun :: Word }
+    deriving (Show, Eq, Ord, Typeable, Data)
 
 data ObjParam =
     BitSize {
@@ -76,6 +97,10 @@ data ObjParam =
       extraParam :: TCBExtraParam }
   | SCExtraParam {
       sc_extraParam :: SCExtraParam }
+  | IOAPICIRQExtraParam {
+      ioapic_irq_extraParam :: IOAPICIRQExtraParam }
+  | MSIIRQExtraParam {
+      msi_irq_extraParam :: MSIIRQExtraParam }
   | InitArguments {
       arguments :: [Word] }
   | DomainID {

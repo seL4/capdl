@@ -165,6 +165,10 @@ typedef enum {
 #else
     CDL_SchedContext  = seL4_ObjectTypeCount + 5,
 #endif
+#if defined(CONFIG_ARCH_X86)
+    CDL_IOAPICInterrupt = seL4_ObjectTypeCount + 6,
+    CDL_MSIInterrupt = seL4_ObjectTypeCount + 7,
+#endif
 } CDL_ObjectType;
 
 typedef struct {
@@ -191,13 +195,35 @@ typedef struct {
 } CDL_SCExtraInfo;
 
 typedef struct {
+    int ioapic;
+    int ioapic_pin;
+    int level;
+    int polarity;
+}CDL_IOAPICIRQExtraInfo;
+
+typedef struct {
+    int handle;
+    int pci_bus;
+    int pci_dev;
+    int pci_fun;
+}CDL_MSIIRQExtraInfo;
+
+typedef struct {
     const char *name; /* textual ObjID from the capDL spec */
 
     CDL_ObjectType type;
     CDL_CapMap slots;
     seL4_Word size_bits;
-    CDL_TCBExtraInfo tcb_extra;
-    CDL_SCExtraInfo sc_extra;
+#ifndef CONFIG_CAPDL_LOADER_VERIFIED
+    union {
+#endif
+        CDL_TCBExtraInfo tcb_extra;
+        CDL_SCExtraInfo sc_extra;
+        CDL_IOAPICIRQExtraInfo ioapicirq_extra;
+        CDL_MSIIRQExtraInfo msiirq_extra;
+#ifndef CONFIG_CAPDL_LOADER_VERIFIED
+    };
+#endif
 
     void *paddr; /* Physical address; only relevant for frames and untyped objects. */
 } CDL_Object;
