@@ -371,6 +371,8 @@ objectOf n obj =
         Obj ASIDPool_T _ [] -> ASIDPool Map.empty
         Obj PT_T _ [] -> PT Map.empty
         Obj PD_T _ [] -> PD Map.empty
+        Obj PML4_T _ [] -> PML4 Map.empty
+        Obj PDPT_T _ [] -> PDPT Map.empty
         Obj Frame_T ps [] -> Frame (getVMSize n ps) (getMaybePaddr ps)
         Obj IOPT_T ps [] -> IOPT Map.empty (getLevel n ps)
         Obj IOPorts_T ps [] -> IOPorts (getPortsSize ps)
@@ -556,6 +558,8 @@ objCapOf containerName obj objRef params =
         CNode {} -> CNodeCap objRef (getGuard params) (getGuardSize params)
         Frame {} -> FrameCap objRef (getRights params) (getMaybeAsid params) (getCached params)
                                     (getMaybeMapping params)
+        PML4 {} -> PML4Cap objRef (getMaybeAsid params)
+        PDPT {} -> PDPTCap objRef (getMaybeAsid params)
         PD {} -> PDCap objRef (getMaybeAsid params)
         PT {} -> PTCap objRef (getMaybeAsid params)
         ASIDPool {} -> ASIDPoolCap objRef (getAsid containerName objRef params)

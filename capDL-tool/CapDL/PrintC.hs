@@ -43,6 +43,7 @@ maxObjects count = "#define MAX_OBJECTS " ++ show count
 memberArch :: Arch -> String
 memberArch IA32 = ".arch = CDL_Arch_IA32,"
 memberArch ARM11 = ".arch = CDL_Arch_ARM,"
+memberArch X86_64 = ".arch = CDL_Arch_X86_64,"
 
 memberNum :: Int -> String
 memberNum n = ".num = " ++ show n ++ ","
@@ -130,6 +131,12 @@ showCap objs (PTCap id _) _ is_orig _ =
     ", .is_orig = " ++ is_orig ++ "}"
 showCap objs (PDCap id _) _ is_orig _ =
     "{.type = CDL_PDCap, .obj_id = " ++ showObjID objs id ++
+    ", .is_orig = " ++ is_orig ++ "}"
+showCap objs (PDPTCap id _) _ is_orig _ =
+    "{.type = CDL_PDPTCap, .obj_id = " ++ showObjID objs id ++
+    ", .is_orig = " ++ is_orig ++ "}"
+showCap objs (PML4Cap id _) _ is_orig _ =
+    "{.type = CDL_PML4Cap, .obj_id = " ++ showObjID objs id ++
     ", .is_orig = " ++ is_orig ++ "}"
 showCap _ ASIDControlCap _ _ _ =
     "{.type = CDL_ASIDControlCap}"
@@ -231,6 +238,12 @@ showObjectFields objs obj_id (PT slots) _ _ _ =
 showObjectFields objs obj_id (PD slots) _ _ _ =
     ".type = CDL_PD," +++
     memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
+showObjectFields objs obj_id (PDPT slots) _ _ _ =
+    ".type = CDL_PDPT," +++
+    memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
+showObjectFields objs obj_id (PML4 slots) _ _ _ =
+    ".type = CDL_PML4," +++
+    memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
 showObjectFields _ _ (Frame size paddr) _ _ _ =
     ".type = CDL_Frame," +++
     ".size_bits = " ++ show (logBase 2 $ fromIntegral size) ++ "," +++
@@ -280,9 +293,13 @@ showObjects objs counter (x:xs) irqNode cdt ms =
 sizeOf :: Arch -> KernelObject Word -> Word
 sizeOf _ (Frame vmSz _) = vmSz
 sizeOf _ (Untyped (Just bSz) _) = 2 ^ bSz
-sizeOf _ (CNode _ bSz) = 16 * 2 ^ bSz
+sizeOf IA32 (CNode _ bSz) = 16 * 2 ^ bSz
+sizeOf ARM11 (CNode _ bSz) = 16 * 2 ^ bSz
+sizeOf X86_64 (CNode _ bSz) = 32 * 2 ^ bSz
 sizeOf _ Endpoint = 16
-sizeOf _ Notification = 16
+sizeOf IA32 Notification = 16
+sizeOf ARM11 Notification = 16
+sizeOf X86_64 Notification = 32
 sizeOf _ ASIDPool {} = 4 * 2^10
 sizeOf _ IOPT {} = 4 * 2^10
 sizeOf _ IODevice {} = 1
@@ -294,6 +311,12 @@ sizeOf ARM11 TCB {} = 512
 sizeOf ARM11 PD {} = 16 * 2^10
 sizeOf ARM11 PT {} = 2^10
 sizeOf ARM11 SC {} = 60
+sizeOf X86_64 TCB {} = 2^10
+sizeOf X86_64 PT {} = 4 * 2^10
+sizeOf X86_64 PD {} = 4 * 2^10
+sizeOf X86_64 PDPT {} = 4 * 2^10
+sizeOf X86_64 PML4 {} = 4 * 2^10
+sizeOf X86_64 SC {} = 60
 sizeOf _ _ = 0
 
 {- A custom sorting function for CapDL objects. Essentially we want to sort the

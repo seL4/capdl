@@ -19,7 +19,7 @@ import Data.Data
 import Data.Word
 
 -- Supported architectures:
-data Arch = IA32 | ARM11 deriving (Eq, Show)
+data Arch = IA32 | ARM11 | X86_64 deriving (Eq, Show)
 
 -- Access rights of capabilities. Not all capability types support all rights.
 data Rights = Read
@@ -78,7 +78,7 @@ data Cap
         | SCCap { capObj :: ObjID }
         | SchedControlCap
 
-        -- arch specific caps, ARM11 and IA32 merged
+        -- arch specific caps, ARM11, IA32 and X86_64 merged
         | FrameCap {
             capObj :: ObjID,
             capRights :: CapRights,
@@ -91,12 +91,18 @@ data Cap
         | PDCap {
             capObj :: ObjID,
             capMaybeAsid :: Maybe Asid }
+        | PDPTCap {
+            capObj :: ObjID,
+            capMaybeAsid :: Maybe Asid }
+        | PML4Cap {
+            capObj :: ObjID,
+            capMaybeAsid :: Maybe Asid }
         | ASIDControlCap -- only one ASIDTable in the system
         | ASIDPoolCap {
             capObj :: ObjID,
             capAsid :: Asid }
 
-        -- IA32 specific caps
+        -- X86 specific caps
         | IOPortsCap {
             capObj :: ObjID,
             capPorts :: Set Word }
@@ -155,15 +161,17 @@ data KernelObject a
     | SC {
         sc_extraInfo :: Maybe SCExtraInfo }
 
--- arch specific objects, ARM11 and IA32 mixed
+-- arch specific objects, ARM11, IA32 and X86_64 mixed
     | ASIDPool { slots :: CapMap a }
     | PT { slots :: CapMap a }
     | PD { slots :: CapMap a }
+    | PDPT { slots :: CapMap a }
+    | PML4 { slots :: CapMap a }
     | Frame {
         vmSizeBits :: Word,
         paddr :: Maybe Word }
 
--- IA32 specific objects
+-- X86 specific objects
     | IOPorts { size :: Word } -- only one in the system
     | IODevice {
         slots :: CapMap a,
@@ -187,6 +195,8 @@ data KOType
     | ASIDPool_T
     | PT_T
     | PD_T
+    | PDPT_T
+    | PML4_T
     | Frame_T
     | IOPorts_T
     | IODevice_T
@@ -336,6 +346,8 @@ hasSlots (CNode {})     = True
 hasSlots (ASIDPool {})  = True
 hasSlots (PT {})        = True
 hasSlots (PD {})        = True
+hasSlots (PDPT {})      = True
+hasSlots (PML4 {})      = True
 hasSlots (IODevice {})  = True
 hasSlots (IOPT {})      = True
 hasSlots _              = False

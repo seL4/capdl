@@ -146,6 +146,7 @@ main = do
                                                        writeFile (f ++ "-saturation.txt") $ show $ pretty newM)]
             condDoOpt (projection, action) = maybe (return ()) action (projection opt)
         mapM_ condDoOpt optActions
-     else
-        putStr $ show log
+     else do
+            putStr $ show log
+            error("Failed to check model")
 
