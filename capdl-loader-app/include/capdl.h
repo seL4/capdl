@@ -17,6 +17,7 @@
 #include <autoconf.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <utils/util.h>
 
 #define FRAME_SIZE      seL4_PageBits
 
@@ -211,7 +212,6 @@ typedef struct {
 
     CDL_ObjectType type;
     CDL_CapMap slots;
-    seL4_Word size_bits;
 #ifndef CONFIG_CAPDL_LOADER_VERIFIED
     union {
 #endif
@@ -223,8 +223,9 @@ typedef struct {
 #ifndef CONFIG_CAPDL_LOADER_VERIFIED
     };
 #endif
+    uint8_t size_bits;
 
-} CDL_Object;
+} PACKED CDL_Object;
 
 /* CapDLModel: is described by a map from ObjectIDs (array index) to Objects */
 typedef struct {
