@@ -219,11 +219,11 @@ typedef struct {
         CDL_SCExtraInfo sc_extra;
         CDL_IOAPICIRQExtraInfo ioapicirq_extra;
         CDL_MSIIRQExtraInfo msiirq_extra;
+        void *paddr; /* Physical address; only relevant for frames and untyped objects. */
 #ifndef CONFIG_CAPDL_LOADER_VERIFIED
     };
 #endif
 
-    void *paddr; /* Physical address; only relevant for frames and untyped objects. */
 } CDL_Object;
 
 /* CapDLModel: is described by a map from ObjectIDs (array index) to Objects */
