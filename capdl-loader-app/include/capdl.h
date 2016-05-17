@@ -116,13 +116,17 @@ typedef struct {
 } CDL_CapData;
 
 typedef struct {
-    CDL_CapType type;
     CDL_ObjID obj_id;
     CDL_CapData data;
     CDL_IRQ irq;
     CDL_ObjID mapping_container_id;
     seL4_Word mapping_slot;
     seL4_CPtr mapped_frame_cap;
+
+    /* This type tag actually has a more specific type, but we force it to be represented as a
+     * uint8_t to compress the size of this struct in memory.
+     */
+    /* CDL_CapType */ uint8_t type;
 
     /* The following map to more specific seL4 types, but the seL4 types are padded to word size,
      * wasting space. This padding is necessary for ABI compatibility, but we have no such
