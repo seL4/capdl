@@ -262,8 +262,6 @@ typedef struct {
 #define CDL_CapData_MakeGuard(x, y) \
 { .tag = seL4_CapData_Guard, .guard_bits = (y), .guard_size = (x) }
 
-#define CDL_CapData_MakeBadge(x)    { .tag = seL4_CapData_Badge, .badge = (x) }
-
 static inline CDL_CapType    CDL_Cap_Type(CDL_Cap *cap)                   { return cap->type; }
 static inline CDL_CapData    CDL_Cap_Data(CDL_Cap *cap)                   { return cap->data; }
 static inline seL4_ARCH_VMAttributes CDL_Cap_VMAttributes(CDL_Cap *cap)   { return cap->vm_attribs; }
