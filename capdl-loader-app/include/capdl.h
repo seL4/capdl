@@ -15,6 +15,7 @@
 #include <sel4/types.h>
 #include <sel4utils/mapping.h>
 #include <autoconf.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <utils/util.h>
@@ -102,8 +103,8 @@ typedef struct {
     union {
         struct {
 #endif
-    seL4_Word guard_bits;
-    seL4_Word guard_size;
+    seL4_Word guard_bits:18; /* guards have an 18-bit value */
+    seL4_Word guard_size:sizeof(seL4_Word) * CHAR_BIT - 18;
 #ifndef CONFIG_CAPDL_LOADER_VERIFIED
         };
 #endif
