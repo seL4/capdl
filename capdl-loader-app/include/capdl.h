@@ -231,7 +231,6 @@ typedef struct {
 typedef struct {
     const char *name; /* textual ObjID from the capDL spec */
 
-    CDL_ObjectType type;
     CDL_CapMap slots;
 #ifndef CONFIG_CAPDL_LOADER_VERIFIED
     union {
@@ -244,6 +243,10 @@ typedef struct {
 #ifndef CONFIG_CAPDL_LOADER_VERIFIED
     };
 #endif
+    /* The following member has a more specific type, CDL_ObjectType, but by forcing it into a
+     * uint8_t we can reduce the size of this struct.
+     */
+    /* CDL_ObjectType */ uint8_t type;
     uint8_t size_bits;
 
 } PACKED CDL_Object;
