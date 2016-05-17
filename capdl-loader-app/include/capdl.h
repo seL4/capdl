@@ -98,10 +98,20 @@ typedef struct {
         CDL_CapData_Guard = seL4_CapData_Guard,
         CDL_CapData_Raw,
     } tag;
+#ifndef CONFIG_CAPDL_LOADER_VERIFIED
+    union {
+        struct {
+#endif
     seL4_Word guard_bits;
     seL4_Word guard_size;
+#ifndef CONFIG_CAPDL_LOADER_VERIFIED
+        };
+#endif
     seL4_Word badge;
     seL4_Word data;
+#ifndef CONFIG_CAPDL_LOADER_VERIFIED
+    };
+#endif
 } CDL_CapData;
 
 typedef struct {
