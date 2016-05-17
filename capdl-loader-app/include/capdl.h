@@ -93,12 +93,11 @@ typedef enum {
     CDL_SchedControlCap,
 } CDL_CapType;
 
+#define CDL_CapData_Badge 0
+#define CDL_CapData_Guard 1
+#define CDL_CapData_Raw   2
+
 typedef struct {
-    enum {
-        CDL_CapData_Badge = seL4_CapData_Badge,
-        CDL_CapData_Guard = seL4_CapData_Guard,
-        CDL_CapData_Raw,
-    } tag;
 #ifndef CONFIG_CAPDL_LOADER_VERIFIED
     union {
         struct {
@@ -113,7 +112,8 @@ typedef struct {
 #ifndef CONFIG_CAPDL_LOADER_VERIFIED
     };
 #endif
-} CDL_CapData;
+    unsigned tag:2; /* One of CDL_CapData_* */
+} PACKED CDL_CapData;
 
 typedef struct {
     CDL_ObjID obj_id;

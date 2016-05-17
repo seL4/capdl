@@ -84,12 +84,12 @@ showCap objs (EndpointCap id badge rights) _ is_orig _ =
     "{.type = CDL_EPCap, .obj_id = " ++ showObjID objs id ++
     ", .is_orig = " ++ is_orig ++
     ", .rights = " ++ showRights rights ++
-    ", .data = { .tag = seL4_CapData_Badge, .badge = " ++ show badge ++ "}}"
+    ", .data = { .tag = CDL_CapData_Badge, .badge = " ++ show badge ++ "}}"
 showCap objs (NotificationCap id badge rights) _ is_orig _ =
     "{.type = CDL_NotificationCap, .obj_id = " ++ showObjID objs id ++
     ", .is_orig = " ++ is_orig ++
     ", .rights = " ++ showRights rights ++
-    ", .data = { .tag = seL4_CapData_Badge, .badge = " ++ show badge ++
+    ", .data = { .tag = CDL_CapData_Badge, .badge = " ++ show badge ++
     "}}"
 showCap objs (ReplyCap id) _ _ _ =
     "{.type = CDL_ReplyCap, .obj_id = " ++ showObjID objs id ++ "}"
