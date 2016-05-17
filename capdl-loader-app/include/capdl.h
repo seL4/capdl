@@ -120,13 +120,19 @@ typedef struct {
     CDL_ObjID obj_id;
     CDL_CapData data;
     CDL_IRQ irq;
-    bool is_orig;
-    seL4_ARCH_VMAttributes vm_attribs;
-    seL4_CapRights rights;
     CDL_ObjID mapping_container_id;
     seL4_Word mapping_slot;
     seL4_CPtr mapped_frame_cap;
-} CDL_Cap;
+
+    /* The following map to more specific seL4 types, but the seL4 types are padded to word size,
+     * wasting space. This padding is necessary for ABI compatibility, but we have no such
+     * requirements here and can instead reduce the in-memory size of specs by packing these fields
+     * into fewer bits.
+     */
+    /* seL4_ARCH_VMAttributes */ unsigned vm_attribs:3;
+    /* bool                   */ unsigned is_orig:1;
+    /* seL4_CapRights         */ unsigned rights:3;
+} PACKED CDL_Cap;
 
 /* CapMap: is just an array of cap slots, position of the slot and cap */
 typedef struct {
