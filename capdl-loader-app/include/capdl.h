@@ -142,7 +142,7 @@ typedef struct {
 typedef struct {
     seL4_Word slot;
     CDL_Cap cap;
-} CDL_CapSlot;
+} PACKED CDL_CapSlot;
 
 typedef struct {
     seL4_Word num;
