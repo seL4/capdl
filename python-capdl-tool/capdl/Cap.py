@@ -40,8 +40,6 @@ class Cap(object):
     def set_guard_size(self, guard_size):
         assert isinstance(self.referent, Object.CNode)
         assert isinstance(guard_size, int)
-        assert guard_size & 0x1f == guard_size, \
-            'guard sizes can be maximum of 5 bits'
         self.guard_size = guard_size
 
     def set_badge(self, badge):

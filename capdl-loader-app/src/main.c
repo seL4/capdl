@@ -36,7 +36,9 @@
 
 #include "capdl_spec.h"
 
-#define PD_SLOT(vaddr)   (vaddr >> (PT_SIZE + FRAME_SIZE))
+#define PML4_SLOT(vaddr) ((vaddr >> (PDPT_SIZE + PD_SIZE + PT_SIZE + FRAME_SIZE)) & (( 1 << PML4_SIZE) - 1))
+#define PDPT_SLOT(vaddr) ((vaddr >> (PD_SIZE + PT_SIZE + FRAME_SIZE)) & (( 1 << PDPT_SIZE) - 1))
+#define PD_SLOT(vaddr)   ((vaddr >> (PT_SIZE + FRAME_SIZE)) & (( 1 << PD_SIZE) - 1))
 #define PT_SLOT(vaddr)   ((vaddr >> FRAME_SIZE) & ((1 << PT_SIZE) - 1))
 
 #define ANSI_RESET "\033[0m"
@@ -179,61 +181,48 @@ get_cap_at(CDL_Object *obj, unsigned int slot)
     return NULL;
 }
 
-/* elf file loading hack - prefill objects with the data defined in the elf file */
-static seL4_CPtr
-get_frame_cap(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
+#ifdef CONFIG_ARCH_X86_64
+static CDL_Cap *get_cdl_frame_pdpt(CDL_ObjID root, uintptr_t vaddr, CDL_Model *spec)
 {
-    CDL_Object *cdl_pd = get_spec_object(spec, pd);
-    CDL_Cap *pt_cap = get_cap_at(cdl_pd, PD_SLOT(vaddr));
-    if (pt_cap == NULL) {
-        die("Could not find PT cap %s[%d]", CDL_Obj_Name(cdl_pd), (int)PD_SLOT(vaddr));
+    CDL_Object *cdl_pml4 = get_spec_object(spec, root);
+    CDL_Cap *pdpt_cap = get_cap_at(cdl_pml4, PML4_SLOT(vaddr));
+    if (pdpt_cap == NULL) {
+        die("Could not find PD cap %s[%d]", CDL_Obj_Name(cdl_pml4), (int)PML4_SLOT(vaddr));
     }
-
-    /* Check if the PT cap is actually a large frame cap. */
-    if (pt_cap->type == CDL_FrameCap) {
-        return orig_caps(CDL_Cap_ObjID(pt_cap));
-    }
-
-    CDL_Object *cdl_pt = get_spec_object(spec, CDL_Cap_ObjID(pt_cap));
-    CDL_Cap *frame_cap = get_cap_at(cdl_pt, PT_SLOT(vaddr));
-    if (frame_cap == NULL) {
-        die("Could not find frame cap %s[%d]", CDL_Obj_Name(cdl_pt), (int)PT_SLOT(vaddr));
-    }
-
-    return orig_caps(CDL_Cap_ObjID(frame_cap));
+    return pdpt_cap;
 }
 
-static seL4_CPtr
-get_frame_size(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
+static CDL_Cap *get_cdl_frame_pd(CDL_ObjID root, uintptr_t vaddr, CDL_Model *spec)
 {
+    CDL_Cap *pdpt_cap = get_cdl_frame_pdpt(root, vaddr, spec);
+    CDL_Object *cdl_pdpt = get_spec_object(spec, CDL_Cap_ObjID(pdpt_cap));
+    CDL_Cap *pd_cap = get_cap_at(cdl_pdpt, PDPT_SLOT(vaddr));
+    if (pd_cap == NULL) {
+        die("Could not find PD cap %s[%d]", CDL_Obj_Name(cdl_pdpt), (int)PDPT_SLOT(vaddr));
+    }
+    return pd_cap;
+}
+#endif
+
+static CDL_Cap *get_cdl_frame_pt(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
+{
+#ifdef CONFIG_ARCH_X86_64
+    CDL_Cap *pd_cap = get_cdl_frame_pd(pd, vaddr, spec);
+    CDL_Object *cdl_pd = get_spec_object(spec, CDL_Cap_ObjID(pd_cap));
+#else
     CDL_Object *cdl_pd = get_spec_object(spec, pd);
+#endif
     CDL_Cap *pt_cap = get_cap_at(cdl_pd, PD_SLOT(vaddr));
     if (pt_cap == NULL) {
         die("Could not find PT cap %s[%d]", CDL_Obj_Name(cdl_pd), (int)PD_SLOT(vaddr));
     }
-
-    /* Check if the PT cap is actually a large frame cap. */
-    if (pt_cap->type == CDL_FrameCap) {
-        return BIT(CDL_Obj_SizeBits(&spec->objects[CDL_Cap_ObjID(pt_cap)]));
-    }
-
-    CDL_Object *cdl_pt = get_spec_object(spec, CDL_Cap_ObjID(pt_cap));
-    CDL_Cap *frame_cap = get_cap_at(cdl_pt, PT_SLOT(vaddr));
-    if (frame_cap == NULL) {
-        die("Could not find frame cap %s[%d]", CDL_Obj_Name(cdl_pt), (int)PT_SLOT(vaddr));
-    }
-
-    return BIT(CDL_Obj_SizeBits(&spec->objects[CDL_Cap_ObjID(frame_cap)]));
+    return pt_cap;
 }
 
 static seL4_CPtr
 get_frame_pt(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
 {
-    CDL_Object *cdl_pd = get_spec_object(spec, pd);
-    CDL_Cap *pt_cap = get_cap_at(cdl_pd, PD_SLOT(vaddr));
-    if (pt_cap == NULL) {
-        die("Could not find PT cap %s[%d]", CDL_Obj_Name(cdl_pd), (int)PD_SLOT(vaddr));
-    }
+    CDL_Cap *pt_cap = get_cdl_frame_pt(pd, vaddr, spec);
 
     /* Check if the PT cap is actually a large frame cap. */
     if (pt_cap->type == CDL_FrameCap) {
@@ -242,6 +231,37 @@ get_frame_pt(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
     assert(orig_caps(CDL_Cap_ObjID(pt_cap)) != 0);
 
     return orig_caps(CDL_Cap_ObjID(pt_cap));
+}
+
+static CDL_Cap *get_cdl_frame_cap(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
+{
+    CDL_Cap *pt_cap = get_cdl_frame_pt(pd, vaddr, spec);
+
+    /* Check if the PT cap is actually a large frame cap. */
+    if (pt_cap->type == CDL_FrameCap) {
+        return pt_cap;
+    }
+
+    CDL_Object *cdl_pt = get_spec_object(spec, CDL_Cap_ObjID(pt_cap));
+    CDL_Cap *frame_cap = get_cap_at(cdl_pt, PT_SLOT(vaddr));
+    if (frame_cap == NULL) {
+        die("Could not find frame cap %s[%d]", CDL_Obj_Name(cdl_pt), (int)PT_SLOT(vaddr));
+    }
+
+    return frame_cap;
+}
+
+/* elf file loading hack - prefill objects with the data defined in the elf file */
+static seL4_CPtr
+get_frame_cap(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
+{
+    return orig_caps(CDL_Cap_ObjID(get_cdl_frame_cap(pd, vaddr, spec)));
+}
+
+static seL4_CPtr
+get_frame_size(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
+{
+    return BIT(CDL_Obj_SizeBits(&spec->objects[CDL_Cap_ObjID(get_cdl_frame_cap(pd, vaddr, spec))]));
 }
 
 static seL4_ArchObjectType
@@ -316,6 +336,10 @@ void init_copy_frame(seL4_BootInfo *bootinfo)
      * to skip the PD */
     seL4_CPtr copy_addr_pt = bootinfo->userImagePaging.start + 1 +
         PD_SLOT(((uintptr_t)copy_addr)) - PD_SLOT(((uintptr_t)&__executable_start));
+#ifdef CONFIG_ARCH_X6_64
+    /* guess that there is one PDPT and PML4 */
+    copy_addr_pt += 2;
+#endif
 
     int error;
 
@@ -960,6 +984,9 @@ configure_thread(CDL_Model *spec, CDL_ObjID tcb)
 #if defined(CONFIG_ARCH_IA32) && defined(CONFIG_CAPDL_LOADER_CC_REGISTERS)
     reg_args = 4;
 #endif
+#if defined(CONFIG_ARCH_X86_64)
+    reg_args = 4;
+#endif
 
 #ifdef CONFIG_CAPDL_LOADER_VERIFIED
     assert(argc <= reg_args);
@@ -1038,6 +1065,13 @@ configure_thread(CDL_Model *spec, CDL_ObjID tcb)
         .ecx = argc > 0 ? argv[0] : 0,
         .edx = argc > 1 ? argv[1] : 0,
 #endif
+#elif defined(CONFIG_ARCH_X86_64)
+        .rip = pc,
+        .rsp = sp,
+        .rdi = argc > 0 ? argv[0] : 0,
+        .rsi = argc > 1 ? argv[1] : 0,
+        .rdx = argc > 2 ? argv[2] : 0,
+        .rcx = argc > 3 ? argv[3] : 0,
 #endif
     };
     debug_printf("  Setting up _start(");
@@ -1186,11 +1220,19 @@ init_pd_asids(CDL_Model *spec)
     debug_printf("Initialising Page Directory ASIDs...\n");
 
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
+#ifdef CONFIG_ARCH_X86_64
+        if (spec->objects[obj_id].type == CDL_PML4) {
+            debug_printf(" Initialising pml4 ASID %s...\n",
+                         CDL_Obj_Name(&spec->objects[obj_id]));
+            init_pd_asid(spec, obj_id);
+        }
+#else
         if (spec->objects[obj_id].type == CDL_PD) {
             debug_printf(" Initialising page directory ASID %s...\n",
                          CDL_Obj_Name(&spec->objects[obj_id]));
             init_pd_asid(spec, obj_id);
         }
+#endif
     }
 }
 
@@ -1281,6 +1323,79 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
     }
 }
 
+#ifdef CONFIG_ARCH_X86_64
+static void
+init_pt(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pt_base, CDL_ObjID pt)
+{
+    CDL_Object *obj = get_spec_object(spec, pt);
+    for (unsigned long slot_index = 0; slot_index < CDL_Obj_NumSlots(obj); slot_index++) {
+        CDL_CapSlot *slot = CDL_Obj_GetSlot(obj, slot_index);
+        unsigned long obj_slot = CDL_CapSlot_Slot(slot);
+        uintptr_t base = pt_base + (obj_slot << (FRAME_SIZE));
+        CDL_Cap *frame_cap = CDL_CapSlot_Cap(slot);
+        seL4_CapRights frame_rights = CDL_Cap_Rights(frame_cap);
+        seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(frame_cap);
+        map_page(spec, frame_cap, pml4, frame_rights, base, vm_attribs);
+    }
+}
+static void
+init_pd(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pd_base, CDL_ObjID pd)
+{
+    CDL_Object *obj = get_spec_object(spec, pd);
+    for (unsigned long slot_index = 0; slot_index < CDL_Obj_NumSlots(obj); slot_index++) {
+        CDL_CapSlot *slot = CDL_Obj_GetSlot(obj, slot_index);
+        unsigned long obj_slot = CDL_CapSlot_Slot(slot);
+        uintptr_t base = pd_base + (obj_slot << (PT_SIZE + FRAME_SIZE));
+        CDL_Cap *pt_cap = CDL_CapSlot_Cap(slot);
+        CDL_ObjID pt_obj = CDL_Cap_ObjID(pt_cap);
+        seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(pt_cap);
+        if (CDL_Cap_Type(pt_cap) == CDL_FrameCap) {
+            seL4_CapRights frame_rights = CDL_Cap_Rights(pt_cap);
+            map_page(spec, pt_cap, pml4, frame_rights, base, vm_attribs);
+        } else {
+            seL4_X86_PageTable_Map(orig_caps(pt_obj), orig_caps(pml4), base, vm_attribs);
+            init_pt(spec, pml4, base, pt_obj);
+        }
+    }
+}
+static void
+init_pdpt(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pdpt_base, CDL_ObjID pdpt)
+{
+    CDL_Object *obj = get_spec_object(spec, pdpt);
+    for (unsigned int slot_index = 0; slot_index < CDL_Obj_NumSlots(obj); slot_index++) {
+        CDL_CapSlot *slot = CDL_Obj_GetSlot(obj, slot_index);
+        unsigned long obj_slot = CDL_CapSlot_Slot(slot);
+        uintptr_t base = pdpt_base + (obj_slot << (PD_SIZE + PT_SIZE + FRAME_SIZE));
+        CDL_Cap *pd_cap = CDL_CapSlot_Cap(slot);
+        CDL_ObjID pd_obj = CDL_Cap_ObjID(pd_cap);
+        seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(pd_cap);
+        if (CDL_Cap_Type(pd_cap) == CDL_FrameCap) {
+            seL4_CapRights frame_rights = CDL_Cap_Rights(pd_cap);
+            map_page(spec, pd_cap, pml4, frame_rights, base, vm_attribs);
+        } else {
+            seL4_X86_PageDirectory_Map(orig_caps(pd_obj), orig_caps(pml4), base, vm_attribs);
+            init_pd(spec, pml4, base, pd_obj);
+        }
+    }
+}
+static void
+init_pml4(CDL_Model *spec, CDL_ObjID pml4)
+{
+    CDL_Object *obj = get_spec_object(spec, pml4);
+    for (unsigned long slot_index = 0; slot_index < CDL_Obj_NumSlots(obj); slot_index++) {
+        CDL_CapSlot *slot = CDL_Obj_GetSlot(obj, slot_index);
+        unsigned long obj_slot = CDL_CapSlot_Slot(slot);
+        uintptr_t base = obj_slot << (PDPT_SIZE + PD_SIZE + PT_SIZE + FRAME_SIZE);
+        CDL_Cap *pdpt_cap = CDL_CapSlot_Cap(slot);
+        CDL_ObjID pdpt_obj = CDL_Cap_ObjID(pdpt_cap);
+        seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(pdpt_cap);
+        seL4_X86_PDPT_Map(orig_caps(pdpt_obj), orig_caps(pml4), base, vm_attribs);
+        init_pdpt(spec, pml4, base, pdpt_obj);
+    }
+}
+
+#else
+
 static void
 map_page_directory_slot(CDL_Model *spec UNUSED, CDL_ObjID pd, CDL_CapSlot *pd_slot)
 {
@@ -1343,12 +1458,25 @@ map_page_directory_page_tables(CDL_Model *spec, CDL_ObjID pd)
     for (unsigned int slot_index = 0; slot_index < CDL_Obj_NumSlots(cdl_pd); slot_index++)
         map_page_table_slots(spec, pd, CDL_Obj_GetSlot(cdl_pd, slot_index));
 }
+#endif
 
 static void
 init_vspace(CDL_Model *spec)
 {
     debug_printf("Initialising VSpaces...\n");
 
+#ifdef CONFIG_ARCH_X86_64
+    /* Have no understanding of the logic of model of whatever the hell the
+       other code in this function is doing as it is pure gibberish. For
+       x86_64 we will just do the obvious recursive initialization */
+    debug_printf("================================\n");
+    for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
+        if (spec->objects[obj_id].type == CDL_PML4) {
+            debug_printf(" Initialising pml4 %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
+            init_pml4(spec, obj_id);
+        }
+    }
+#else
     debug_printf("================================\n");
     debug_printf("Initialising page directories...\n");
 
@@ -1367,6 +1495,7 @@ init_vspace(CDL_Model *spec)
             map_page_directory_page_tables(spec, obj_id);
         }
     }
+#endif
 }
 
 /* Initialise capability spaces */

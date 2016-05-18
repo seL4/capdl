@@ -33,16 +33,24 @@
  * not the size of the actual PT object */
 #ifdef ARM_HYP
 #define PT_SIZE 9
+#define PD_SIZE 11
 #else
 #define PT_SIZE 8
+#define PD_SIZE 12
 #endif
 
 #elif defined(CONFIG_ARCH_X86)
 
 #define CDL_VM_WriteThrough         seL4_X86_WriteThrough
 
-#ifdef CONFIG_ARCH_IA32
+#if defined(CONFIG_ARCH_IA32)
 #define PT_SIZE         10
+#define PD_SIZE         10
+#elif defined(CONFIG_ARCH_X86_64)
+#define PT_SIZE         9
+#define PD_SIZE         9
+#define PDPT_SIZE       9
+#define PML4_SIZE       9
 #endif
 
 #endif
@@ -53,8 +61,10 @@
 typedef enum {
 #if defined(CONFIG_ARCH_ARM)
     CDL_Arch_ARM
-#elif defined(CONFIG_ARCH_X86)
+#elif defined(CONFIG_ARCH_IA32)
     CDL_Arch_IA32
+#elif defined(CONFIG_ARCH_X86_64)
+    CDL_Arch_X86_64
 #endif
 } CDL_Arch;
 
@@ -83,6 +93,8 @@ typedef enum {
     CDL_FrameCap,
     CDL_PTCap,
     CDL_PDCap,
+    CDL_PML4Cap,
+    CDL_PDPTCap,
     CDL_ASIDControlCap,
     CDL_ASIDPoolCap,
 #if defined(CONFIG_ARCH_X86)
@@ -175,6 +187,10 @@ typedef enum {
     CDL_PT            = seL4_X86_PageTableObject,
     CDL_PD            = seL4_X86_PageDirectoryObject,
     CDL_Frame         = seL4_X86_4K,
+#ifdef CONFIG_ARCH_X86_64
+    CDL_PML4          = seL4_X64_PML4Object,
+    CDL_PDPT          = seL4_X86_PDPTObject,
+#endif
 #endif
     CDL_ASIDPool      = seL4_ObjectTypeCount + 1,
     CDL_Interrupt     = seL4_ObjectTypeCount + 2,
