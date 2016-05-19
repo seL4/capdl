@@ -22,7 +22,7 @@ CFILES += ${BUILD_DIR}/src/capdl_spec.c
 
 ENTRY_POINT := _sel4_start
 
-LIBS := c sel4 elf cpio sel4muslcsys sel4platsupport platsupport sel4simple sel4utils utils sel4vspace sel4simple-default
+LIBS := c sel4 elf cpio sel4muslcsys sel4platsupport platsupport sel4simple sel4utils utils sel4vspace sel4simple-default sel4debug
 
 include $(SEL4_COMMON)/common.mk
 
