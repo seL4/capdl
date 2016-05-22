@@ -244,7 +244,6 @@ showObjectFields objs obj_id (CNode slots sizeBits) irqNode cdt ms =
         t = if sizeBits == 0 then "CDL_Interrupt" else "CDL_CNode"
 showObjectFields objs obj_id (IOAPICIrq slots ioapic pin level polarity) irqNode cdt ms =
     ".type = CDL_IOAPICInterrupt, " +++
-    ".size_bits = 0, " +++
     memberSlots objs obj_id slots irqNode cdt ms +++
     ".ioapicirq_extra = {" +++
         ".ioapic = " ++ show ioapic ++ "," +++
@@ -254,7 +253,6 @@ showObjectFields objs obj_id (IOAPICIrq slots ioapic pin level polarity) irqNode
     "},"
 showObjectFields objs obj_id (MSIIrq slots handle bus dev fun) irqNode cdt ms =
     ".type = CDL_MSIInterrupt, " +++
-    ".size_bits = 0, " +++
     memberSlots objs obj_id slots irqNode cdt ms +++
     ".msiirq_extra = {" +++
         ".handle = " ++ show handle ++ "," +++
