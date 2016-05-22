@@ -245,7 +245,9 @@ typedef struct {
 }CDL_MSIIRQExtraInfo;
 
 typedef struct {
+#ifdef CONFIG_CAPDL_LOADER_PRINTF
     const char *name; /* textual ObjID from the capDL spec */
+#endif
 
     CDL_CapMap slots;
 #ifndef CONFIG_CAPDL_LOADER_VERIFIED
@@ -307,11 +309,15 @@ static inline seL4_Word      CDL_ObjSlot_Slot(CDL_ObjSlot *obj_slot)      { retu
 static inline CDL_ObjID      CDL_ObjSlot_ObjID(CDL_ObjSlot *obj_slot)     { return obj_slot->id; }
 
 static inline const char *CDL_Obj_Name(CDL_Object *obj) {
+#ifdef CONFIG_CAPDL_LOADER_PRINTF
     if (obj->name == NULL) {
         return "<unnamed>";
     } else {
         return obj->name;
     }
+#else
+    return "<unnamed>";
+#endif
 }
 
 static inline CDL_ObjectType CDL_Obj_Type(CDL_Object *obj)                { return obj->type; }
