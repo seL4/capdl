@@ -41,9 +41,15 @@ maxObjects :: Int -> String
 maxObjects count = "#define MAX_OBJECTS " ++ show count
 
 memberArch :: Arch -> String
-memberArch IA32 = ".arch = CDL_Arch_IA32,"
-memberArch ARM11 = ".arch = CDL_Arch_ARM,"
-memberArch X86_64 = ".arch = CDL_Arch_X86_64,"
+memberArch arch =
+    "#if !defined(CONFIG_ARCH_" ++ a ++ ")" +++
+    "#    error \"invalid target architecture; expecting " ++ a ++ "\"" +++
+    "#endif"
+    where
+        a = case arch of
+            IA32 -> "IA32"
+            ARM11 -> "ARM"
+            X86_64 -> "X86_64"
 
 memberNum :: Int -> String
 memberNum n = ".num = " ++ show n ++ ","

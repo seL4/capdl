@@ -57,17 +57,6 @@
 
 /* Binary CapDL representation -- capdl.h */
 
-/* Arch: Supported architectures: */
-typedef enum {
-#if defined(CONFIG_ARCH_ARM)
-    CDL_Arch_ARM
-#elif defined(CONFIG_ARCH_IA32)
-    CDL_Arch_IA32
-#elif defined(CONFIG_ARCH_X86_64)
-    CDL_Arch_X86_64
-#endif
-} CDL_Arch;
-
 /* CapRights:  Access rights of capabilities */
 typedef seL4_CapRights CDL_CapRights;
 
@@ -271,7 +260,6 @@ typedef struct {
 
 /* CapDLModel: is described by a map from ObjectIDs (array index) to Objects */
 typedef struct {
-    CDL_Arch arch;
 
     seL4_Word num;
     CDL_Object *objects;
