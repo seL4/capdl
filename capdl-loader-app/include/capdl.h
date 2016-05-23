@@ -199,7 +199,6 @@ typedef enum {
 } CDL_ObjectType;
 
 typedef struct {
-    seL4_Word ipcbuffer_addr;
     uint8_t priority;
     uint8_t max_priority;
     uint8_t criticality;
@@ -209,8 +208,10 @@ typedef struct {
     const char *elf_name;
     const seL4_Word *init;
     seL4_Word init_sz;
-    uint8_t domain;
     seL4_CPtr fault_ep;
+    /* The IPC buffer is at least 512-byte aligned, so we can drop the low 9 bits. */
+    seL4_Word ipcbuffer_addr_upper_bits:sizeof(seL4_Word) * CHAR_BIT - 9;
+    uint8_t domain;
 } CDL_TCBExtraInfo;
 
 typedef struct {
@@ -315,7 +316,7 @@ static inline CDL_CapSlot *
 CDL_Obj_GetSlot(CDL_Object *obj, seL4_Word i)      { return &obj->slots.slot[i]; }
 
 static inline seL4_Word
-CDL_TCB_IPCBuffer_Addr(CDL_Object *obj)      { return obj->tcb_extra.ipcbuffer_addr; }
+CDL_TCB_IPCBuffer_Addr(CDL_Object *obj)      { return ((seL4_Word)obj->tcb_extra.ipcbuffer_addr_upper_bits) << 9; }
 
 static inline uint8_t
 CDL_TCB_Priority(CDL_Object *obj)            { return obj->tcb_extra.priority; }

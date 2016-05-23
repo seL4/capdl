@@ -207,7 +207,10 @@ showObjectFields _ _ Notification _ _ _ = ".type = CDL_Notification,"
 showObjectFields objs obj_id (TCB slots faultEndpoint info domain argv) _ _ _ =
     ".type = CDL_TCB," +++
     ".tcb_extra = {" +++
-    ".ipcbuffer_addr = " ++ show ipcbuffer_addr ++ "," +++
+    "#if (" ++ show ipcbuffer_addr ++ " & ((1 << 9) - 1)) != 0" +++
+    "#    error \"IPC buffer not 512-byte aligned\"" +++
+    "#endif" +++
+    ".ipcbuffer_addr_upper_bits = " ++ show ipcbuffer_addr ++ " >> 9," +++
     ".priority = " ++ show priority ++ "," +++
     ".max_priority = " ++ show max_priority ++ "," +++
     ".criticality = " ++ show criticality ++ "," +++
