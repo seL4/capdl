@@ -1498,6 +1498,17 @@ init_vspace(CDL_Model *spec)
 #endif
 }
 
+static bool ep_related_cap(CDL_CapType cap) {
+    switch (cap) {
+        case CDL_EPCap:
+        case CDL_NotificationCap:
+        case CDL_ReplyCap:
+            return true;
+        default:
+            return false;
+    }
+}
+
 /* Initialise capability spaces */
 static void
 init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_CapSlot *cnode_slot)
@@ -1521,7 +1532,7 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
 #else
     bool move_cap = false; //FIXME
 #endif
-    bool is_ep_cap = (target_cap_type == CDL_EPCap || target_cap_type == CDL_NotificationCap);
+    bool is_ep_cap = ep_related_cap(target_cap_type);
     bool is_irq_handler_cap = (target_cap_type == CDL_IRQHandlerCap);
     bool is_frame_cap = (target_cap_type == CDL_FrameCap);
 #if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(CONFIG_ARCH_X86)
