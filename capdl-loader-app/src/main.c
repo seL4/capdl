@@ -1208,13 +1208,6 @@ set_asid(CDL_Model *spec UNUSED, CDL_ObjID page)
 }
 
 static void
-init_pd_asid(CDL_Model *spec UNUSED, CDL_ObjID pd)
-{
-    debug_printf("(%s)\n", CDL_Obj_Name(&spec->objects[pd]));
-    set_asid(spec, pd);
-}
-
-static void
 init_pd_asids(CDL_Model *spec)
 {
     debug_printf("Initialising Page Directory ASIDs...\n");
@@ -1224,13 +1217,13 @@ init_pd_asids(CDL_Model *spec)
         if (spec->objects[obj_id].type == CDL_PML4) {
             debug_printf(" Initialising pml4 ASID %s...\n",
                          CDL_Obj_Name(&spec->objects[obj_id]));
-            init_pd_asid(spec, obj_id);
+            set_asid(spec, obj_id);
         }
 #else
         if (spec->objects[obj_id].type == CDL_PD) {
             debug_printf(" Initialising page directory ASID %s...\n",
                          CDL_Obj_Name(&spec->objects[obj_id]));
-            init_pd_asid(spec, obj_id);
+            set_asid(spec, obj_id);
         }
 #endif
     }
