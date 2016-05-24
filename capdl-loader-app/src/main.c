@@ -1517,9 +1517,9 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
      * use the CDT, and when to just copy. For now, let's just copy.
      */
 #if defined(CONFIG_CAPDL_LOADER_VERIFIED)
-    int is_orig_cap = CDL_Cap_IsOrig(target_cap);
+    int move_cap = CDL_Cap_IsOrig(target_cap);
 #else
-    int is_orig_cap = false; //FIXME
+    int move_cap = false; //FIXME
 #endif
     int is_ep_cap = (target_cap_type == CDL_EPCap || target_cap_type == CDL_NotificationCap);
     int is_irq_handler_cap = (target_cap_type == CDL_IRQHandlerCap);
@@ -1556,7 +1556,7 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
 
     uint8_t src_depth = CONFIG_WORD_SIZE;
 
-    if ((mode == MOVE) && is_orig_cap) {
+    if ((mode == MOVE) && move_cap) {
         if (is_ep_cap || is_irq_handler_cap) {
             debug_printf("moving...\n");
             int error = seL4_CNode_Move(dest_root, dest_index, dest_depth,
@@ -1568,7 +1568,7 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
                                           src_root, src_index, src_depth, target_cap_data);
             seL4_AssertSuccess(error);
         }
-    } else if ((mode == COPY) && !is_orig_cap) {
+    } else if ((mode == COPY) && !move_cap) {
         if (is_frame_cap && target_cap->mapping_container_id != INVALID_OBJ_ID) {
             /* The spec requires the frame cap in the current slot be the same one
              * used to perform the mapping of the frame in some container (either
