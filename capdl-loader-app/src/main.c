@@ -1396,26 +1396,26 @@ init_pml4(CDL_Model *spec, CDL_ObjID pml4)
 #else
 
 static void
-map_page_directory_slot(CDL_Model *spec UNUSED, CDL_ObjID pd, CDL_CapSlot *pd_slot)
+map_page_directory_slot(CDL_Model *spec UNUSED, CDL_ObjID pd_id, CDL_CapSlot *pd_slot)
 {
-    debug_printf("(%s, %d)\n", CDL_Obj_Name(&spec->objects[pd]), pd_slot->slot);
+    debug_printf("(%s, %d)\n", CDL_Obj_Name(&spec->objects[pd_id]), pd_slot->slot);
     CDL_Cap *page_cap = CDL_CapSlot_Cap(pd_slot);
 
     seL4_Word page_vaddr = CDL_CapSlot_Slot(pd_slot) << (PT_SIZE + FRAME_SIZE);
     seL4_CapRights page_rights = CDL_Cap_Rights(page_cap);
 
-    map_page(spec, page_cap, pd, page_rights, page_vaddr);
+    map_page(spec, page_cap, pd_id, page_rights, page_vaddr);
 }
 
 static void
-map_page_directory(CDL_Model *spec, CDL_ObjID pd)
+map_page_directory(CDL_Model *spec, CDL_ObjID pd_id)
 {
-    debug_printf("(%s)\n", CDL_Obj_Name(&spec->objects[pd]));
+    debug_printf("(%s)\n", CDL_Obj_Name(&spec->objects[pd_id]));
 
-    CDL_Object *cdl_pd = get_spec_object(spec, pd);
+    CDL_Object *cdl_pd = get_spec_object(spec, pd_id);
 
     for (unsigned int slot_index = 0; slot_index < CDL_Obj_NumSlots(cdl_pd); slot_index++)
-        map_page_directory_slot(spec, pd, CDL_Obj_GetSlot(cdl_pd, slot_index));
+        map_page_directory_slot(spec, pd_id, CDL_Obj_GetSlot(cdl_pd, slot_index));
 }
 
 static void
