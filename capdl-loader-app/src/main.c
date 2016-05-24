@@ -962,7 +962,7 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
 }
 
 static void
-configure_thread(CDL_Model *spec, CDL_ObjID tcb)
+configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
 {
     seL4_CPtr sel4_tcb = dup_caps(tcb);
 
@@ -1110,7 +1110,7 @@ init_tcbs(CDL_Model *spec)
             init_tcb(spec, obj_id);
 
             debug_printf(" Configuring %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
-            configure_thread(spec, obj_id);
+            configure_tcb(spec, obj_id);
         }
     }
 }
