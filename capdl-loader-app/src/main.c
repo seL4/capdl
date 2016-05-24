@@ -970,8 +970,8 @@ configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
     const seL4_Word *argv = cdl_tcb->tcb_extra.init;
     int argc = cdl_tcb->tcb_extra.init_sz;
 
-    uintptr_t sp = CDL_TCB_SP(cdl_tcb);
     uintptr_t pc = CDL_TCB_PC(cdl_tcb);
+    uintptr_t sp = CDL_TCB_SP(cdl_tcb);
 
     if (sp % (sizeof(uintptr_t) * 2) != 0) {
         die("TCB %s's stack pointer is not dword-aligned", CDL_Obj_Name(&spec->objects[tcb]));
