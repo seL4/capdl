@@ -1238,7 +1238,7 @@ init_pd_asids(CDL_Model *spec)
 
 static void
 map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
-         seL4_CapRights rights, seL4_Word page_vaddr)
+         seL4_CapRights rights, seL4_Word vaddr)
 {
     CDL_ObjID page = CDL_Cap_ObjID(page_cap);
 
@@ -1250,10 +1250,10 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
     debug_printf("(%s, %s, rights=%x, vaddr=%x, vm_attribs=%x)\n",
                   CDL_Obj_Name(&spec->objects[page]),
                   CDL_Obj_Name(&spec->objects[pd_id]),
-                  rights, page_vaddr, vm_attribs);
+                  rights, vaddr, vm_attribs);
 
     if (CDL_Cap_Type(page_cap) == CDL_PTCap) {
-        int error = seL4_ARCH_PageTable_Map(sel4_page, sel4_pd, page_vaddr, vm_attribs);
+        int error = seL4_ARCH_PageTable_Map(sel4_page, sel4_pd, vaddr, vm_attribs);
         seL4_AssertSuccess(error);
 
     } else if (CDL_Cap_Type(page_cap) == CDL_FrameCap) {
@@ -1288,7 +1288,7 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
         page_cap->mapped_frame_cap = sel4_page;
 
         // FIXME: Add support for super-pages.
-        int error = seL4_ARCH_Page_Map(sel4_page, sel4_pd, page_vaddr, rights, vm_attribs);
+        int error = seL4_ARCH_Page_Map(sel4_page, sel4_pd, vaddr, rights, vm_attribs);
         if (error) {
             /* Try and retrieve some useful information to help the user
              * diagnose the error.
@@ -1300,7 +1300,7 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
             } else {
                 debug_printf("%p", (void*)addr.paddr);
             }
-            debug_printf(" -> %p (error = %d)\n", (void*)page_vaddr, error);
+            debug_printf(" -> %p (error = %d)\n", (void*)vaddr, error);
             seL4_AssertSuccess(error);
         }
 #ifdef CONFIG_ARCH_ARM
