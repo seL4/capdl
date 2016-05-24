@@ -1238,17 +1238,19 @@ init_pd_asids(CDL_Model *spec)
 
 static void
 map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
-         seL4_CapRights rights, seL4_Word page_vaddr, seL4_ARCH_VMAttributes vm_attribs)
+         seL4_CapRights rights, seL4_Word page_vaddr)
 {
     CDL_ObjID page = CDL_Cap_ObjID(page_cap);
-    debug_printf("(%s, %s, rights=%x, vaddr=%x, vm_attribs=%x)\n",
-                  CDL_Obj_Name(&spec->objects[page]),
-                  CDL_Obj_Name(&spec->objects[pd_id]),
-                  rights, page_vaddr, vm_attribs);
 
     // TODO: We should not be using the original cap here
     seL4_CPtr sel4_page = orig_caps(page);
     seL4_CPtr sel4_pd = orig_caps(pd_id);
+
+    seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(page_cap);
+    debug_printf("(%s, %s, rights=%x, vaddr=%x, vm_attribs=%x)\n",
+                  CDL_Obj_Name(&spec->objects[page]),
+                  CDL_Obj_Name(&spec->objects[pd_id]),
+                  rights, page_vaddr, vm_attribs);
 
     if (CDL_Cap_Type(page_cap) == CDL_PTCap) {
         int error = seL4_ARCH_PageTable_Map(sel4_page, sel4_pd, page_vaddr, vm_attribs);
@@ -1334,8 +1336,7 @@ init_pt(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pt_base, CDL_ObjID pt)
         uintptr_t base = pt_base + (obj_slot << (FRAME_SIZE));
         CDL_Cap *frame_cap = CDL_CapSlot_Cap(slot);
         seL4_CapRights frame_rights = CDL_Cap_Rights(frame_cap);
-        seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(frame_cap);
-        map_page(spec, frame_cap, pml4, frame_rights, base, vm_attribs);
+        map_page(spec, frame_cap, pml4, frame_rights, base);
     }
 }
 static void
@@ -1348,10 +1349,9 @@ init_pd(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pd_base, CDL_ObjID pd)
         uintptr_t base = pd_base + (obj_slot << (PT_SIZE + FRAME_SIZE));
         CDL_Cap *pt_cap = CDL_CapSlot_Cap(slot);
         CDL_ObjID pt_obj = CDL_Cap_ObjID(pt_cap);
-        seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(pt_cap);
         if (CDL_Cap_Type(pt_cap) == CDL_FrameCap) {
             seL4_CapRights frame_rights = CDL_Cap_Rights(pt_cap);
-            map_page(spec, pt_cap, pml4, frame_rights, base, vm_attribs);
+            map_page(spec, pt_cap, pml4, frame_rights, base);
         } else {
             seL4_X86_PageTable_Map(orig_caps(pt_obj), orig_caps(pml4), base, vm_attribs);
             init_pt(spec, pml4, base, pt_obj);
@@ -1368,10 +1368,9 @@ init_pdpt(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pdpt_base, CDL_ObjID pdpt)
         uintptr_t base = pdpt_base + (obj_slot << (PD_SIZE + PT_SIZE + FRAME_SIZE));
         CDL_Cap *pd_cap = CDL_CapSlot_Cap(slot);
         CDL_ObjID pd_obj = CDL_Cap_ObjID(pd_cap);
-        seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(pd_cap);
         if (CDL_Cap_Type(pd_cap) == CDL_FrameCap) {
             seL4_CapRights frame_rights = CDL_Cap_Rights(pd_cap);
-            map_page(spec, pd_cap, pml4, frame_rights, base, vm_attribs);
+            map_page(spec, pd_cap, pml4, frame_rights, base);
         } else {
             seL4_X86_PageDirectory_Map(orig_caps(pd_obj), orig_caps(pml4), base, vm_attribs);
             init_pd(spec, pml4, base, pd_obj);
@@ -1404,9 +1403,8 @@ map_page_directory_slot(CDL_Model *spec UNUSED, CDL_ObjID pd, CDL_CapSlot *pd_sl
 
     seL4_Word page_vaddr = CDL_CapSlot_Slot(pd_slot) << (PT_SIZE + FRAME_SIZE);
     seL4_CapRights page_rights = CDL_Cap_Rights(page_cap);
-    seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(page_cap);
 
-    map_page(spec, page_cap, pd, page_rights, page_vaddr, vm_attribs);
+    map_page(spec, page_cap, pd, page_rights, page_vaddr);
 }
 
 static void
@@ -1431,9 +1429,8 @@ map_page_table_slot(CDL_Model *spec UNUSED, CDL_ObjID pd, CDL_ObjID pt UNUSED,
 
     seL4_Word page_vaddr = pt_vaddr + (CDL_CapSlot_Slot(pt_slot) << FRAME_SIZE);
     seL4_CapRights page_rights = CDL_Cap_Rights(page_cap);
-    seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(page_cap);
 
-    map_page(spec, page_cap, pd, page_rights, page_vaddr, vm_attribs);
+    map_page(spec, page_cap, pd, page_rights, page_vaddr);
 }
 
 static void
