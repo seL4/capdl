@@ -1517,16 +1517,16 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
      * use the CDT, and when to just copy. For now, let's just copy.
      */
 #if defined(CONFIG_CAPDL_LOADER_VERIFIED)
-    int move_cap = CDL_Cap_IsOrig(target_cap);
+    bool move_cap = CDL_Cap_IsOrig(target_cap);
 #else
-    int move_cap = false; //FIXME
+    bool move_cap = false; //FIXME
 #endif
-    int is_ep_cap = (target_cap_type == CDL_EPCap || target_cap_type == CDL_NotificationCap);
-    int is_irq_handler_cap = (target_cap_type == CDL_IRQHandlerCap);
-    int is_frame_cap = (target_cap_type == CDL_FrameCap);
+    bool is_ep_cap = (target_cap_type == CDL_EPCap || target_cap_type == CDL_NotificationCap);
+    bool is_irq_handler_cap = (target_cap_type == CDL_IRQHandlerCap);
+    bool is_frame_cap = (target_cap_type == CDL_FrameCap);
 #if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(CONFIG_ARCH_X86)
-    int is_ioport_cap = (target_cap_type == CDL_IOPortsCap);
-    int is_iospace_cap = (target_cap_type == CDL_IOSpaceCap);
+    bool is_ioport_cap = (target_cap_type == CDL_IOPortsCap);
+    bool is_iospace_cap = (target_cap_type == CDL_IOSpaceCap);
 #endif
 
     CDL_Object *dest_obj = get_spec_object(spec, cnode_id);
