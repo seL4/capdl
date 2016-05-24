@@ -1322,6 +1322,8 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
             seL4_AssertSuccess(error);
         }
 #endif
+    } else {
+        die("attempt to map something that is not a frame or PT");
     }
 }
 
