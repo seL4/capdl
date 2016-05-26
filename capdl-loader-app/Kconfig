@@ -14,15 +14,6 @@ menuconfig MODULE_CAPDL_LOADER
     help
         Build the CapDL loader application
 
-
-
-config CAPDL_LOADER_VERIFIED
-    bool "Is the verfied branch of the capDL loader"
-    default n
-    depends on MODULE_CAPDL_LOADER
-    help
-        This comments out all the parts of the capDL loader I don't want to verify.
-
 choice
     prompt "Calling convention"
     depends on MODULE_CAPDL_LOADER

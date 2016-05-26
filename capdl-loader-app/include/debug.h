@@ -18,7 +18,6 @@
 
 #include "capdl.h"
 
-#ifndef CONFIG_CAPDL_LOADER_VERIFIED
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,12 +34,5 @@
         die("%s:%d: %s", __FUNCTION__, __LINE__, sel4_errlist[__error]); \
     } \
 } while (0)
-
-#else  /* CONFIG_CAPDL_LOADER_VERIFIED */
-
-#define die(fmt, args...) do {} while (0)
-#define seL4_AssertSuccess(x) (void) (x)
-
-#endif
 
 #endif
