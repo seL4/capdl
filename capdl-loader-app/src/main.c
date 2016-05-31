@@ -10,20 +10,10 @@
 
 #include <autoconf.h>
 
-#ifdef CONFIG_CAPDL_LOADER_VERIFIED
-#define NDEBUG
-
-#ifdef CONFIG_KERNEL_STABLE
-#error Verified stable kernel configuration is not supported
-#endif
-
-#endif
-
 #include <assert.h>
 #include <inttypes.h>
 #include <limits.h>
 
-#ifndef CONFIG_CAPDL_LOADER_VERIFIED
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -33,7 +23,6 @@
 #ifdef CONFIG_KERNEL_STABLE
 #include <simple-stable/simple-stable.h>
 #endif //CONFIG_KERNEL_STABLE
-#endif //!CONFIG_CAPDL_LOADER_VERIFIED
 
 #include <utils/util.h>
 #include <sel4/sel4.h>
@@ -51,26 +40,22 @@
 #define ANSI_RESET "\033[0m"
 #define ANSI_GREEN   ANSI_RESET "\033[32m"
 
-#if defined(CONFIG_CAPDL_LOADER_VERIFIED) || !defined(CONFIG_CAPDL_LOADER_PRINTF)
+#ifndef CONFIG_CAPDL_LOADER_PRINTF
     #define debug_printf(...) do { } while (0)
 
-#else /* !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(CONFIG_CAPDL_LOADER_PRINTF) */
+#else
     #define debug_printf(args...) printf(args)
 
-#endif /* defined(CONFIG_CAPDL_LOADER_VERIFIED) || !defined(CONFIG_CAPDL_LOADER_PRINTF) */
+#endif
 
-#if !defined(CONFIG_CAPDL_LOADER_VERIFIED)
-    #define CAPDL_SHARED_FRAMES
-#endif /* !defined(CONFIG_CAPDL_LOADER_VERIFIED) */
+#define CAPDL_SHARED_FRAMES
 
 static seL4_CPtr capdl_to_sel4_orig[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 static seL4_CPtr capdl_to_sel4_copy[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 static seL4_CPtr capdl_to_sel4_irq[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 
-#ifndef CONFIG_CAPDL_LOADER_VERIFIED
 // List of untyped cptrs, sorted from largest to smallest.
 static seL4_CPtr untyped_cptrs[CONFIG_MAX_NUM_BOOTINFO_UNTYPED_CAPS];
-#endif
 
 
 static seL4_CPtr free_slot_start, free_slot_end;
@@ -78,7 +63,6 @@ static seL4_CPtr free_slot_start, free_slot_end;
 // Hack for seL4_TCB_WriteRegisters because we can't take the address of local variables.
 static seL4_UserContext global_user_context;
 
-#ifndef CONFIG_CAPDL_LOADER_VERIFIED
 extern char _capdl_archive[];
 
 /* This symbol is provided by the GNU linker and points at the start/end of our
@@ -101,8 +85,6 @@ extern char _end[];
  * a page table ourselves, we use this pre allocated region that
  * is guaranteed to have a pagetable */
 static char copy_addr_with_pt[PAGE_SIZE_4K] __attribute__((aligned(PAGE_SIZE_4K)));
-
-#endif
 
 /* helper functions ---------------------------------------------------------------------------- */
 
@@ -339,8 +321,6 @@ seL4_frame_type(int size)
     }
 }
 
-#ifndef CONFIG_CAPDL_LOADER_VERIFIED
-
 void init_copy_frame(seL4_BootInfo *bootinfo)
 {
     /* An original frame will be mapped, backing copy_addr_with_pt. For
@@ -515,13 +495,6 @@ elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
         }
     }
 }
-#endif //!CONFIG_CAPDL_LOADER_VERIFIED
-
-
-/* --------------------------------------------------------------------------------------------- */
-
-
-#ifndef CONFIG_CAPDL_LOADER_VERIFIED
 
 /* Sort the untyped objects from largest to smallest.
  * This ensures that fragmentation is eliminated if the objects
@@ -563,7 +536,6 @@ sort_untypeds(seL4_BootInfo *bootinfo)
     }
 
 }
-#endif //!CONFIG_CAPDL_LOADER_VERIFIED
 
 static void
 parse_bootinfo(seL4_BootInfo *bootinfo)
@@ -573,7 +545,6 @@ parse_bootinfo(seL4_BootInfo *bootinfo)
     free_slot_start = bootinfo->empty.start;
     free_slot_end = bootinfo->empty.end;
 
-#ifndef CONFIG_CAPDL_LOADER_VERIFIED
     /* When using libsel4platsupport for printing support, we end up using some
      * of our free slots during serial port initialisation. Skip over these to
      * avoid failing our own allocations. Note, this value is just hardcoded
@@ -581,7 +552,6 @@ parse_bootinfo(seL4_BootInfo *bootinfo)
      * JIRA: CAMKES-204.
      */
     free_slot_start += 16;
-#endif
 
     /* We need to be able to actual store caps to the maximum number of objects
      * we may be dealing with.
@@ -631,8 +601,6 @@ parse_bootinfo(seL4_BootInfo *bootinfo)
 #endif
 #endif
 }
-
-#ifndef CONFIG_CAPDL_LOADER_VERIFIED
 
 #ifdef CONFIG_KERNEL_STABLE
 static int find_device_frame(void *paddr, int size_bits, seL4_CPtr free_slot, CDL_ObjID obj_id,
@@ -709,8 +677,6 @@ static int find_device_frame(void *paddr, int size_bits, seL4_CPtr free_slot, CD
 }
 #endif
 
-#endif
-
 /* Create objects */
 static int
 retype_untyped(seL4_CPtr free_slot, seL4_CPtr free_untyped,
@@ -747,11 +713,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
         CDL_ObjID obj_id = obj_id_index;
         seL4_CPtr free_slot = free_slot_start + free_slot_index;
 
-#ifdef CONFIG_CAPDL_LOADER_VERIFIED
-        seL4_CPtr untyped_cptr = bootinfo->untyped.start + ut_index;
-#else
         seL4_CPtr untyped_cptr = untyped_cptrs[ut_index];
-#endif
 
         CDL_Object *obj = &spec->objects[obj_id_index];
 
@@ -763,7 +725,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
         debug_printf("Creating object %s in slot %ld, from untyped %lx...\n", CDL_Obj_Name(obj), (long)free_slot, (long)untyped_cptr);
 #endif
 
-#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(CONFIG_ARCH_X86)
+#ifdef CONFIG_ARCH_X86
         if (capdl_obj_type == CDL_IOPorts) {
             seL4_CPtr root = seL4_CapInitThreadCNode;
             int index = seL4_CapIOPort;
@@ -785,7 +747,6 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
             obj_size = CDL_Obj_SizeBits(obj);
             debug_printf(" device frame, paddr = %p, size = %d bits\n", obj->paddr, obj_size);
 
-#ifndef CONFIG_CAPDL_LOADER_VERIFIED
             /* This is a device frame. Look for it in bootinfo. */
             if (find_device_frame(obj->paddr, obj_size, free_slot, obj_id, bootinfo) == 0) {
                 /* We found and added the frame. */
@@ -793,17 +754,12 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
                 free_slot_index++;
                 continue;
             }
-#endif
 
             die("Failed to find device frame at paddr = %p\n", obj->paddr);
         }
 
-#if defined(CONFIG_CAPDL_LOADER_VERIFIED)
-        assert (capdl_obj_type != CDL_ASIDPool);
-#endif
-
         // Never create Interrupt objects here
-#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(CONFIG_ARCH_X86)
+#ifdef CONFIG_ARCH_X86
         if (capdl_obj_type == CDL_Interrupt || capdl_obj_type == CDL_IOPorts || capdl_obj_type == CDL_IODevice || capdl_obj_type == CDL_IOAPICInterrupt || capdl_obj_type == CDL_MSIInterrupt) {
 #else
         if (capdl_obj_type == CDL_Interrupt) {
@@ -819,7 +775,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
             // as seL4 needs different types for different frame sizes.
             if (capdl_obj_type == CDL_Frame) {
                 obj_type = seL4_frame_type (obj_size);
-#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && !defined(CONFIG_KERNEL_STABLE)
+#ifndef CONFIG_KERNEL_STABLE
             } else if (capdl_obj_type == CDL_ASIDPool) {
                 obj_type = CDL_Untyped;
                 obj_size = 12;
@@ -832,7 +788,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
         if (capdl_obj_type == CDL_Untyped && obj->paddr != NULL) {
             debug_printf(" device untyped, paddr = %p, size_bits = %d\n", obj->paddr, obj_size);
 
-#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(CONFIG_KERNEL_STABLE)
+#ifdef CONFIG_KERNEL_STABLE
             /* This is a device untyped. Look for it in bootinfo. */
             if (find_device_untyped(obj->paddr, obj_size, free_slot, obj_id, bootinfo) == seL4_NoError) {
                 /* We found and added the frame. */
@@ -846,7 +802,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
         }
 
         // Create object
-#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(CONFIG_ARCH_X86)
+#ifdef CONFIG_ARCH_X86
         if (capdl_obj_type != CDL_Interrupt && capdl_obj_type != CDL_IOPorts && capdl_obj_type != CDL_IODevice && capdl_obj_type != CDL_IOAPICInterrupt && capdl_obj_type != CDL_MSIInterrupt) {
 #else
         if (capdl_obj_type != CDL_Interrupt) {
@@ -854,7 +810,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
             int err = retype_untyped(free_slot, untyped_cptr, obj_type, obj_size);
 
             if (err == seL4_NoError) {
-#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && !defined(CONFIG_KERNEL_STABLE)
+#ifndef CONFIG_KERNEL_STABLE
                 if (capdl_obj_type == CDL_ASIDPool) {
                     free_slot_index++;
                     seL4_CPtr asid_slot = free_slot_start + free_slot_index;
@@ -1105,9 +1061,6 @@ configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
     reg_args = 4;
 #endif
 
-#ifdef CONFIG_CAPDL_LOADER_VERIFIED
-    assert(argc <= reg_args);
-#else
     if (argc > reg_args) {
 #ifdef CONFIG_CAPDL_LOADER_CC_REGISTERS
         die("TCB %s has more than four arguments, which is not supported using"
@@ -1163,7 +1116,6 @@ configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
         seL4_AssertSuccess(error);
 #endif //CONFIG_CAPDL_LOADER_CC_REGISTERS
     }
-#endif //!CONFIG_CAPDL_LOADER_VERIFIED
 
     seL4_UserContext regs = {
 #if defined(CONFIG_ARCH_ARM)
@@ -1232,7 +1184,6 @@ init_tcbs(CDL_Model *spec)
     }
 }
 
-#ifndef CONFIG_CAPDL_LOADER_VERIFIED
 static void
 init_elf(CDL_Model *spec, CDL_ObjID tcb, seL4_BootInfo *bootinfo)
 {
@@ -1268,7 +1219,6 @@ init_elfs(CDL_Model *spec, seL4_BootInfo *bootinfo)
         }
     }
 }
-#endif //!CONFIG_CAPDL_LOADER_VERIFIED
 
 static void
 init_irq(CDL_Model *spec, CDL_IRQ irq_no)
@@ -1640,15 +1590,11 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
      * This shoud probably become a separate configuration option for when to
      * use the CDT, and when to just copy. For now, let's just copy.
      */
-#if defined(CONFIG_CAPDL_LOADER_VERIFIED)
-    bool move_cap = CDL_Cap_IsOrig(target_cap);
-#else
     bool move_cap = false; //FIXME
-#endif
     bool is_ep_cap = ep_related_cap(target_cap_type);
     bool is_irq_handler_cap = (target_cap_type == CDL_IRQHandlerCap);
     bool is_frame_cap = (target_cap_type == CDL_FrameCap);
-#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(CONFIG_ARCH_X86)
+#ifdef CONFIG_ARCH_X86
     bool is_ioport_cap = (target_cap_type == CDL_IOPortsCap);
     bool is_iospace_cap = (target_cap_type == CDL_IOSpaceCap);
 #endif
@@ -1663,7 +1609,7 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
 
     // Use an original cap to reference the object to copy.
     seL4_CPtr src_root = seL4_CapInitThreadCNode;
-#if !defined(CONFIG_CAPDL_LOADER_VERIFIED) && defined(CONFIG_ARCH_X86)
+#ifdef CONFIG_ARCH_X86
     int src_index;
     if (is_ioport_cap) {
         src_index = seL4_CapIOPort;
@@ -1786,14 +1732,10 @@ init_system(CDL_Model *spec)
 {
     seL4_BootInfo *bootinfo = seL4_GetBootInfo();
 
-#ifndef CONFIG_CAPDL_LOADER_VERIFIED
     init_copy_frame(bootinfo);
-#endif
 
     parse_bootinfo(bootinfo);
-#ifndef CONFIG_CAPDL_LOADER_VERIFIED
     sort_untypeds(bootinfo);
-#endif
 
     create_objects(spec, bootinfo);
     create_irq_caps(spec);
@@ -1801,9 +1743,7 @@ init_system(CDL_Model *spec)
 
     init_irqs(spec);
     init_pd_asids(spec);
-#ifndef CONFIG_CAPDL_LOADER_VERIFIED
     init_elfs(spec, bootinfo);
-#endif
     init_vspace(spec);
     if (config_set(CONFIG_KERNEL_RT)) {
         init_scs(spec);
@@ -1816,10 +1756,8 @@ init_system(CDL_Model *spec)
 int
 main(void)
 {
-#ifndef CONFIG_CAPDL_LOADER_VERIFIED
     /* Allow us to print via seL4_Debug_PutChar. */
     platsupport_serial_setup_bootinfo_failsafe();
-#endif
 
     debug_printf("Starting Loader...\n");
     init_system(&capdl_spec);

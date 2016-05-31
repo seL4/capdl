@@ -99,20 +99,14 @@ typedef enum {
 #define CDL_CapData_Raw   2
 
 typedef struct {
-#ifndef CONFIG_CAPDL_LOADER_VERIFIED
     union {
         struct {
-#endif
-    seL4_Word guard_bits:18; /* guards have an 18-bit value */
-    seL4_Word guard_size:sizeof(seL4_Word) * CHAR_BIT - 18;
-#ifndef CONFIG_CAPDL_LOADER_VERIFIED
+            seL4_Word guard_bits:18; /* guards have an 18-bit value */
+            seL4_Word guard_size:sizeof(seL4_Word) * CHAR_BIT - 18;
         };
-#endif
-    seL4_Word badge;
-    seL4_Word data;
-#ifndef CONFIG_CAPDL_LOADER_VERIFIED
+        seL4_Word badge;
+        seL4_Word data;
     };
-#endif
     unsigned tag:2; /* One of CDL_CapData_* */
 } PACKED CDL_CapData;
 
@@ -240,17 +234,13 @@ typedef struct {
 #endif
 
     CDL_CapMap slots;
-#ifndef CONFIG_CAPDL_LOADER_VERIFIED
     union {
-#endif
         CDL_TCBExtraInfo tcb_extra;
         CDL_SCExtraInfo sc_extra;
         CDL_IOAPICIRQExtraInfo ioapicirq_extra;
         CDL_MSIIRQExtraInfo msiirq_extra;
         void *paddr; /* Physical address; only relevant for frames and untyped objects. */
-#ifndef CONFIG_CAPDL_LOADER_VERIFIED
     };
-#endif
     /* The following member has a more specific type, CDL_ObjectType, but by forcing it into a
      * uint8_t we can reduce the size of this struct.
      */
