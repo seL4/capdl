@@ -245,7 +245,9 @@ typedef struct {
      * uint8_t we can reduce the size of this struct.
      */
     /* CDL_ObjectType */ uint8_t type;
-    uint8_t size_bits;
+    /* The configuration for IO ports on x86 is currently overloaded into the
+     * size_bits parameter. */
+    uint32_t size_bits;
 
 } PACKED CDL_Object;
 
