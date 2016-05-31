@@ -603,7 +603,9 @@ parse_bootinfo(seL4_BootInfo *bootinfo)
     }
 #endif
 
+#if defined(CONFIG_KERNEL_MASTER) || defined(CONFIG_KERNEL_STABLE)
     debug_printf("Loader is running in domain %d\n", bootinfo->initThreadDomain);
+#endif
 
 #if CONFIG_CAPDL_LOADER_PRINT_DEVICE_INFO
 #ifdef CONFIG_KERNEL_STABLE
