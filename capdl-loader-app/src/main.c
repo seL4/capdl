@@ -978,11 +978,6 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
         debug_printf("  Warning: TCB has no scheduling context\n");
     }
 
-    CDL_Cap *cdl_tempfault_ep   = get_cap_at(cdl_tcb, CDL_TCB_TemporalFaultEP_Slot);
-    if (cdl_tempfault_ep == NULL) {
-        debug_printf("  Warning: TCB has no temporal fault endpoint\n");
-    }
-
     seL4_Word ipcbuffer_addr = CDL_TCB_IPCBuffer_Addr(cdl_tcb);
     uint8_t priority = CDL_TCB_Priority(cdl_tcb);
     uint8_t UNUSED max_priority = CDL_TCB_MaxPriority(cdl_tcb);
@@ -994,9 +989,31 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     seL4_CPtr sel4_cspace_root = cdl_cspace_root == NULL ? 0 : orig_caps(CDL_Cap_ObjID(cdl_cspace_root));
     seL4_CPtr sel4_vspace_root = orig_caps(CDL_Cap_ObjID(cdl_vspace_root));
     seL4_CPtr sel4_ipcbuffer   = cdl_ipcbuffer ? orig_caps(CDL_Cap_ObjID(cdl_ipcbuffer)) : 0;
-    seL4_CPtr sel4_fault_ep    = cdl_tcb->tcb_extra.fault_ep;
-    seL4_CPtr UNUSED sel4_sc          = cdl_sc ? orig_caps(CDL_Cap_ObjID(cdl_sc)) : 0;
-    seL4_CPtr UNUSED sel4_tempfault_ep= cdl_tempfault_ep ? orig_caps(CDL_Cap_ObjID(cdl_tempfault_ep)) : 0;
+    seL4_CPtr UNUSED sel4_sc   = cdl_sc ? orig_caps(CDL_Cap_ObjID(cdl_sc)) : 0;
+
+    seL4_CPtr sel4_fault_ep;
+    seL4_CPtr UNUSED sel4_tempfault_ep;
+
+    if (config_set(CONFIG_KERNEL_RT)) {
+        /* Fault ep cptrs are in the caller's cspace */
+
+        CDL_Cap *cdl_fault_ep   = get_cap_at(cdl_tcb, CDL_TCB_FaultEP_Slot);
+        if (cdl_fault_ep == NULL) {
+            debug_printf("  Warning: TCB has no fault endpoint\n");
+        }
+
+        CDL_Cap *cdl_tempfault_ep   = get_cap_at(cdl_tcb, CDL_TCB_TemporalFaultEP_Slot);
+        if (cdl_tempfault_ep == NULL) {
+            debug_printf("  Warning: TCB has no temporal fault endpoint\n");
+        }
+
+        sel4_fault_ep = cdl_fault_ep ? orig_caps(CDL_Cap_ObjID(cdl_fault_ep)) : 0;
+        sel4_tempfault_ep = cdl_tempfault_ep ? orig_caps(CDL_Cap_ObjID(cdl_tempfault_ep)) : 0;
+
+    } else {
+        /* Fault ep cptrs are in the configured thread's cspace */
+        sel4_fault_ep = cdl_tcb->tcb_extra.fault_ep;
+    }
 
     seL4_CapData_t sel4_cspace_root_data = cdl_cspace_root == NULL ? (seL4_CapData_t){{0}} : get_capData(CDL_Cap_Data(cdl_cspace_root));
     seL4_CapData_t sel4_vspace_root_data = get_capData(CDL_Cap_Data(cdl_vspace_root));
