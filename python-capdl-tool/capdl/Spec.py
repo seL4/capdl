@@ -41,9 +41,6 @@ class Spec(object):
         assert isinstance(other, Spec)
         self.objs.update(other)
 
-    def __getitem__(self, key):
-        return self.objs[key]
-
     def __iter__(self):
         return self.objs.__iter__()
 
