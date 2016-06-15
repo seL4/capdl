@@ -526,7 +526,7 @@ sort_untypeds(seL4_BootInfo *bootinfo)
 
     // Store untypeds in untyped_cptrs array.
     for (seL4_Word untyped_index = 0; untyped_index != untyped_end - untyped_start; untyped_index++) {
-        debug_printf("Untyped %3ld (cptr=%lx) is of size %2ld. Placing in slot %ld...\n",
+        debug_printf("Untyped %3ld (cptr=0x%lx) is of size %2ld. Placing in slot %ld...\n",
                      (long)untyped_index, (long)(untyped_start + untyped_index),
                      (long)bootinfo->untypedSizeBitsList[untyped_index],
                      (long)count[bootinfo->untypedSizeBitsList[untyped_index]]);
@@ -1285,8 +1285,6 @@ init_irqs(CDL_Model *spec)
 static void
 set_asid(CDL_Model *spec UNUSED, CDL_ObjID page)
 {
-    debug_printf("(%s)\n", CDL_Obj_Name(&spec->objects[page]));
-
     seL4_CPtr sel4_page = orig_caps(page);
     int error = seL4_ARCH_ASIDPool_Assign(seL4_CapInitThreadASIDPool, sel4_page);
     seL4_AssertSuccess(error);
@@ -1328,7 +1326,7 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
     seL4_CPtr sel4_pd = orig_caps(pd_id);
 
     seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(page_cap);
-    debug_printf("(%s, %s, rights=%x, vaddr=%x, vm_attribs=%x)\n",
+    debug_printf("   Mapping %s into %s with rights=0x%x, vaddr=0x%x, vm_attribs=0x%x\n",
                   CDL_Obj_Name(&spec->objects[page]),
                   CDL_Obj_Name(&spec->objects[pd_id]),
                   rights, vaddr, vm_attribs);
@@ -1481,7 +1479,7 @@ init_pml4(CDL_Model *spec, CDL_ObjID pml4)
 static void
 map_page_directory_slot(CDL_Model *spec UNUSED, CDL_ObjID pd_id, CDL_CapSlot *pd_slot)
 {
-    debug_printf("(%s, %d)\n", CDL_Obj_Name(&spec->objects[pd_id]), pd_slot->slot);
+    debug_printf("  Mapping slot %d in %s\n", pd_slot->slot, CDL_Obj_Name(&spec->objects[pd_id]));
     CDL_Cap *page_cap = CDL_CapSlot_Cap(pd_slot);
 
     seL4_Word page_vaddr = CDL_CapSlot_Slot(pd_slot) << (PT_SIZE + FRAME_SIZE);
@@ -1493,8 +1491,6 @@ map_page_directory_slot(CDL_Model *spec UNUSED, CDL_ObjID pd_id, CDL_CapSlot *pd
 static void
 map_page_directory(CDL_Model *spec, CDL_ObjID pd_id)
 {
-    debug_printf("(%s)\n", CDL_Obj_Name(&spec->objects[pd_id]));
-
     CDL_Object *cdl_pd = get_spec_object(spec, pd_id);
 
     for (unsigned int slot_index = 0; slot_index < CDL_Obj_NumSlots(cdl_pd); slot_index++)
@@ -1505,13 +1501,14 @@ static void
 map_page_table_slot(CDL_Model *spec UNUSED, CDL_ObjID pd, CDL_ObjID pt UNUSED,
                     seL4_Word pt_vaddr, CDL_CapSlot *pt_slot)
 {
-    debug_printf("(%s, %s, 0x%" PRIxPTR ", %d)\n", CDL_Obj_Name(&spec->objects[pd]),
-                                        CDL_Obj_Name(&spec->objects[pt]),
-                                        (uintptr_t)pt_vaddr, pt_slot->slot);
     CDL_Cap *page_cap = CDL_CapSlot_Cap(pt_slot);
 
     seL4_Word page_vaddr = pt_vaddr + (CDL_CapSlot_Slot(pt_slot) << FRAME_SIZE);
     seL4_CapRights page_rights = CDL_Cap_Rights(page_cap);
+
+    debug_printf("  Mapping %s into %s[%d] with rights=0x%x, vaddr=0x%" PRIxPTR "\n",
+        CDL_Obj_Name(&spec->objects[pt]), CDL_Obj_Name(&spec->objects[pd]), pt_slot->slot,
+        page_rights, (uintptr_t)pt_vaddr);
 
     map_page(spec, page_cap, pd, page_rights, page_vaddr);
 }
