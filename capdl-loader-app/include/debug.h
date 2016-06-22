@@ -14,7 +14,7 @@
 #include <autoconf.h>
 
 #include <sel4/types.h>
-#include <sel4utils/sel4_debug.h>
+#include <sel4utils/strerror.h>
 
 #include "capdl.h"
 
