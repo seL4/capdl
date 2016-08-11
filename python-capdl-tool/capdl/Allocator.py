@@ -134,6 +134,9 @@ class ObjectAllocator(object):
         [self._assign_label(label, x) for x in spec.objs]
         self.name_to_object.update({x.name:x for x in spec})
 
+    def __contains__(self, item):
+        return item in self.name_to_object
+
     def __getitem__(self, name):
         return self.name_to_object[name]
 
