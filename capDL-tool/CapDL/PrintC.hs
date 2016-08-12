@@ -63,9 +63,9 @@ showRights :: CapRights -> String
 showRights rights =
     "(" ++ intercalate "|" (["0"] ++ r ++ w ++ g) ++ ")"
     where
-        r = if Read ∈ rights then  ["seL4_CanRead"]  else []
-        w = if Write ∈ rights then ["seL4_CanWrite"] else []
-        g = if Grant ∈ rights then ["seL4_CanGrant"] else []
+        r = if Read ∈ rights then  ["CDL_CanRead"]  else []
+        w = if Write ∈ rights then ["CDL_CanWrite"] else []
+        g = if Grant ∈ rights then ["CDL_CanGrant"] else []
 
 showPorts :: Set Word -> String
 showPorts ports =
@@ -106,12 +106,12 @@ showCap objs (MasterReplyCap id) _ _ _ =
 showCap objs (CNodeCap id guard guard_size) _ is_orig _ =
     "{.type = CDL_CNodeCap, .obj_id = " ++ showObjID objs id ++
     ", .is_orig = " ++ is_orig ++
-    ", .rights = seL4_AllRights, .data = CDL_CapData_MakeGuard(" ++
+    ", .rights = CDL_AllRights, .data = CDL_CapData_MakeGuard(" ++
     show guard_size ++ ", " ++ show guard ++ ")}"
 showCap objs (TCBCap id) _ is_orig _ =
     "{.type = CDL_TCBCap, .obj_id = " ++ showObjID objs id ++
     ", .is_orig = " ++ is_orig ++
-    ", .rights = seL4_AllRights}"
+    ", .rights = CDL_AllRights}"
 showCap _ IRQControlCap _ _ _ = "{.type = CDL_IRQControlCap}"
 showCap _ (IRQHandlerCap id) irqNode is_orig _ =
     "{.type = CDL_IRQHandlerCap, .obj_id = INVALID_OBJ_ID" ++

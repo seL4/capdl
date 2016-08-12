@@ -57,8 +57,16 @@
 
 /* Binary CapDL representation -- capdl.h */
 
-/* CapRights:  Access rights of capabilities */
-typedef seL4_CapRights CDL_CapRights;
+/* CapRights:  Access rights of capabilities
+ * This type is used internally by capDL, and doesn't necessarily
+ * reflect the representation of cap rights in the kernel api.
+ */
+typedef enum {
+    CDL_CanWrite = BIT(0),
+    CDL_CanRead = BIT(1),
+    CDL_CanGrant = BIT(2),
+    CDL_AllRights = (BIT(0) | BIT(1) | BIT(2)),
+} CDL_CapRights;
 
 /* ObjectID: index into the objects array */
 typedef seL4_Word CDL_ObjID;
@@ -288,6 +296,13 @@ static inline CDL_Cap *      CDL_CapSlot_Cap(CDL_CapSlot *cap_slot)       { retu
 
 static inline seL4_Word      CDL_ObjSlot_Slot(CDL_ObjSlot *obj_slot)      { return obj_slot->slot; }
 static inline CDL_ObjID      CDL_ObjSlot_ObjID(CDL_ObjSlot *obj_slot)     { return obj_slot->id; }
+
+/* Returns the sel4utils representation of a CDL_Cap's rights */
+static inline seL4_CapRights_t CDL_seL4_Cap_Rights(CDL_Cap *cap) {
+    return seL4_CapRights_new(!!(cap->rights & CDL_CanGrant),
+                              !!(cap->rights & CDL_CanRead),
+                              !!(cap->rights & CDL_CanWrite));
+}
 
 static inline const char *CDL_Obj_Name(CDL_Object *obj) {
 #ifdef CONFIG_CAPDL_LOADER_PRINTF

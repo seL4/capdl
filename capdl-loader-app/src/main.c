@@ -438,13 +438,13 @@ elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
 #endif
 
             int error = seL4_ARCH_Page_Map(sel4_page, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
-                seL4_CanRead|seL4_CanWrite, attribs);
+                seL4_ReadWrite, attribs);
             if (error == seL4_FailedLookup) {
                 error = seL4_ARCH_PageTable_Map(sel4_page_pt, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
                                            seL4_ARCH_Default_VMAttributes);
                 seL4_AssertSuccess(error);
                 error = seL4_ARCH_Page_Map(sel4_page, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
-                    seL4_CanRead|seL4_CanWrite, attribs);
+                    seL4_ReadWrite, attribs);
             }
             if (error) {
                 /* Try and retrieve some useful information to help the user
@@ -889,7 +889,7 @@ create_irq_caps(CDL_Model *spec)
 static void
 duplicate_cap(CDL_ObjID object_id, int free_slot)
 {
-    seL4_CapRights rights = seL4_AllRights;
+    seL4_CapRights_t rights = seL4_AllRights;
 
     seL4_CPtr dest_root = seL4_CapInitThreadCNode;
     int dest_index = free_slot;
@@ -1109,7 +1109,7 @@ configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
         attribs |= seL4_ARM_ExecuteNever;
 #endif
         int error = seL4_ARCH_Page_Map(frame, seL4_CapInitThreadPD, (seL4_Word)copy_addr_with_pt,
-            seL4_CanRead|seL4_CanWrite, attribs);
+            seL4_ReadWrite, attribs);
         seL4_AssertSuccess(error);
 
         /* Write all necessary arguments to the TCB's stack. */
@@ -1317,7 +1317,7 @@ init_pd_asids(CDL_Model *spec)
 
 static void
 map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
-         seL4_CapRights rights, seL4_Word vaddr)
+         seL4_CapRights_t rights, seL4_Word vaddr)
 {
     CDL_ObjID page = CDL_Cap_ObjID(page_cap);
 
@@ -1326,10 +1326,13 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
     seL4_CPtr sel4_pd = orig_caps(pd_id);
 
     seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(page_cap);
-    debug_printf("   Mapping %s into %s with rights=0x%x, vaddr=0x%x, vm_attribs=0x%x\n",
+    debug_printf("   Mapping %s into %s with rights={G: %d, R: %d, W: %d}, vaddr=0x%x, vm_attribs=0x%x\n",
                   CDL_Obj_Name(&spec->objects[page]),
                   CDL_Obj_Name(&spec->objects[pd_id]),
-                  rights, vaddr, vm_attribs);
+                  seL4_CapRights_get_capAllowGrant(rights),
+                  seL4_CapRights_get_capAllowRead(rights),
+                  seL4_CapRights_get_capAllowWrite(rights),
+                  vaddr, vm_attribs);
 
     if (CDL_Cap_Type(page_cap) == CDL_PTCap) {
         int error = seL4_ARCH_PageTable_Map(sel4_page, sel4_pd, vaddr, vm_attribs);
@@ -1352,12 +1355,12 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
          * kernel-only. This is clearly not what the user intended if they
          * passed us a write-only mapping. Help them out by upgrading it here.
          */
-        if (rights & seL4_CanWrite) {
-            rights |= seL4_CanRead;
+        if (seL4_CapRights_get_capAllowWrite(rights)) {
+            rights = seL4_CapRights_set_capAllowRead(rights, true);
         }
 
 #ifdef CONFIG_ARCH_ARM
-        if (!(rights & seL4_CanGrant)) {
+        if (!seL4_CapRights_get_capAllowGrant(rights)) {
             vm_attribs |= seL4_ARM_ExecuteNever;
         }
 #endif
@@ -1416,7 +1419,7 @@ init_pt(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pt_base, CDL_ObjID pt)
         unsigned long obj_slot = CDL_CapSlot_Slot(slot);
         uintptr_t base = pt_base + (obj_slot << (FRAME_SIZE));
         CDL_Cap *frame_cap = CDL_CapSlot_Cap(slot);
-        seL4_CapRights frame_rights = CDL_Cap_Rights(frame_cap);
+        seL4_CapRights_t frame_rights = CDL_seL4_Cap_Rights(frame_cap);
         map_page(spec, frame_cap, pml4, frame_rights, base);
     }
 }
@@ -1431,7 +1434,7 @@ init_pd(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pd_base, CDL_ObjID pd)
         CDL_Cap *pt_cap = CDL_CapSlot_Cap(slot);
         CDL_ObjID pt_obj = CDL_Cap_ObjID(pt_cap);
         if (CDL_Cap_Type(pt_cap) == CDL_FrameCap) {
-            seL4_CapRights frame_rights = CDL_Cap_Rights(pt_cap);
+            seL4_CapRights_t frame_rights = CDL_seL4_Cap_Rights(pt_cap);
             map_page(spec, pt_cap, pml4, frame_rights, base);
         } else {
             seL4_X86_PageTable_Map(orig_caps(pt_obj), orig_caps(pml4), base, vm_attribs);
@@ -1450,7 +1453,7 @@ init_pdpt(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pdpt_base, CDL_ObjID pdpt)
         CDL_Cap *pd_cap = CDL_CapSlot_Cap(slot);
         CDL_ObjID pd_obj = CDL_Cap_ObjID(pd_cap);
         if (CDL_Cap_Type(pd_cap) == CDL_FrameCap) {
-            seL4_CapRights frame_rights = CDL_Cap_Rights(pd_cap);
+            seL4_CapRights_t frame_rights = CDL_seL4_Cap_Rights(pd_cap);
             map_page(spec, pd_cap, pml4, frame_rights, base);
         } else {
             seL4_X86_PageDirectory_Map(orig_caps(pd_obj), orig_caps(pml4), base, vm_attribs);
@@ -1483,7 +1486,7 @@ map_page_directory_slot(CDL_Model *spec UNUSED, CDL_ObjID pd_id, CDL_CapSlot *pd
     CDL_Cap *page_cap = CDL_CapSlot_Cap(pd_slot);
 
     seL4_Word page_vaddr = CDL_CapSlot_Slot(pd_slot) << (PT_SIZE + FRAME_SIZE);
-    seL4_CapRights page_rights = CDL_Cap_Rights(page_cap);
+    seL4_CapRights_t page_rights = CDL_seL4_Cap_Rights(page_cap);
 
     map_page(spec, page_cap, pd_id, page_rights, page_vaddr);
 }
@@ -1504,11 +1507,14 @@ map_page_table_slot(CDL_Model *spec UNUSED, CDL_ObjID pd, CDL_ObjID pt UNUSED,
     CDL_Cap *page_cap = CDL_CapSlot_Cap(pt_slot);
 
     seL4_Word page_vaddr = pt_vaddr + (CDL_CapSlot_Slot(pt_slot) << FRAME_SIZE);
-    seL4_CapRights page_rights = CDL_Cap_Rights(page_cap);
+    seL4_CapRights_t page_rights = CDL_seL4_Cap_Rights(page_cap);
 
-    debug_printf("  Mapping %s into %s[%d] with rights=0x%x, vaddr=0x%" PRIxPTR "\n",
+    debug_printf("  Mapping %s into %s[%d] with rights={G: %d, R: %d, W: %d}, vaddr=0x%" PRIxPTR "\n",
         CDL_Obj_Name(&spec->objects[pt]), CDL_Obj_Name(&spec->objects[pd]), pt_slot->slot,
-        page_rights, (uintptr_t)pt_vaddr);
+        seL4_CapRights_get_capAllowGrant(page_rights),
+        seL4_CapRights_get_capAllowRead(page_rights),
+        seL4_CapRights_get_capAllowWrite(page_rights),
+        (uintptr_t)pt_vaddr);
 
     map_page(spec, page_cap, pd, page_rights, page_vaddr);
 }
@@ -1595,7 +1601,7 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
     CDL_IRQ target_cap_irq = CDL_Cap_IRQ(target_cap);
 
     CDL_CapType target_cap_type = CDL_Cap_Type(target_cap);
-    seL4_CapRights target_cap_rights = CDL_Cap_Rights(target_cap);
+    seL4_CapRights_t target_cap_rights = CDL_seL4_Cap_Rights(target_cap);
 
     // For endpoint this is the badge, for cnodes, this is the (encoded) guard.
     seL4_CapData_t target_cap_data = get_capData(CDL_Cap_Data(target_cap));
