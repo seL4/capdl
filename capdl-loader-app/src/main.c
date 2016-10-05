@@ -577,10 +577,11 @@ parse_bootinfo(seL4_BootInfo *bootinfo)
     int num_untyped = bootinfo->untyped.end - bootinfo->untyped.start;
     debug_printf("  Untyped memory (%d)\n", num_untyped);
     for (int i = 0; i < num_untyped; i++) {
-        uintptr_t ut_paddr = bootinfo->untypedPaddrList[i];
-        uintptr_t ut_size = bootinfo->untypedSizeBitsList[i];
-        debug_printf("    0x%016" PRIxPTR " - 0x%016" PRIxPTR "\n", ut_paddr,
-            ut_paddr + (1 << ut_size));
+        uintptr_t ut_paddr = bootinfo->untypedList[i].paddr;
+        uintptr_t ut_size = bootinfo->untypedList[i].sizeBits;
+        bool ut_isDevice = bootinfo->untypedList[i].isDevice;
+        debug_printf("    0x%016" PRIxPTR " - 0x%016" PRIxPTR " (%s)\n", ut_paddr,
+            ut_paddr + (1 << ut_size), ut_isDevice ? "device" : "memory");
     }
 #endif
 
@@ -598,16 +599,6 @@ parse_bootinfo(seL4_BootInfo *bootinfo)
         uintptr_t ut_size = bootinfo->untypedSizeBitsList[i + offset];
         debug_printf("    0x%016" PRIxPTR " - 0x%016" PRIxPTR "\n", ut_paddr,
             ut_paddr + (1 << ut_size));
-    }
-#else
-    debug_printf("  Device memory (%d)\n", bootinfo->numDeviceRegions);
-    for (unsigned int i = 0; i < bootinfo->numDeviceRegions; i++) {
-        void *paddr = (void*)bootinfo->deviceRegions[i].basePaddr;
-        int size = bootinfo->deviceRegions[i].frameSizeBits;
-        int frames = bootinfo->deviceRegions[i].frames.end
-        - bootinfo->deviceRegions[i].frames.start;
-        debug_printf("    %p - %p (%d %d-bit frames)\n",
-                     paddr, paddr + BIT(size) * frames, frames, size);
     }
 #endif
 #endif
