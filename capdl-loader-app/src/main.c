@@ -1078,7 +1078,7 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
                                sel4_vspace_root, sel4_vspace_root_data,
                                ipcbuffer_addr, sel4_ipcbuffer);
 #else
-    error = seL4_TCB_Configure(sel4_tcb, sel4_fault_ep, priority,
+    error = seL4_TCB_Configure(sel4_tcb, sel4_fault_ep, seL4_PrioProps_new(priority, priority),
                                sel4_cspace_root, sel4_cspace_root_data,
                                sel4_vspace_root, sel4_vspace_root_data,
                                ipcbuffer_addr, sel4_ipcbuffer);
