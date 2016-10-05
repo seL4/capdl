@@ -302,13 +302,13 @@ seL4_frame_type(int size)
 {
     switch (size) {
 #ifdef CONFIG_ARCH_ARM
-        case 12:
+        case seL4_PageBits:
             return seL4_ARM_SmallPageObject;
-        case 16:
+        case seL4_LargePageBits:
             return seL4_ARM_LargePageObject;
-        case 20:
+        case seL4_SectionBits:
             return seL4_ARM_SectionObject;
-        case 24:
+        case seL4_SuperSectionBits:
             return seL4_ARM_SuperSectionObject;
 #elif defined(CONFIG_ARCH_X86)
         case seL4_PageBits:
