@@ -606,7 +606,7 @@ parse_bootinfo(seL4_BootInfo *bootinfo)
 
 #ifdef CONFIG_KERNEL_STABLE
 static int find_device_frame(void *paddr, int size_bits, seL4_CPtr free_slot, CDL_ObjID obj_id,
-        seL4_BootInfo *bootinfo) {
+        seL4_BootInfo *bootinfo, CDL_Model *spec) {
     /* Construct a path with assumptions on a 1 level cspace as seL4 construct for a rootserver */
     cspacepath_t path = {
         .capPtr = free_slot,
@@ -622,7 +622,7 @@ static int find_device_frame(void *paddr, int size_bits, seL4_CPtr free_slot, CD
     add_sel4_cap(obj_id, ORIG, free_slot);
     return 0;
 }
-static int find_device_untyped(void *paddr, int obj_size, seL4_CPtr free_slot, CDL_ObjID obj_id, seL4_BootInfo *bootinfo) {
+static int find_device_untyped(void *paddr, int obj_size, seL4_CPtr free_slot, CDL_ObjID obj_id, seL4_BootInfo *bootinfo, CDL_Model *spec) {
     seL4_CPtr untyped;
     seL4_Word offset;
     int error;
@@ -640,10 +640,27 @@ static int find_device_untyped(void *paddr, int obj_size, seL4_CPtr free_slot, C
 }
 #else
 static int find_device_object(void *paddr, seL4_Word type, int size_bits, seL4_CPtr free_slot,
-        CDL_ObjID obj_id, seL4_BootInfo *bootinfo) {
-    /* Assume we are allocating from a device untyped. Do a linear search for it */
+        CDL_ObjID obj_id, seL4_BootInfo *bootinfo, CDL_Model *spec) {
     int error;
     seL4_CPtr hold_slot = 0;
+    /* See if an overlapping object was already created, can only do this for frames.
+     * Any overlapping object will be the previous one, since objects are created in
+     * order of physical address */
+    if (type != seL4_UntypedObject && obj_id > 0) {
+        CDL_ObjID prev = obj_id - 1;
+        CDL_Object *obj = &spec->objects[prev];
+        if (CDL_Obj_Type(obj) == CDL_Frame &&
+                obj->paddr == paddr &&
+                CDL_Obj_SizeBits(obj) == size_bits) {
+            /* Attempt to copy the cap */
+            error = seL4_CNode_Copy(seL4_CapInitThreadCNode, free_slot, CONFIG_WORD_SIZE,
+                                    seL4_CapInitThreadCNode, orig_caps(prev), CONFIG_WORD_SIZE, seL4_AllRights);
+            seL4_AssertSuccess(error);
+            add_sel4_cap(obj_id, ORIG, free_slot);
+            return 0;
+        }
+    }
+    /* Assume we are allocating from a device untyped. Do a linear search for it */
     for (unsigned int i = 0; i < bootinfo->untyped.end - bootinfo->untyped.start; i++) {
         if (bootinfo->untypedList[i].paddr <= (uintptr_t)paddr &&
             bootinfo->untypedList[i].paddr + BIT(bootinfo->untypedList[i].sizeBits) >= (uintptr_t)paddr + BIT(size_bits)) {
@@ -708,13 +725,13 @@ static int find_device_object(void *paddr, seL4_Word type, int size_bits, seL4_C
 }
 
 static int find_device_frame(void *paddr, int size_bits, seL4_CPtr free_slot, CDL_ObjID obj_id,
-        seL4_BootInfo *bootinfo) {
-    return find_device_object(paddr, seL4_frame_type(size_bits), size_bits, free_slot, obj_id, bootinfo);
+        seL4_BootInfo *bootinfo, CDL_Model *spec) {
+    return find_device_object(paddr, seL4_frame_type(size_bits), size_bits, free_slot, obj_id, bootinfo, spec);
 }
 
 static int find_device_untyped(void *paddr, int size_bits, seL4_CPtr free_slot, CDL_ObjID obj_id,
-        seL4_BootInfo *bootinfo) {
-    return find_device_object(paddr, seL4_UntypedObject, size_bits, free_slot, obj_id, bootinfo);
+        seL4_BootInfo *bootinfo, CDL_Model *spec) {
+    return find_device_object(paddr, seL4_UntypedObject, size_bits, free_slot, obj_id, bootinfo, spec);
 }
 #endif
 
@@ -789,7 +806,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
             debug_printf(" device frame, paddr = %p, size = %d bits\n", obj->paddr, obj_size);
 
             /* This is a device frame. Look for it in bootinfo. */
-            if (find_device_frame(obj->paddr, obj_size, free_slot, obj_id, bootinfo) == 0) {
+            if (find_device_frame(obj->paddr, obj_size, free_slot, obj_id, bootinfo, spec) == 0) {
                 /* We found and added the frame. */
                 obj_id_index++;
                 free_slot_index++;
@@ -830,7 +847,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
             debug_printf(" device untyped, paddr = %p, size_bits = %d\n", obj->paddr, obj_size);
 
             /* This is a device untyped. Look for it in bootinfo. */
-            if (find_device_untyped(obj->paddr, obj_size, free_slot, obj_id, bootinfo) == seL4_NoError) {
+            if (find_device_untyped(obj->paddr, obj_size, free_slot, obj_id, bootinfo, spec) == seL4_NoError) {
                 /* We found and added the frame. */
                 obj_id_index++;
                 free_slot_index++;
