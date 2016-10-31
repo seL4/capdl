@@ -33,21 +33,16 @@ endif
 	which xmllint && xmllint --noout --dtdvalid ./capdl.dtd $*.xml
 
 .PHONY: sandbox
-sandbox:
-	cabal sandbox init
-	cabal install --dependencies-only
+sandbox: stack.yaml capDL-tool.cabal
+	stack setup
+	stack build --only-dependencies
 
-.PHONY: userdeps
-userdeps:
-	cabal install --user --dependencies-only
-
-$(TARGET): capDL-tool.cabal Setup.hs Main.hs CapDL/*.hs
-	export CONFIG_CAPDL_LOADER_MAX_IRQS=$(CONFIG_CAPDL_LOADER_MAX_IRQS) && cabal configure && cabal build && \
-	cp dist/build/parse-capDL/parse-capDL .
+$(TARGET): stack.yaml capDL-tool.cabal Setup.hs Main.hs CapDL/*.hs
+	CONFIG_CAPDL_LOADER_MAX_IRQS=$(CONFIG_CAPDL_LOADER_MAX_IRQS) stack build
+	stack install
 
 .PHONY: clean
 clean:
-	cabal clean
 	rm -f $(TARGET)
 
 .PHONY: testclean
