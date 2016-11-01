@@ -39,6 +39,9 @@ sandbox: stack.yaml capDL-tool.cabal
 
 $(TARGET): stack.yaml capDL-tool.cabal Setup.hs Main.hs CapDL/*.hs
 	CONFIG_CAPDL_LOADER_MAX_IRQS=$(CONFIG_CAPDL_LOADER_MAX_IRQS) stack build
+
+.PHONY: install
+install: $(TARGET)
 	stack install
 
 .PHONY: clean
