@@ -24,22 +24,27 @@ Repository overview
 Dependencies
 -------------
 
-[Cabal][1] should automatically retrieve all necessary Haskell dependencies to
+[Stack][1] should automatically retrieve all necessary Haskell dependencies to
 build this tool, but if you need exact dependency information it is available
-in [`capDL-tool.cabal`](capDL-tool.cabal).
+in [`capDL-tool.cabal`](capDL-tool.cabal) and [`stack.yaml`](stack.yaml).
 
-  [1]: https://www.haskell.org/cabal/
+  [1]: https://haskellstack.org
 
-You can install cabal package dependencies either in a sandbox in the build
-directory or in the current user's home.
-
-To install cabal dependencies in a sandbox run
+To install all dependencies of this tool (including the haskell compiler if an
+appropriate version of GHC isn't found), run
 
     make sandbox
 
-To install cabal dependencies in the user's home run
+This will install GHC in "~/.stack" (if it isn't already installed there), and
+install all libraries in the local directory ".stack-work".
 
-    make userdeps
+To build this tool, run
+
+    make
+
+To place the capdl binary in the top level directory of this project, run
+
+    make install
 
 
 Related papers
