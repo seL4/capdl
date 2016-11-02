@@ -124,6 +124,7 @@ sizeOf _ (Obj Notification_T _ _) = 16
 sizeOf _ (Obj ASIDPool_T _ _) = 4 * 2^10
 sizeOf _ (Obj IOPT_T _ _) = 4 * 2^10
 sizeOf _ (Obj IODevice_T _ _) = 1
+sizeOf _ (Obj ARMIODevice_T _ _) = 1
 sizeOf IA32 (Obj TCB_T _ _) = 2^10
 sizeOf IA32 (Obj PD_T _ _) = 4 * 2^10
 sizeOf IA32 (Obj PT_T _ _) = 4 * 2^10

@@ -168,6 +168,11 @@ showCap objs (IOSpaceCap id) _ is_orig ms =
     ", .data = { .tag = CDL_CapData_Raw, .data = " ++ showPCI dom pci ++ "}}"
     where pci = pciDevice $ fromJust $ Map.lookup id ms
           dom = domainID $ fromJust $ Map.lookup id ms
+showCap objs (ARMIOSpaceCap id) _ is_orig ms =
+    "{.type = CDL_ARMIOSpaceCap, .obj_id = " ++ showObjID objs id ++
+    ", .is_orig = " ++ is_orig ++
+    ", .data = { .tag = CDL_CapData_Raw, .data = " ++ show iospace ++ "}}"
+    where iospace = armiospace $ fromJust $ Map.lookup id ms
 showCap objs (VCPUCap id) _ _ _ = "{.type = CDL_VCPUCap, .obj_id = " ++ showObjID objs id ++ "}"
 showCap _ SchedControlCap _ _ _ =
     "{.type = CDL_SchedControlCap}"
@@ -293,6 +298,8 @@ showObjectFields objs obj_id (ASIDPool slots) _ _ _ =
     memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
 showObjectFields _ _ (IODevice _ _ _) _ _ _ =
     ".type = CDL_IODevice,"
+showObjectFields _ _ (ARMIODevice _ _) _ _ _ =
+    ".type = CDL_ARMIODevice,"
 showObjectFields _ _ VCPU _ _ _ = ".type = CDL_VCPU,"
 showObjectFields _ _ (SC info) _ _ _ =
     ".type = CDL_SchedContext," +++
@@ -348,6 +355,7 @@ sizeOf ARM11 TCB {} = 512
 sizeOf ARM11 PD {} = 16 * 2^10
 sizeOf ARM11 PT {} = 2^10
 sizeOf ARM11 SC {} = 60
+sizeOf ARM11 ARMIODevice {} = 1
 sizeOf X86_64 TCB {} = 2^10
 sizeOf X86_64 PT {} = 4 * 2^10
 sizeOf X86_64 PD {} = 4 * 2^10

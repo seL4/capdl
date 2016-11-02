@@ -52,6 +52,8 @@ seL4_ASID_Pool = 31
 seL4_SchedContextObject = 32
 seL4_SchedControlObject = 33
 
+seL4_ARM_IOSpace = 34
+
 seL4_CanRead = 1
 seL4_CanWrite = 2
 seL4_CanGrant = 4
@@ -251,6 +253,14 @@ class IODevice(Object):
 
     def __repr__(self):
         return '%s = io_device (domainID: %d, 0x%x:%d.%d)' % (self.name, self.domainID, self.bus, self.dev, self.fun)
+
+class  ARMIODevice(Object):
+    def __init__(self, name, iospace):
+        super(ARMIODevice, self).__init__(name)
+        self.iospace = iospace
+
+    def __repr__(self):
+        return '%s = arm_io_device (iospace: %d)' % (self.name, self.iospace)
 
 class IOPageTable(ContainerObject):
     def __init__(self, name, level=1):

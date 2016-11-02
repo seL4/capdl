@@ -176,6 +176,9 @@ prettyMSIPCIDev dev = text "msi_pci_dev:" <+> (text $ show dev)
 prettyMSIPCIFun :: Word -> Doc
 prettyMSIPCIFun fun = text "msi_pci_fun:" <+> (text $ show fun)
 
+prettyARMIODevice :: Word -> Doc
+prettyARMIODevice iospace = text "iospace:" <+> (text $ show iospace)
+
 prettyObjParams obj = case obj of
     Endpoint -> text "ep"
     Notification -> text "notification"
@@ -196,6 +199,7 @@ prettyObjParams obj = case obj of
     IOPorts size -> text "io_ports" <+> maybeParensList [prettyPortsSize size]
     IODevice _ dom pci -> text "io_device" <+> maybeParensList [prettyDomainID dom,
                                                                 prettyPCIDevice pci]
+    ARMIODevice _ iospace -> text "io_device" <+> maybeParensList [prettyARMIODevice iospace]
     VCPU {} -> text "vcpu"
     SC extra -> text "sc" <+> maybeParensList [prettySCExtraInfo extra]
     IOAPICIrq _ ioapic pin level polarity -> text "ioapic_irq" <+> maybeParensList[prettyIOAPICNum ioapic, prettyIOAPICPin pin, prettyIOAPICLevel level, prettyIOAPICPolarity polarity]

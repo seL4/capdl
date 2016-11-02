@@ -60,6 +60,8 @@ static seL4_CPtr untyped_cptrs[CONFIG_MAX_NUM_BOOTINFO_UNTYPED_CAPS];
 
 static seL4_CPtr free_slot_start, free_slot_end;
 
+static seL4_CPtr first_arm_iospace;
+
 // Hack for seL4_TCB_WriteRegisters because we can't take the address of local variables.
 static seL4_UserContext global_user_context;
 
@@ -602,6 +604,8 @@ parse_bootinfo(seL4_BootInfo *bootinfo)
     }
 #endif
 #endif
+
+    first_arm_iospace = bootinfo->ioSpaceCaps.start;
 }
 
 #ifdef CONFIG_KERNEL_STABLE
@@ -820,7 +824,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
 #ifdef CONFIG_ARCH_X86
         if (capdl_obj_type == CDL_Interrupt || capdl_obj_type == CDL_IOPorts || capdl_obj_type == CDL_IODevice || capdl_obj_type == CDL_IOAPICInterrupt || capdl_obj_type == CDL_MSIInterrupt) {
 #else
-        if (capdl_obj_type == CDL_Interrupt) {
+        if (capdl_obj_type == CDL_Interrupt || capdl_obj_type == CDL_ARMIODevice) {
 #endif
             obj_id_index++;
         } else {
@@ -861,7 +865,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
 #ifdef CONFIG_ARCH_X86
         if (capdl_obj_type != CDL_Interrupt && capdl_obj_type != CDL_IOPorts && capdl_obj_type != CDL_IODevice && capdl_obj_type != CDL_IOAPICInterrupt && capdl_obj_type != CDL_MSIInterrupt) {
 #else
-        if (capdl_obj_type != CDL_Interrupt) {
+        if (capdl_obj_type != CDL_Interrupt && capdl_obj_type != CDL_ARMIODevice) {
 #endif
             int err = retype_untyped(free_slot, untyped_cptr, obj_type, obj_size);
 
@@ -1674,6 +1678,9 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
     bool is_ioport_cap = (target_cap_type == CDL_IOPortsCap);
     bool is_iospace_cap = (target_cap_type == CDL_IOSpaceCap);
 #endif
+#ifdef CONFIG_ARCH_ARM
+    bool is_iospace_cap = (target_cap_type == CDL_ARMIOSpaceCap);
+#endif
 
     CDL_Object *dest_obj = get_spec_object(spec, cnode_id);
     uint8_t dest_size = CDL_Obj_SizeBits(dest_obj);
@@ -1685,20 +1692,24 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
 
     // Use an original cap to reference the object to copy.
     seL4_CPtr src_root = seL4_CapInitThreadCNode;
-#ifdef CONFIG_ARCH_X86
     int src_index;
+#ifdef CONFIG_ARCH_X86
     if (is_ioport_cap) {
         src_index = seL4_CapIOPort;
     } else if (is_iospace_cap) {
         src_index = seL4_CapIOSpace;
-    } else if (is_irq_handler_cap) {
+    }
+#elif defined(CONFIG_ARCH_ARM)
+    if (is_iospace_cap) {
+        src_index = first_arm_iospace + target_cap_data.words[0];
+        target_cap_data = (seL4_CapData_t){0};
+    }
+#endif
+    else if (is_irq_handler_cap) {
         src_index = irq_caps(target_cap_irq);
     } else {
         src_index = orig_caps(target_cap_obj);
     }
-#else
-    int src_index = is_irq_handler_cap ? irq_caps(target_cap_irq) : orig_caps(target_cap_obj);
-#endif
 
     uint8_t src_depth = CONFIG_WORD_SIZE;
 

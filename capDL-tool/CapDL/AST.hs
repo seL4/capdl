@@ -105,6 +105,8 @@ data ObjParam =
       arguments :: [Word] }
   | DomainID {
       domainID :: Word }
+  | ARMIOSpace {
+      armiospace :: Word }
   | PCIDevice {
       pciDevice :: (Word, Word, Word) }
   | Dom {

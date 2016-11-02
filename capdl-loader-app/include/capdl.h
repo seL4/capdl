@@ -98,6 +98,9 @@ typedef enum {
     CDL_IOPortsCap,
     CDL_IOSpaceCap,
 #endif
+#if defined(CONFIG_ARCH_ARM)
+    CDL_ARMIOSpaceCap,
+#endif
     CDL_SCCap,
     CDL_SchedControlCap,
 } CDL_CapType;
@@ -197,6 +200,9 @@ typedef enum {
 #if defined(CONFIG_ARCH_X86)
     CDL_IOAPICInterrupt = seL4_ObjectTypeCount + 6,
     CDL_MSIInterrupt = seL4_ObjectTypeCount + 7,
+#endif
+#if defined(CONFIG_ARCH_ARM)
+    CDL_ARMIODevice   = seL4_ObjectTypeCount + 8,
 #endif
 } CDL_ObjectType;
 

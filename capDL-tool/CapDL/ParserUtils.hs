@@ -129,6 +129,7 @@ object_type =
     <|> keyw "frame" Frame_T
     <|> keyw "io_ports" IOPorts_T
     <|> keyw "io_device" IODevice_T
+    <|> keyw "arm_io_device" ARMIODevice_T
     <|> keyw "io_pt" IOPT_T
     <|> keyw "vcpu" VCPU_T
     <|> keyw "sc" SC_T
@@ -275,6 +276,13 @@ pci_device = do
     pci_fun <- number
     return $ PCIDevice (pci_bus, pci_dev, pci_fun)
 
+arm_iospace :: MapParser ObjParam
+arm_iospace = do
+    reserved "iospace"
+    colon
+    iospace <- number
+    return $ ARMIOSpace iospace
+
 sc_period :: MapParser SCExtraParam
 sc_period = do
     reserved "period"
@@ -388,6 +396,7 @@ object_param =
     <|> obj_paddr
     <|> domain_id
     <|> pci_device
+    <|> arm_iospace
     <|> sc_extra_param
     <|> ioapic_irq_extra_param
     <|> msi_irq_extra_param

@@ -106,6 +106,9 @@ data Cap
             capObj :: ObjID,
             capAsid :: Asid }
 
+        -- ARM specific caps
+        | ARMIOSpaceCap { capObj :: ObjID }
+
         -- X86 specific caps
         | IOPortsCap {
             capObj :: ObjID,
@@ -176,6 +179,11 @@ data KernelObject a
         vmSizeBits :: Word,
         maybePaddr :: Maybe Word }
 
+-- ARM specific objects
+    | ARMIODevice {
+        slots  :: CapMap a,
+        armiospace :: Word}
+
 -- X86 specific objects
     | IOPorts { size :: Word } -- only one in the system
     | IODevice {
@@ -218,6 +226,7 @@ data KOType
     | Frame_T
     | IOPorts_T
     | IODevice_T
+    | ARMIODevice_T
     | IOPT_T
     | VCPU_T
     | SC_T
@@ -367,6 +376,7 @@ hasSlots (PD {})        = True
 hasSlots (PDPT {})      = True
 hasSlots (PML4 {})      = True
 hasSlots (IODevice {})  = True
+hasSlots (ARMIODevice {}) = True
 hasSlots (IOPT {})      = True
 hasSlots (IOAPICIrq {}) = True
 hasSlots (MSIIrq {})    = True

@@ -356,6 +356,11 @@ getPCIDevice n [] = error ("Needs pciDevice parameter: " ++ n)
 getPCIDevice _ (PCIDevice x : _) = x
 getPCIDevice n (_ : xs) = getPCIDevice n xs
 
+getARMIODevice :: Name -> [ObjParam] -> Word
+getARMIODevice n [] = error ("Needs iospace parameter: " ++ n)
+getARMIODevice _ (ARMIOSpace x : _) = x
+getARMIODevice n (_ : xs) = getARMIODevice n xs
+
 orderedSubset :: Eq a => [a] -> [a] -> Bool
 orderedSubset [] _ = True
 orderedSubset _ [] = False
@@ -394,6 +399,7 @@ validObjPars (Obj Frame_T ps []) =
 validObjPars (Obj IOPT_T ps []) = subsetConstrs ps [IOPTLevel undefined]
 validObjPars (Obj IOPorts_T ps []) = subsetConstrs ps [PortsSize undefined]
 validObjPars (Obj IODevice_T ps []) = subsetConstrs ps [DomainID undefined, PCIDevice undefined]
+validObjPars (Obj ARMIODevice_T ps []) = subsetConstrs ps [ARMIOSpace undefined]
 validObjPars (Obj SC_T ps []) =
   subsetConstrs ps (replicate (numConstrs (Addr undefined)) (SCExtraParam undefined))
 validObjPars (Obj IOAPICIrqSlot_T ps []) =
@@ -421,6 +427,7 @@ objectOf n obj =
         Obj IOPT_T ps [] -> IOPT Map.empty (getLevel n ps)
         Obj IOPorts_T ps [] -> IOPorts (getPortsSize ps)
         Obj IODevice_T ps [] -> IODevice Map.empty (getDomainID n ps) (getPCIDevice n ps)
+        Obj ARMIODevice_T ps [] -> ARMIODevice Map.empty (getARMIODevice n ps)
         Obj IrqSlot_T [] [] -> CNode Map.empty 0
         Obj IOAPICIrqSlot_T ps [] -> IOAPICIrq Map.empty (getIOAPICIrqIoapic ps) (getIOAPICIrqPin ps) (getIOAPICIrqLevel ps) (getIOAPICIrqPolarity ps)
         Obj MSIIrqSlot_T ps [] -> MSIIrq Map.empty (getMSIIrqHandle ps) (getMSIIrqPCIBus ps) (getMSIIrqPCIDev ps) (getMSIIrqPCIFun ps)
@@ -612,6 +619,7 @@ objCapOf containerName obj objRef params =
         IOPT {} -> IOPTCap objRef
         IOPorts size -> IOPortsCap objRef (getPorts containerName params size)
         IODevice {} -> IOSpaceCap objRef
+        ARMIODevice  {} -> ARMIOSpaceCap objRef
         VCPU {} -> VCPUCap objRef
         SC {} -> SCCap objRef
         IOAPICIrq {} -> IRQIOAPICHandlerCap objRef
