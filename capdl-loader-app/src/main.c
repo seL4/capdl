@@ -1040,6 +1040,7 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
 
     seL4_Word ipcbuffer_addr = CDL_TCB_IPCBuffer_Addr(cdl_tcb);
     uint8_t priority = CDL_TCB_Priority(cdl_tcb);
+    uint8_t UNUSED affinity = CDL_TCB_Affinity(cdl_tcb);
     uint8_t UNUSED max_priority = CDL_TCB_MaxPriority(cdl_tcb);
     uint8_t UNUSED criticality = CDL_TCB_Criticality(cdl_tcb);
     uint8_t UNUSED max_criticality = CDL_TCB_MaxCriticality(cdl_tcb);
@@ -1094,6 +1095,12 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
                                sel4_cspace_root, sel4_cspace_root_data,
                                sel4_vspace_root, sel4_vspace_root_data,
                                ipcbuffer_addr, sel4_ipcbuffer);
+    seL4_AssertSuccess(error);
+
+#if CONFIG_MAX_NUM_NODES > 1
+    error = seL4_TCB_SetAffinity(sel4_tcb, affinity);
+#endif
+
 #endif
     seL4_AssertSuccess(error);
 

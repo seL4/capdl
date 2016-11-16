@@ -49,6 +49,8 @@ data TCBExtraParam =
       crit :: Integer }
   | MaxCrit {
       max_crit :: Integer }
+  | Affinity {
+      affinity :: Integer }
    deriving (Show, Eq, Ord, Typeable, Data)
 
 data SCExtraParam =

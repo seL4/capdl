@@ -227,6 +227,13 @@ tcb_max_crit = do
     n <- integer
     return $ MaxCrit n
 
+tcb_affinity :: MapParser TCBExtraParam
+tcb_affinity = do
+    reserved "affinity"
+    colon
+    n <- integer
+    return $ Affinity n
+
 tcb_extra_param :: MapParser ObjParam
 tcb_extra_param = do
     param <-   (tcb_addr
@@ -236,7 +243,8 @@ tcb_extra_param = do
             <|> tcb_prio
             <|> tcb_max_prio
             <|> tcb_crit
-            <|> tcb_max_crit)
+            <|> tcb_max_crit
+            <|> tcb_affinity)
     return $ TCBExtraParam param
 
 tcb_dom :: MapParser ObjParam
