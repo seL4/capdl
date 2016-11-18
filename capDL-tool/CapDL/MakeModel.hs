@@ -220,17 +220,22 @@ getTCBmax_crit [] = Nothing
 getTCBmax_crit (TCBExtraParam (MaxCrit max_crit) : _) = Just max_crit
 getTCBmax_crit (_ : xs) = getTCBmax_crit xs
 
+getTCBaffinity :: [ObjParam] -> Maybe Integer
+getTCBaffinity [] = Nothing
+getTCBaffinity (TCBExtraParam (Affinity affinity) : _) = Just affinity
+getTCBaffinity (_ : xs) = getTCBaffinity xs
+
 getExtraInfo :: Name -> [ObjParam] -> Maybe TCBExtraInfo
 getExtraInfo n params =
     -- FIXME: This is really hacky hardcoding the acceptable combinations of attributes.
-    case (getTCBAddr params, getTCBip params, getTCBsp params, getTCBelf params, getTCBprio params) of
-        (Just addr, Just ip, Just sp, Just elf, Just prio) ->
-            Just $ TCBExtraInfo addr (Just ip) (Just sp) (Just elf) (Just prio) Nothing Nothing Nothing
-        (Just addr, Just ip, Just sp, Nothing, Just prio) ->
-            Just $ TCBExtraInfo addr (Just ip) (Just sp) Nothing (Just prio) Nothing Nothing Nothing
-        (Just addr, Nothing, Nothing, Nothing, Nothing) ->
-            Just $ TCBExtraInfo addr Nothing Nothing Nothing Nothing Nothing Nothing Nothing
-        (Nothing, Nothing, Nothing, Nothing, Nothing) -> Nothing
+    case (getTCBAddr params, getTCBip params, getTCBsp params, getTCBelf params, getTCBprio params, getTCBaffinity params) of
+        (Just addr, Just ip, Just sp, Just elf, Just prio, Just affinity) ->
+            Just $ TCBExtraInfo addr (Just ip) (Just sp) (Just elf) (Just prio) Nothing Nothing Nothing (Just affinity)
+        (Just addr, Just ip, Just sp, Nothing, Just prio, Just affinity) ->
+            Just $ TCBExtraInfo addr (Just ip) (Just sp) Nothing (Just prio) Nothing Nothing Nothing (Just affinity)
+        (Just addr, Nothing, Nothing, Nothing, Nothing, Just affinity) ->
+            Just $ TCBExtraInfo addr Nothing Nothing Nothing Nothing Nothing Nothing Nothing (Just affinity)
+        (Nothing, Nothing, Nothing, Nothing, Nothing, Nothing) -> Nothing
         params -> error $ "Incorrect extra tcb parameters: " ++ n ++ show params
 
 getTCBDom :: [ObjParam] -> Integer

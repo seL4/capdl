@@ -134,7 +134,8 @@ data TCBExtraInfo = TCBExtraInfo {
     prio :: Maybe Integer,
     max_prio :: Maybe Integer,
     crit :: Maybe Integer,
-    max_crit :: Maybe Integer }
+    max_crit :: Maybe Integer,
+    affin :: Maybe Integer }
     deriving (Eq, Show)
 
 data SCExtraInfo = SCExtraInfo {
