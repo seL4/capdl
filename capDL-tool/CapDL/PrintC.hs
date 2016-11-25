@@ -79,7 +79,7 @@ showPCI domainID (pciBus, pciDev, pciFun) =
     hex $ shift domainID 16 .|. shift pciBus 8 .|. shift pciDev 3 .|. pciFun
 
 -- Lookup-by-value on a dictionary. I feel like I need a shower.
-lookupByValue :: Ord k => (a -> Bool) -> Map k a -> k
+lookupByValue :: (a -> Bool) -> Map k a -> k
 lookupByValue f m = head $ keys $ Map.filter f m
 
 showCap :: Map ObjID Int -> Cap -> IRQMap -> String -> ObjMap Word -> String

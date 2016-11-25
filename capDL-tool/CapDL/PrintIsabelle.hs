@@ -23,13 +23,13 @@ import Data.Maybe
 import Data.Bits
 import System.FilePath.Posix
 
-lookupElem :: (Eq a, Ord k) => a -> Map.Map k a -> Maybe k
+lookupElem :: (Eq a) => a -> Map.Map k a -> Maybe k
 lookupElem x m =
     case find ((==) x . snd) (Map.toList m) of
         Just (k, _) -> Just k
         Nothing -> Nothing
 
-mapElem :: (Eq a, Ord k) => a -> Map.Map k a -> Bool
+mapElem :: (Eq a) => a -> Map.Map k a -> Bool
 mapElem x m = case lookupElem x m of
         Just _ -> True
         Nothing -> False

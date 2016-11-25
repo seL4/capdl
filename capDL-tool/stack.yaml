@@ -8,6 +8,7 @@
 # @TAG(D61_BSD)
 #
 
-resolver: ghc-7.10.3
+# Stackage LTS Haskell 7.10 (ghc-8.0.1)
+resolver: lts-7.10
 
 local-bin-path: .
