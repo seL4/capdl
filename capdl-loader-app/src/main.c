@@ -950,7 +950,7 @@ create_irq_caps(CDL_Model *spec)
 static void
 mint_cap(CDL_ObjID object_id, int free_slot, seL4_CapData_t badge)
 {
-    seL4_CapRights rights = seL4_AllRights;
+    seL4_CapRights_t rights = seL4_AllRights;
 
     seL4_CPtr dest_root = seL4_CapInitThreadCNode;
     int dest_index = free_slot;
