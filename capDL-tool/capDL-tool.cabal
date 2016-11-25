@@ -35,6 +35,13 @@ executable parse-capDL
                        MissingH >=1.3 && <1.4, pretty >=1.1 && <1.2,
                        filepath >=1.3 && <1.5, base-compat == 0.9.0
 
+  other-modules:       CapDL.AST, CapDL.DumpParser, CapDL.MakeModel,
+                       CapDL.Matrix, CapDL.Model, CapDL.Parser,
+                       CapDL.ParserUtils, CapDL.PrintC, CapDL.PrintDot,
+                       CapDL.PrintIsabelle, CapDL.PrintModel,
+                       CapDL.PrintUtils, CapDL.PrintXml, CapDL.STCC,
+                       CapDL.State
+
   default-language:    Haskell2010
 
   ghc-options:         -O2 -Werror -Wall -fno-warn-name-shadowing
