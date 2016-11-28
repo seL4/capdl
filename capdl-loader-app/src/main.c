@@ -1055,9 +1055,6 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     }
 
     CDL_Cap *cdl_sc   = get_cap_at(cdl_tcb, CDL_TCB_SC_Slot);
-    if (cdl_sc == NULL) {
-        debug_printf("  Warning: TCB has no scheduling context\n");
-    }
 
     seL4_Word ipcbuffer_addr = CDL_TCB_IPCBuffer_Addr(cdl_tcb);
     uint8_t priority = CDL_TCB_Priority(cdl_tcb);
