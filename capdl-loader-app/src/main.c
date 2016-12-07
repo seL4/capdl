@@ -874,7 +874,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
                 if (capdl_obj_type == CDL_ASIDPool) {
                     free_slot_index++;
                     seL4_CPtr asid_slot = free_slot_start + free_slot_index;
-                    err = seL4_ARCH_ASIDControl_MakePool(seL4_CapASIDControl, free_slot, seL4_CapInitThreadCNode, asid_slot, 32);
+                    err = seL4_ARCH_ASIDControl_MakePool(seL4_CapASIDControl, free_slot, seL4_CapInitThreadCNode, asid_slot, CONFIG_WORD_SIZE);
                     seL4_AssertSuccess(err);
                     free_slot = asid_slot;
                 }
