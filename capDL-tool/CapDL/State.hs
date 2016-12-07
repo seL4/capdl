@@ -398,6 +398,13 @@ validCapArch IA32 (IOPTCap {}) = True
 validCapArch IA32 (VCPUCap {}) = True
 validCapArch X86_64 (PML4Cap {}) = True
 validCapArch X86_64 (PDPTCap {}) = True
+validCapArch X86_64 (IRQIOAPICHandlerCap {}) = True
+validCapArch X86_64 (IRQMSIHandlerCap {}) = True
+validCapArch X86_64 (IOPortsCap {}) = True
+validCapArch X86_64 IOSpaceMasterCap = True
+validCapArch X86_64 (IOSpaceCap {}) = True
+validCapArch X86_64 (IOPTCap {}) = True
+validCapArch X86_64 (VCPUCap {}) = True
 validCapArch ARM11 (ARMIOSpaceCap {}) = True
 validCapArch _ _ = False
 
@@ -442,6 +449,12 @@ validObjArch IA32 (IOAPICIrq {}) = True
 validObjArch IA32 (MSIIrq {}) = True
 validObjArch X86_64 (PML4 {}) = True
 validObjArch X86_64 (PDPT {}) = True
+validObjArch X86_64 (IOPorts {}) = True
+validObjArch X86_64 (IODevice {}) = True
+validObjArch X86_64 (IOPT {}) = True
+validObjArch X86_64 (VCPU {}) = True
+validObjArch X86_64 (IOAPICIrq {}) = True
+validObjArch X86_64 (MSIIrq {}) = True
 validObjArch _ _ = False
 
 checkObjArch :: Arch -> KernelObject Word -> ObjID -> Logger Bool
