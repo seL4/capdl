@@ -1534,6 +1534,7 @@ init_pd(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pd_base, CDL_ObjID pd)
             seL4_CapRights_t frame_rights = CDL_seL4_Cap_Rights(pt_cap);
             map_page(spec, pt_cap, pml4, frame_rights, base);
         } else {
+            seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(pt_cap);
             seL4_X86_PageTable_Map(orig_caps(pt_obj), orig_caps(pml4), base, vm_attribs);
             init_pt(spec, pml4, base, pt_obj);
         }
@@ -1553,6 +1554,7 @@ init_pdpt(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pdpt_base, CDL_ObjID pdpt)
             seL4_CapRights_t frame_rights = CDL_seL4_Cap_Rights(pd_cap);
             map_page(spec, pd_cap, pml4, frame_rights, base);
         } else {
+            seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(pd_cap);
             seL4_X86_PageDirectory_Map(orig_caps(pd_obj), orig_caps(pml4), base, vm_attribs);
             init_pd(spec, pml4, base, pd_obj);
         }
