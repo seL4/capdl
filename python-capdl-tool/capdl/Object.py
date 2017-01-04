@@ -121,7 +121,7 @@ def reliable_hex(val) :
     return hex(val).rstrip('L')
 
 class Frame(Object):
-    def __init__(self, name, size=4096, paddr=0):
+    def __init__(self, name, size=4096, paddr=0, **_):
         super(Frame, self).__init__(name)
         self.size = size
         self.paddr = paddr
