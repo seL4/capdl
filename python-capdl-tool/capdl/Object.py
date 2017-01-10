@@ -88,7 +88,7 @@ class ContainerObject(Object):
             """
             if index is None:
                 return ''
-            elif isinstance(index, int):
+            elif isinstance(index, six.integer_types):
                 return '%s: ' % hex(index)
             else:
                 assert isinstance(index, six.string_types)
