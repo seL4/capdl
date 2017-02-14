@@ -176,6 +176,8 @@ showCap objs (ARMIOSpaceCap id) _ is_orig ms =
 showCap objs (VCPUCap id) _ _ _ = "{.type = CDL_VCPUCap, .obj_id = " ++ showObjID objs id ++ "}"
 showCap _ SchedControlCap _ _ _ =
     "{.type = CDL_SchedControlCap}"
+showCap objs (RTReplyCap id) _ _ _ =
+    "{.type = CDL_RTReplyCap, .obj_id = " ++ showObjID objs id ++ "}"
 showCap objs (SCCap id) _ is_orig _ =
     "{.type = CDL_SCCap, .obj_id = " ++ showObjID objs id ++
     ", .is_orig = " ++ is_orig ++ "}"
@@ -314,6 +316,9 @@ showObjectFields _ _ (SC info) _ _ _ =
     sc_period = case info of {Just i -> case period i of {Just p -> p; _ -> 0}; _ -> 0}
     sc_budget = case info of {Just i -> case budget i of {Just p -> p; _ -> 0}; _ -> 0}
     sc_data = case info of {Just i -> case scData i of {Just p -> p; _ -> 0}; _ -> 0}
+
+showObjectFields _ _ RTReply _ _ _ =
+    ".type = CDL_RTReply,"
 
 showObjectFields _ _ x _ _ _ = assert False $
     "UNSUPPORTED OBJECT TYPE: " ++ show x

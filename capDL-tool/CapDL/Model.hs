@@ -81,6 +81,7 @@ data Cap
         | DomainCap
         | SCCap { capObj :: ObjID }
         | SchedControlCap
+        | RTReplyCap { capObj :: ObjID }
 
         -- arch specific caps, ARM11, IA32 and X86_64 merged
         | FrameCap {
@@ -169,6 +170,7 @@ data KernelObject a
         maybePaddr :: Maybe Word }
     | SC {
         sc_extraInfo :: Maybe SCExtraInfo }
+    | RTReply
 
 -- arch specific objects, ARM11, IA32 and X86_64 mixed
     | ASIDPool { slots :: CapMap a }
@@ -231,6 +233,7 @@ data KOType
     | IOPT_T
     | VCPU_T
     | SC_T
+    | RTReply_T
     deriving (Show, Eq, Enum)
 
 --

@@ -51,8 +51,9 @@ seL4_ASID_Pool = 31
 
 seL4_SchedContextObject = 32
 seL4_SchedControlObject = 33
+seL4_RTReplyObject = 34
 
-seL4_ARM_IOSpace = 34
+seL4_ARM_IOSpace = 35
 
 seL4_CanRead = 1
 seL4_CanWrite = 2
@@ -335,4 +336,12 @@ class SC(Object):
 
     def __repr__(self):
         s = '%(name)s = sc (period: %(period)s, budget: %(budget)s, data: %(data)s)' % self.__dict__
+        return s
+
+class RTReply(Object):
+    def __init__(self, name):
+        super(RTReply, self).__init__(name)
+
+    def __repr__(self):
+        return '%s = rtreply' % self.name
         return s

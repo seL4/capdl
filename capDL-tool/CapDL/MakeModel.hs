@@ -438,6 +438,7 @@ objectOf n obj =
         Obj MSIIrqSlot_T ps [] -> MSIIrq Map.empty (getMSIIrqHandle ps) (getMSIIrqPCIBus ps) (getMSIIrqPCIDev ps) (getMSIIrqPCIFun ps)
         Obj VCPU_T [] [] -> VCPU
         Obj SC_T ps [] -> SC (getSCExtraInfo n ps)
+        Obj RTReply_T [] [] -> RTReply
         Obj _ _ (_:_) ->
           error $ "Only untyped caps can have objects as content: " ++
                   n ++ " = " ++ show obj
@@ -627,6 +628,7 @@ objCapOf containerName obj objRef params =
         ARMIODevice  {} -> ARMIOSpaceCap objRef
         VCPU {} -> VCPUCap objRef
         SC {} -> SCCap objRef
+        RTReply {} -> RTReplyCap objRef
         IOAPICIrq {} -> IRQIOAPICHandlerCap objRef
         MSIIrq {} -> IRQMSIHandlerCap objRef
     else error ("Incorrect params for cap to " ++ printID objRef ++ " in " ++

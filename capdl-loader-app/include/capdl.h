@@ -103,6 +103,7 @@ typedef enum {
 #endif
     CDL_SCCap,
     CDL_SchedControlCap,
+    CDL_RTReplyCap,
 } CDL_CapType;
 
 #define CDL_CapData_Badge 0
@@ -194,15 +195,17 @@ typedef enum {
 #endif
 #ifdef CONFIG_KERNEL_RT
     CDL_SchedContext  = seL4_SchedContextObject,
+    CDL_RTReply  = seL4_ReplyObject,
 #else
     CDL_SchedContext  = seL4_ObjectTypeCount + 5,
+    CDL_RTReply  = seL4_ObjectTypeCount + 6,
 #endif
 #if defined(CONFIG_ARCH_X86)
-    CDL_IOAPICInterrupt = seL4_ObjectTypeCount + 6,
-    CDL_MSIInterrupt = seL4_ObjectTypeCount + 7,
+    CDL_IOAPICInterrupt = seL4_ObjectTypeCount + 7,
+    CDL_MSIInterrupt = seL4_ObjectTypeCount + 8,
 #endif
 #if defined(CONFIG_ARCH_ARM)
-    CDL_ARMIODevice   = seL4_ObjectTypeCount + 8,
+    CDL_ARMIODevice   = seL4_ObjectTypeCount + 9,
 #endif
 } CDL_ObjectType;
 

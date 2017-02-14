@@ -133,6 +133,7 @@ object_type =
     <|> keyw "io_pt" IOPT_T
     <|> keyw "vcpu" VCPU_T
     <|> keyw "sc" SC_T
+    <|> keyw "rtreply" RTReply_T
 
 obj_bit_size :: MapParser ObjParam
 obj_bit_size = do

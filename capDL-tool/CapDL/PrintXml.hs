@@ -114,6 +114,7 @@ showObjectName ARMIODevice {} = "ARMIODevice"
 showObjectName IOPT {} = "IOPT"
 showObjectName VCPU {} = "VCPU"
 showObjectName SC {} = "SC"
+showObjectName RTReply {} = "RTReply"
 showObjectName IOAPICIrq {} = "IOAPICIrq"
 showObjectName MSIIrq {} = "MSIIrq"
 
@@ -148,6 +149,7 @@ showCapName ARMIOSpaceCap {} = "ARMIOSpaceCap"
 showCapName IOPTCap {} = "IOPTCap"
 showCapName VCPUCap {} = "VCPUCap"
 showCapName SCCap {} = "SCCap"
+showCapName RTReplyCap {} = "RTReplyCap"
 showCapName SchedControlCap {} = "SchedControlCap"
 
 showExtraCapAttributes :: Cap -> [(String, String)]

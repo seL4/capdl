@@ -1005,7 +1005,7 @@ duplicate_caps(CDL_Model *spec)
 
 /* Initialise SCs */
 static void
-init_sc(CDL_Model *spec, CDL_ObjID sc)
+init_sc(CDL_Model *spec, CDL_ObjID sc, UNUSED seL4_BootInfo *bi)
 {
     CDL_Object *cdl_sc = get_spec_object(spec, sc);
 
@@ -1018,19 +1018,22 @@ init_sc(CDL_Model *spec, CDL_ObjID sc)
     seL4_CPtr UNUSED seL4_sc = orig_caps(sc);
 
 #ifdef CONFIG_KERNEL_RT
-    int error = seL4_SchedControl_Configure(seL4_CapSchedControl, seL4_sc, budget, period, data);
+    assert(bi->schedcontrol.start != seL4_CapNull);
+    /* Assign the sched context to run on the CPU that the root task runs on. */
+    int error = seL4_SchedControl_Configure(bi->schedcontrol.start + bi->nodeID,
+                                            seL4_sc, budget, period, 0);
     seL4_AssertSuccess(error);
 #endif
 }
 
 static void
-init_scs(CDL_Model *spec)
+init_scs(CDL_Model *spec, seL4_BootInfo *bi)
 {
     debug_printf("Initialising SCs...\n");
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
         if (spec->objects[obj_id].type == CDL_SchedContext) {
             debug_printf(" Initialising %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
-            init_sc(spec, obj_id);
+            init_sc(spec, obj_id, bi);
         }
     }
 }
@@ -1113,11 +1116,17 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
 
     int error;
 #ifdef CONFIG_KERNEL_RT
-    seL4_Prio_t prio;
-    seL4_Prio_ptr_new(&prio, (seL4_Uint32) priority, (seL4_Uint32) max_priority,
-                             (seL4_Uint32) criticality, (seL4_Uint32) max_criticality);
+    /* There was originally a notion of criticality in the RT API;
+     *
+     * During some design iterations, it was removed from exposure to userspace,
+     * and had to be hidden. Eventually it will be re-added. When that happens,
+     * just add it back here (or wherever else would go best, assuming the
+     * re-added criticality concept isn't the same).
+     */
+    seL4_PrioProps_t prio;
+    seL4_PrioProps_ptr_new(&prio, (seL4_Uint32) max_priority, (seL4_Uint32) priority);
 
-    error = seL4_TCB_Configure(sel4_tcb, sel4_fault_ep, sel4_tempfault_ep,
+    error = seL4_TCB_Configure(sel4_tcb, sel4_fault_ep,
                                prio, sel4_sc,
                                sel4_cspace_root, sel4_cspace_root_data,
                                sel4_vspace_root, sel4_vspace_root_data,
@@ -1888,7 +1897,7 @@ init_system(CDL_Model *spec)
     init_elfs(spec, bootinfo);
     init_vspace(spec);
     if (config_set(CONFIG_KERNEL_RT)) {
-        init_scs(spec);
+        init_scs(spec, bootinfo);
     }
     init_tcbs(spec);
     init_cspace(spec);
