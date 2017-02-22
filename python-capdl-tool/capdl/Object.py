@@ -224,12 +224,12 @@ class TCB(ContainerObject):
         self.affinity = affinity
 
     def set_fault_ep_slot(self, fault_ep_slot=0, fault_ep=None, badge=0):
-	if fault_ep_slot != 0:
-	    self.fault_ep_slot = fault_ep_slot
-	if fault_ep:
-	    if badge != 0:
-		fault_ep += " (badge: %d)" % badge
-	    self.__setitem__("fault_ep_slot", fault_ep)
+        if fault_ep_slot != 0:
+            self.fault_ep_slot = fault_ep_slot
+        if fault_ep:
+            if badge != 0:
+                fault_ep += " (badge: %d)" % badge
+            self.__setitem__("fault_ep_slot", fault_ep)
 
 
 class Untyped(Object):
