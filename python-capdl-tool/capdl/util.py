@@ -16,6 +16,7 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
 
+from six.moves import range
 
 from .Object import seL4_IA32_4M, seL4_IA32_4K, seL4_ARM_SectionObject, \
     seL4_ARM_SuperSectionObject, seL4_ARM_SmallPageObject, seL4_ARM_LargePageObject, \
@@ -91,7 +92,7 @@ class Level:
 def make_levels(levels):
     assert levels is not None
     assert len(levels) > 0
-    for i in xrange(0, len(levels), 1):
+    for i in range(0, len(levels), 1):
         if i > 0:
             levels[i].parent = levels[i - 1]
         if i < len(levels) - 1:
