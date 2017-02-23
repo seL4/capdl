@@ -50,6 +50,8 @@
 
 #define CAPDL_SHARED_FRAMES
 
+#define STACK_ALIGNMENT_BYTES 16
+
 static seL4_CPtr capdl_to_sel4_orig[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 static seL4_CPtr capdl_to_sel4_copy[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 static seL4_CPtr capdl_to_sel4_irq[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
@@ -1188,9 +1190,23 @@ configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
         CDL_Cap *cdl_vspace_root = get_cap_at(cdl_tcb, CDL_TCB_VTable_Slot);
         CDL_ObjID pd = CDL_Cap_ObjID(cdl_vspace_root);
 
-        /* Ensure that the final stack pointer will be dword-aligned. */
-        if ((argc - reg_args) % 2 == 1 && argc - reg_args > 0) {
-            sp -= sizeof(uintptr_t);
+        if (STACK_ALIGNMENT_BYTES % sizeof(*argv)) {
+            die("Stack alignment requirement not evenly divisible by argument size");
+        }
+
+        /* The stack pointer of new threads will initially be aligned to
+         * STACK_ALIGNMENT_BYTES bytes. Any padding required to enforce
+         * this alignment will come before any stack arguments.
+         */
+
+        unsigned int num_stack_args = argc - reg_args; // positive because argc > reg_args
+        unsigned int args_per_alignment = (STACK_ALIGNMENT_BYTES / sizeof(*argv));
+        unsigned int num_unaligned_args = num_stack_args % args_per_alignment;
+
+        if (num_unaligned_args != 0) {
+            unsigned int num_padding_args = args_per_alignment - num_unaligned_args;
+            unsigned int num_padding_bytes = num_padding_args * sizeof(*argv);
+            sp -= num_padding_bytes;
         }
 
         /* Find and map the frame representing the TCB's stack. Note that we do
@@ -1218,8 +1234,8 @@ configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
                 die("TCB %s's initial arguments cause its stack to cross a page boundary",
                     CDL_Obj_Name(&spec->objects[tcb]));
             }
-            sp -= sizeof(uintptr_t);
-            *(uintptr_t*)(copy_addr_with_pt + sp % PAGE_SIZE_4K) = argv[i];
+            sp -= sizeof(seL4_Word);
+            *(seL4_Word*)(copy_addr_with_pt + sp % PAGE_SIZE_4K) = argv[i];
         }
 
 #ifdef CONFIG_ARCH_ARM
