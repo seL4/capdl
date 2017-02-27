@@ -1829,7 +1829,7 @@ start_threads(CDL_Model *spec)
 static void
 init_system(CDL_Model *spec)
 {
-    seL4_BootInfo *bootinfo = seL4_GetBootInfo();
+    seL4_BootInfo *bootinfo = platsupport_get_bootinfo();
 
     init_copy_frame(bootinfo);
 
