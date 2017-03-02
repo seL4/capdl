@@ -123,10 +123,14 @@ def reliable_hex(val) :
     return hex(val).rstrip('L')
 
 class Frame(Object):
-    def __init__(self, name, size=4096, paddr=0, **_):
+    def __init__(self, name, size=4096, paddr=0, fill='', **_):
         super(Frame, self).__init__(name)
         self.size = size
         self.paddr = paddr
+        self.fill = fill
+
+    def set_fill(self, fill):
+        self.fill = fill
 
     def __repr__(self):
         if self.size % (1024 * 1024) == 0:
@@ -135,10 +139,11 @@ class Frame(Object):
             size = '%dk' % (self.size // 1024)
         else:
             size = str(self.size)
-        return '%(name)s = frame (%(size)s%(maybepaddr)s)' % {
+        return '%(name)s = frame (%(size)s%(maybepaddr)s%(maybefill)s)' % {
             'name':self.name,
             'size':size,
             'maybepaddr':(', paddr: %s' % reliable_hex(self.paddr)) if self.paddr != 0 else '',
+            'maybefill':(', fill: {%s}' % self.fill) if self.fill != '' else '',
         }
 
 class PageTable(ContainerObject):
