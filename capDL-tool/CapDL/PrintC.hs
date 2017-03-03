@@ -20,7 +20,7 @@ import CapDL.Model
 import Control.Exception (assert)
 import Data.List.Compat
 import Data.List.Utils
-import Data.Maybe (isJust, fromJust, fromMaybe)
+import Data.Maybe (isJust, fromJust, fromMaybe, mapMaybe)
 import Prelude ()
 import Prelude.Compat
 import Data.Map as Map
@@ -290,7 +290,7 @@ showObjectFields objs obj_id (PDPT slots) _ _ _ =
 showObjectFields objs obj_id (PML4 slots) _ _ _ =
     ".type = CDL_PML4," +++
     memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
-showObjectFields _ _ (Frame size paddr) _ _ _ =
+showObjectFields _ _ (Frame size paddr _) _ _ _ =
     ".type = CDL_Frame," +++
     ".size_bits = " ++ show (logBase 2 $ fromIntegral size) ++ "," +++
     ".paddr = (void*)" ++ hex (fromMaybe 0 paddr) ++ ","
@@ -342,7 +342,7 @@ showObjects objs counter (x:xs) irqNode cdt ms =
     showObjects objs (counter + 1) xs irqNode cdt ms
 
 sizeOf :: Arch -> KernelObject Word -> Word
-sizeOf _ (Frame vmSz _) = vmSz
+sizeOf _ (Frame vmSz _ _) = vmSz
 sizeOf _ (Untyped (Just bSz) _) = 2 ^ bSz
 sizeOf IA32 (CNode _ bSz) = 16 * 2 ^ bSz
 sizeOf ARM11 (CNode _ bSz) = 16 * 2 ^ bSz
@@ -372,7 +372,7 @@ sizeOf X86_64 SC {} = 60
 sizeOf _ _ = 0
 
 objPaddr :: KernelObject Word -> Maybe Word
-objPaddr (Frame _ paddr) = paddr
+objPaddr (Frame _ paddr _) = paddr
 objPaddr (Untyped _ paddr) = paddr
 objPaddr _ = Nothing
 
@@ -420,6 +420,33 @@ memberIRQs objs irqNode _ =
         _ -> -1) [0..(CONFIG_CAPDL_LOADER_MAX_IRQS - 1)]) +++
     "},"
 
+
+showFrameInfo :: Map ObjID Int -> (ObjID, KernelObject Word) -> Maybe String
+showFrameInfo objs (obj_id, Frame _ _ (Just (info_type:offset:extra))) = Just (
+    "{" +++
+    ".frame = " ++ (showObjID objs obj_id) ++ "," +++
+    ".type = \"" ++ info_type ++ "\"," +++
+    ".dest_offset = " ++ offset ++ "," +++
+    ".extra_information = \"" ++ (Data.List.Utils.join " " extra) ++ "\"" +++
+    "}")
+
+showFrameInfo _ _ = Nothing
+
+showFrameInfos :: Map ObjID Int -> [(ObjID, KernelObject Word)] -> (Int, String)
+showFrameInfos objs xs =
+   (length infos, Data.List.Utils.join ", " infos)
+      where
+         infos = Data.Maybe.mapMaybe (showFrameInfo objs) xs
+
+extraFrameInfos :: Map ObjID Int -> [(ObjID, KernelObject Word)] -> String
+extraFrameInfos obj_ids objs =
+    ".num_frame_fill = " ++ show (fst frameinfo) ++ "," +++
+    ".frame_fill = (CDL_FrameFill[]){" +++
+    snd frameinfo +++
+    "},"
+    where
+        frameinfo = showFrameInfos obj_ids objs
+
 printC :: Model Word -> Idents CapName -> CopyMap -> Doc
 printC (Model arch objs irqNode cdt _) _ _ =
     text $
@@ -438,6 +465,7 @@ printC (Model arch objs irqNode cdt _) _ _ =
     memberNum objs_sz +++
     memberIRQs obj_ids irqNode arch +++
     memberObjects obj_ids arch objs' irqNode cdt objs +++
+    extraFrameInfos obj_ids objs' +++
     "};"
     where
         objs_sz = length $ Map.toList objs

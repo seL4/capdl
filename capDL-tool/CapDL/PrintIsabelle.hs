@@ -109,7 +109,7 @@ bitsToPageBits sz = logBase2 sz 0
 
 printSize :: ObjID -> ObjMap Word -> Doc
 printSize id ms =
-    let Just (Frame sz _) = getObject id ms
+    let Just (Frame sz _ _) = getObject id ms
     in num $ bitsToPageBits sz
 
 printCoverSet :: ObjMap Word -> Maybe ObjSet -> Doc
@@ -254,7 +254,7 @@ printObj' _ id (PT _) = text "PageTable" <+>
 printObj' _ id (PD _) = text "PageDirectory" <+>
     record (fsep $ punctuate comma $ map text
     ["cdl_page_directory_caps = " ++ capsName id])
-printObj' _ _ (Frame vmSz _) = text "Frame" <+>
+printObj' _ _ (Frame vmSz _ _) = text "Frame" <+>
     record (fsep $ punctuate comma $ map text
     ["cdl_frame_size_bits = " ++ show (bitsToPageBits vmSz)])
 printObj' _ _ _ = error "Untyped and IO objs unsupported"

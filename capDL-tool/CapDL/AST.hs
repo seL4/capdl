@@ -53,6 +53,10 @@ data TCBExtraParam =
       affinity :: Integer }
    deriving (Show, Eq, Ord, Typeable, Data)
 
+data FrameExtraParam =
+    Fill { fill :: [String] }
+  deriving (Show, Eq, Ord, Typeable, Data)
+
 data SCExtraParam =
     Period {
       period :: Word64 }
@@ -97,6 +101,8 @@ data ObjParam =
       size :: Word }
   | TCBExtraParam {
       extraParam :: TCBExtraParam }
+  | FrameExtraParam {
+      frameExtraParam :: FrameExtraParam}
   | SCExtraParam {
       sc_extraParam :: SCExtraParam }
   | IOAPICIRQExtraParam {

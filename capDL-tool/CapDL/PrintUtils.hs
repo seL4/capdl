@@ -20,6 +20,7 @@ import Prelude.Compat
 import qualified Data.Set as Set
 import Data.Word
 import Numeric
+import Data.List.Utils
 
 listSucc :: Enum a => [a] -> [a]
 listSucc list = init list ++ [succ (last list)]
@@ -183,6 +184,10 @@ prettyMSIPCIFun fun = text "msi_pci_fun:" <+> (text $ show fun)
 prettyARMIODevice :: Word -> Doc
 prettyARMIODevice iospace = text "iospace:" <+> (text $ show iospace)
 
+prettyFill :: Maybe [String] -> Doc
+prettyFill (Just fill) = text "fill:" <+> braces (text $ Data.List.Utils.join " " fill)
+prettyFill Nothing = empty
+
 prettyObjParams obj = case obj of
     Endpoint -> text "ep"
     Notification -> text "notification"
@@ -197,7 +202,7 @@ prettyObjParams obj = case obj of
     PD {} -> text "pd"
     PML4 {} -> text "pml4"
     PDPT {} -> text "pdpt"
-    Frame vmSz paddr -> text "frame" <+> maybeParensList [prettyVMSize vmSz, prettyPaddr paddr]
+    Frame vmSz paddr fill -> text "frame" <+> maybeParensList [prettyVMSize vmSz, prettyPaddr paddr, prettyFill fill]
 
     IOPT _ level -> text "io_pt" <+> maybeParensList [prettyLevel level]
     IOPorts size -> text "io_ports" <+> maybeParensList [prettyPortsSize size]

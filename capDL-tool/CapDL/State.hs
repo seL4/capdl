@@ -189,7 +189,7 @@ flatten' _ objs (n, obj)
                 Endpoint -> Endpoint
                 Notification -> Notification
                 Untyped msb paddr-> Untyped msb paddr
-                Frame vms p -> Frame vms p
+                Frame vms p f -> Frame vms p f
                 IOPorts sz -> IOPorts sz
                 _ -> error "unmatched"
         in Map.insert n obj' objs

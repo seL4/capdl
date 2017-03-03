@@ -341,6 +341,11 @@ getMaybePaddr [] = Nothing
 getMaybePaddr (Paddr x : _) = Just x
 getMaybePaddr (_ : xs) = getMaybePaddr xs
 
+getMaybeFill :: [ObjParam] -> Maybe [String]
+getMaybeFill [] = Nothing
+getMaybeFill (FrameExtraParam (Fill f) : _) = Just f
+getMaybeFill(_ : xs) = getMaybeFill xs
+
 getLevel :: Name -> [ObjParam] -> Word
 getLevel n [] = error ("Needs level parameter: " ++ n)
 getLevel _ (IOPTLevel l : _) = l
@@ -399,7 +404,7 @@ validObjPars (Obj TCB_T ps []) =
 validObjPars (Obj CNode_T ps []) = subsetConstrs ps [BitSize undefined]
 validObjPars (Obj Untyped_T ps _) = subsetConstrs ps [BitSize undefined, Paddr undefined]
 validObjPars (Obj Frame_T ps []) =
-  subsetConstrs ps [VMSize undefined, Paddr undefined] &&
+  subsetConstrs ps [VMSize undefined, Paddr undefined, FrameExtraParam undefined] &&
   (not (containsConstr (Paddr undefined) ps) || containsConstr (VMSize undefined) ps)
 validObjPars (Obj IOPT_T ps []) = subsetConstrs ps [IOPTLevel undefined]
 validObjPars (Obj IOPorts_T ps []) = subsetConstrs ps [PortsSize undefined]
@@ -428,7 +433,7 @@ objectOf n obj =
         Obj PD_T _ [] -> PD Map.empty
         Obj PML4_T _ [] -> PML4 Map.empty
         Obj PDPT_T _ [] -> PDPT Map.empty
-        Obj Frame_T ps [] -> Frame (getVMSize n ps) (getMaybePaddr ps)
+        Obj Frame_T ps [] -> Frame (getVMSize n ps) (getMaybePaddr ps) (getMaybeFill ps)
         Obj IOPT_T ps [] -> IOPT Map.empty (getLevel n ps)
         Obj IOPorts_T ps [] -> IOPorts (getPortsSize ps)
         Obj IODevice_T ps [] -> IODevice Map.empty (getDomainID n ps) (getPCIDevice n ps)

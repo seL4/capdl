@@ -24,6 +24,7 @@ import Prelude.Compat
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import Data.Word
+import Data.Char(isSpace)
 
 data Maps = Maps {
     refMap :: Map.Map Name ObjID,
@@ -66,6 +67,7 @@ comma     = PT.comma lexer
 colon     = PT.colon lexer
 identifier= PT.identifier lexer
 reserved  = PT.reserved lexer
+stringLiteral = PT.stringLiteral lexer
 
 name :: MapParser Name
 name = identifier
@@ -392,6 +394,21 @@ msi_irq_extra_param = do
             <|> msi_irq_pci_fun)
     return $ MSIIRQExtraParam param
 
+fill_param :: MapParser FrameExtraParam
+fill_param = do
+    reserved "fill"
+    colon
+    fill_args <- braces (sepBy1 (many1 notFillEnd) whiteSpace)
+    return $ Fill fill_args
+    where
+        notFillEnd = satisfy (\x -> not (isSpace x || x == '}'))
+
+
+frame_extra_param :: MapParser ObjParam
+frame_extra_param = do
+    param <- fill_param
+    return $ FrameExtraParam param
+
 object_param :: MapParser ObjParam
 object_param =
         try obj_bit_size
@@ -399,6 +416,7 @@ object_param =
     <|> try obj_vm_size
     <|> io_pt_level
     <|> tcb_extra_param
+    <|> frame_extra_param
     <|> tcb_dom
     <|> tcb_fault_ep
     <|> init_arguments

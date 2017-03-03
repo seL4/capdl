@@ -180,7 +180,8 @@ data KernelObject a
     | PML4 { slots :: CapMap a }
     | Frame {
         vmSizeBits :: Word,
-        maybePaddr :: Maybe Word }
+        maybePaddr :: Maybe Word,
+        maybeFill :: Maybe [String] }
 
 -- ARM specific objects
     | ARMIODevice {
