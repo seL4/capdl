@@ -20,6 +20,7 @@
 #include <elf/elf.h>
 #include <sel4platsupport/platsupport.h>
 #include <cpio/cpio.h>
+#include <simple-default/simple-default.h>
 #ifdef CONFIG_KERNEL_STABLE
 #include <simple-stable/simple-stable.h>
 #endif //CONFIG_KERNEL_STABLE
@@ -1827,9 +1828,64 @@ start_threads(CDL_Model *spec)
 }
 
 static void
+init_fill_frames(CDL_Model *spec, simple_t * simple)
+{
+    seL4_Word i;
+    for (i = 0; i < spec->num_frame_fill; i++) {
+        /* get the cap to the original object */
+        seL4_CPtr cap = capdl_to_sel4_orig[spec->frame_fill[i].frame];
+        /* try a large mapping */
+        uintptr_t base = (uintptr_t)copy_addr;
+        int error = seL4_ARCH_Page_Map(cap, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
+            seL4_ReadWrite, seL4_ARCH_Default_VMAttributes);
+        if (error == seL4_FailedLookup) {
+            /* try a small mapping */
+            base = (uintptr_t)copy_addr_with_pt;
+            error = seL4_ARCH_Page_Map(cap, seL4_CapInitThreadPD, (seL4_Word)copy_addr_with_pt,
+                seL4_ReadWrite, seL4_ARCH_Default_VMAttributes);
+        }
+        seL4_AssertSuccess(error);
+
+        /* Determine destination */
+        uintptr_t dest = base + spec->frame_fill[i].dest_offset;
+        ssize_t max = BIT(spec->objects[spec->frame_fill[i].frame].size_bits) - spec->frame_fill[i].dest_offset;
+        if (max < 0) {
+            max = 0;
+        }
+        /* Check for which type */
+        if (strcmp(spec->frame_fill[i].type, "bootinfo") == 0) {
+            /* Ask simple to fill it in */
+            int id;
+            if(strcmp(spec->frame_fill[i].extra_information, "SEL4_BOOTINFO_HEADER_X86_VBE") == 0) {
+                id = SEL4_BOOTINFO_HEADER_X86_VBE;
+            } else {
+                ZF_LOGF("Unable to parse extra information for \"bootinfo\", given \"%s\"", spec->frame_fill[i].extra_information);
+            }
+            error = simple_get_extended_bootinfo(simple, id, (void*)dest, max);
+            if (error == -1) {
+                seL4_BootInfoHeader empty = (seL4_BootInfoHeader){.id = -1, .len = -1};
+                memcpy((void*)dest, &empty, MIN(max, sizeof(empty)));
+            }
+        } else if(strcmp(spec->frame_fill[i].type, "bootinfo_arch_info_word") == 0) {
+            seL4_Word arch_info = simple_get_arch_info(simple);
+            memcpy((void*)dest, &arch_info, MIN(max, sizeof(arch_info)));
+        } else {
+            die("Unsupported frame fill type %s", spec->frame_fill[i].type);
+        }
+
+        /* Unmap the frame */
+        error = seL4_ARCH_Page_Unmap(cap);
+        seL4_AssertSuccess(error);
+    }
+}
+
+static void
 init_system(CDL_Model *spec)
 {
     seL4_BootInfo *bootinfo = platsupport_get_bootinfo();
+    simple_t simple;
+
+    simple_default_init_bootinfo(&simple, bootinfo);
 
     init_copy_frame(bootinfo);
 
@@ -1843,6 +1899,7 @@ init_system(CDL_Model *spec)
     init_irqs(spec);
     init_pd_asids(spec);
     init_elfs(spec, bootinfo);
+    init_fill_frames(spec, &simple);
     init_vspace(spec);
     if (config_set(CONFIG_KERNEL_RT)) {
         init_scs(spec, bootinfo);
