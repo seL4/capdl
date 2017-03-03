@@ -269,11 +269,20 @@ typedef struct {
 
 } PACKED CDL_Object;
 
+typedef struct {
+    CDL_ObjID frame;
+    const char *type;
+    size_t dest_offset;
+    char *extra_information;
+} PACKED CDL_FrameFill;
+
 /* CapDLModel: is described by a map from ObjectIDs (array index) to Objects */
 typedef struct {
 
     seL4_Word num;
     CDL_Object *objects;
+    seL4_Word num_frame_fill;
+    CDL_FrameFill *frame_fill;
 
     CDL_ObjID irqs[CONFIG_CAPDL_LOADER_MAX_IRQS];
 } CDL_Model;
