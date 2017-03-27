@@ -61,7 +61,7 @@ config CAPDL_LOADER_ALLOW_NO_CSPACE
 config CAPDL_LOADER_PRINTF
     bool "Enable printing"
     default n
-    depends on MODULE_CAPDL_LOADER && !CAPDL_LOADER_VERIFIED
+    depends on LIB_SEL4_PLAT_SUPPORT_USE_SEL4_DEBUG_PUTCHAR && MODULE_CAPDL_LOADER && !CAPDL_LOADER_VERIFIED
     help
         Enable printf of information while loading for the purposes of
         debugging.

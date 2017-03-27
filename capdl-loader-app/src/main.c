@@ -1855,8 +1855,10 @@ init_system(CDL_Model *spec)
 int
 main(void)
 {
+#ifdef CONFIG_CAPDL_LOADER_PRINTF
     /* Allow us to print via seL4_Debug_PutChar. */
     platsupport_serial_setup_bootinfo_failsafe();
+#endif
 
     debug_printf("Starting Loader...\n");
     init_system(&capdl_spec);
