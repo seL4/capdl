@@ -90,7 +90,7 @@ class ContainerObject(Object):
             if index is None:
                 return ''
             elif isinstance(index, six.integer_types):
-                return '%s: ' % hex(index)
+                return '%s: ' % reliable_hex(index)
             else:
                 assert isinstance(index, six.string_types), \
                         "Slot index is of type %s. Slots indices must be either strings or integers."
