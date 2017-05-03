@@ -21,7 +21,7 @@ from .Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
     seL4_IA32_PageDirectoryObject, seL4_IA32_IOPageTableObject, seL4_IA32_IOPort, \
     seL4_IA32_IOSpace, seL4_IA32_VCPU, seL4_FrameObject, seL4_IRQControl, \
     seL4_ARM_IOSpace, ARMIODevice, \
-    seL4_PageDirectoryObject, seL4_ASID_Pool, seL4_SchedContextObject, seL4_SchedControlObject, \
+    seL4_PageDirectoryObject, seL4_ASID_Pool, seL4_SchedContextObject, seL4_SchedControl, \
     seL4_RTReplyObject, \
     seL4_CanRead, seL4_CanWrite, seL4_CanGrant, seL4_AllRights, IOAPICIRQ, MSIIRQ, PML4
 from .Spec import Spec

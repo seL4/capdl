@@ -50,7 +50,7 @@ seL4_PageDirectoryObject = 30
 seL4_ASID_Pool = 31
 
 seL4_SchedContextObject = 32
-seL4_SchedControlObject = 33
+seL4_SchedControl = 33
 seL4_RTReplyObject = 34
 
 seL4_ARM_IOSpace = 35
