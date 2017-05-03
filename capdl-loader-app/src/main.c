@@ -21,9 +21,6 @@
 #include <sel4platsupport/platsupport.h>
 #include <cpio/cpio.h>
 #include <simple-default/simple-default.h>
-#ifdef CONFIG_KERNEL_STABLE
-#include <simple-stable/simple-stable.h>
-#endif //CONFIG_KERNEL_STABLE
 
 #include <utils/util.h>
 #include <sel4/sel4.h>
@@ -93,49 +90,6 @@ static char copy_addr_with_pt[PAGE_SIZE_4K] __attribute__((aligned(PAGE_SIZE_4K)
 
 /* helper functions ---------------------------------------------------------------------------- */
 
-#ifdef CONFIG_KERNEL_STABLE
-int seL4_Untyped_Retype(seL4_Untyped service, int type, int size_bits, seL4_CNode root, int node_index, int node_depth, int node_offset, int num_objects)
-{
-    /* Cache the last untyped retype to 'optimise' the search. This is not
-     * strictly speaking an optimization, as it is required for correctness.
-     * If the capdl loader is attempting to allocate an untyped to give to
-     * a loaded process, then it is important that we do not create other
-     * objects at the same location as that untyped. However, in the stable
-     * kernel it is permissable to use untyped cap X to create child untyped
-     * Y, and then create some other object (say a frame) at the same location
-     * as Y by invoking cap X again. */
-    static seL4_Untyped last_service = 0;
-    static int next_offset = 0;
-
-    int offset = 0;
-    int ret;
-
-    int memory_size_bits = vka_get_object_size(type, size_bits);
-    assert(memory_size_bits > 0);
-
-    /* check if we match the cached offset */
-    if (service == last_service) {
-        /* Round the cached offset up to be aligned to the current size */
-        offset = (( (next_offset - 1) >> memory_size_bits) + 1) << memory_size_bits;
-
-        ret = seL4_Untyped_RetypeAtOffset(service, type, offset, size_bits, root, node_index,
-                node_depth, node_offset, num_objects);
-
-        next_offset = offset + (1 << memory_size_bits);
-        return ret;
-    }
-
-    /* didn't match cached offset - start searching from the start */
-    for (offset = 0, ret = seL4_RevokeFirst; ret == seL4_RevokeFirst; offset += (1 << memory_size_bits)) {
-        ret = seL4_Untyped_RetypeAtOffset(service, type, offset, size_bits, root, node_index,
-                node_depth, node_offset, num_objects);
-    }
-    last_service = service;
-    next_offset = offset + (1 << memory_size_bits);
-
-    return ret;
-}
-#endif //CONFIG_KERNEL_STABLE
 
 static seL4_CPtr
 get_free_slot(void)
@@ -370,13 +324,8 @@ void init_copy_frame(seL4_BootInfo *bootinfo)
      * that has a single PD, followed by all the PTs. So to find
      * our PT in the paging objects list we just need to add 1
      * to skip the PD */
-#ifdef CONFIG_KERNEL_STABLE
-    seL4_CPtr copy_addr_pt = bootinfo->userImagePTs.start +
-            PD_SLOT(((uintptr_t)copy_addr)) - PD_SLOT(((uintptr_t)&__executable_start));
-#else
     seL4_CPtr copy_addr_pt = bootinfo->userImagePaging.start + 1 +
         PD_SLOT(((uintptr_t)copy_addr)) - PD_SLOT(((uintptr_t)&__executable_start));
-#endif
 #ifdef CONFIG_ARCH_X6_64
     /* guess that there is one PDPT and PML4 */
     copy_addr_pt += 2;
@@ -590,62 +539,11 @@ parse_bootinfo(seL4_BootInfo *bootinfo)
     }
 #endif
 
-#if defined(CONFIG_KERNEL_MASTER) || defined(CONFIG_KERNEL_STABLE)
     debug_printf("Loader is running in domain %d\n", bootinfo->initThreadDomain);
-#endif
-
-#if CONFIG_CAPDL_LOADER_PRINT_DEVICE_INFO
-#ifdef CONFIG_KERNEL_STABLE
-    int num_device_untyped = bootinfo->deviceUntyped.end - bootinfo->deviceUntyped.start;
-    int offset = bootinfo->untyped.end - bootinfo->untyped.start;
-    debug_printf("  Device untyped memory (%d)\n", num_device_untyped);
-    for (int i = 0; i < num_device_untyped; i++) {
-        uintptr_t ut_paddr = bootinfo->untypedPaddrList[i + offset];
-        uintptr_t ut_size = bootinfo->untypedSizeBitsList[i + offset];
-        debug_printf("    0x%016" PRIxPTR " - 0x%016" PRIxPTR "\n", ut_paddr,
-            ut_paddr + (1 << ut_size));
-    }
-#endif
-#endif
 
     first_arm_iospace = bootinfo->ioSpaceCaps.start;
 }
 
-#ifdef CONFIG_KERNEL_STABLE
-static int find_device_frame(void *paddr, int size_bits, seL4_CPtr free_slot, CDL_ObjID obj_id,
-        seL4_BootInfo *bootinfo, CDL_Model *spec) {
-    /* Construct a path with assumptions on a 1 level cspace as seL4 construct for a rootserver */
-    cspacepath_t path = {
-        .capPtr = free_slot,
-        .capDepth = 32,
-        .root = seL4_CapInitThreadCNode,
-        .dest = 0,
-        .destDepth = 0,
-        .offset = free_slot,
-        .window = 1
-    };
-    int error = simple_stable_get_frame_cap(bootinfo, paddr, size_bits, &path);
-    seL4_AssertSuccess(error);
-    add_sel4_cap(obj_id, ORIG, free_slot);
-    return 0;
-}
-static int find_device_untyped(void *paddr, int obj_size, seL4_CPtr free_slot, CDL_ObjID obj_id, seL4_BootInfo *bootinfo, CDL_Model *spec) {
-    seL4_CPtr untyped;
-    seL4_Word offset;
-    int error;
-    simple_stable_get_frame_info(bootinfo, paddr, obj_size, &untyped, &offset);
-
-    if (untyped == 0) {
-        /* Failed to find an untyped */
-        return -1;
-    }
-    error = seL4_Untyped_RetypeAtOffset(untyped, seL4_UntypedObject, offset, obj_size, seL4_CapInitThreadCNode, 0, 0, free_slot, 1);
-    if (error == seL4_NoError) {
-        add_sel4_cap(obj_id, ORIG, free_slot);
-    }
-    return error;
-}
-#else
 static int find_device_object(void *paddr, seL4_Word type, int size_bits, seL4_CPtr free_slot,
         CDL_ObjID obj_id, seL4_BootInfo *bootinfo, CDL_Model *spec) {
     int error;
@@ -740,7 +638,6 @@ static int find_device_untyped(void *paddr, int size_bits, seL4_CPtr free_slot, 
         seL4_BootInfo *bootinfo, CDL_Model *spec) {
     return find_device_object(paddr, seL4_UntypedObject, size_bits, free_slot, obj_id, bootinfo, spec);
 }
-#endif
 
 /* Create objects */
 static int
@@ -840,11 +737,9 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
             // as seL4 needs different types for different frame sizes.
             if (capdl_obj_type == CDL_Frame) {
                 obj_type = seL4_frame_type (obj_size);
-#ifndef CONFIG_KERNEL_STABLE
             } else if (capdl_obj_type == CDL_ASIDPool) {
                 obj_type = CDL_Untyped;
                 obj_size = 12;
-#endif
             } else {
                 obj_type = (seL4_ArchObjectType) capdl_obj_type;
             }
@@ -873,7 +768,6 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
             int err = retype_untyped(free_slot, untyped_cptr, obj_type, obj_size);
 
             if (err == seL4_NoError) {
-#ifndef CONFIG_KERNEL_STABLE
                 if (capdl_obj_type == CDL_ASIDPool) {
                     free_slot_index++;
                     seL4_CPtr asid_slot = free_slot_start + free_slot_index;
@@ -881,7 +775,6 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
                     seL4_AssertSuccess(err);
                     free_slot = asid_slot;
                 }
-#endif
                 add_sel4_cap(obj_id, ORIG, free_slot);
 
                 obj_id_index++;
@@ -911,7 +804,7 @@ create_irq_cap(CDL_IRQ irq, CDL_Object *obj, seL4_CPtr free_slot)
     int depth = CONFIG_WORD_SIZE;
     int error;
 
-#if defined(CONFIG_ARCH_X86) && !defined(CONFIG_KERNEL_STABLE)
+#if defined(CONFIG_ARCH_X86)
     if (CDL_Obj_Type(obj) == CDL_IOAPICInterrupt) {
         error = seL4_IRQControl_GetIOAPIC(seL4_CapIRQControl, root, index, depth, \
                       obj->ioapicirq_extra.ioapic, obj->ioapicirq_extra.ioapic_pin, \
@@ -924,7 +817,7 @@ create_irq_cap(CDL_IRQ irq, CDL_Object *obj, seL4_CPtr free_slot)
     } else {
 #endif
         error = seL4_IRQControl_Get(seL4_CapIRQControl, irq, root, index, depth);
-#if defined(CONFIG_ARCH_X86) && !defined(CONFIG_KERNEL_STABLE)
+#if defined(CONFIG_ARCH_X86)
     }
 #endif
     seL4_AssertSuccess(error);
@@ -1251,10 +1144,8 @@ configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
 
     uint32_t UNUSED domain = CDL_TCB_Domain(cdl_tcb);
     debug_printf("  Assigning thread to domain %u...\n", domain);
-#if defined(CONFIG_KERNEL_MASTER) || defined(CONFIG_KERNEL_STABLE)
     error = seL4_DomainSet_Set(seL4_CapDomain, domain, sel4_tcb);
     seL4_AssertSuccess(error);
-#endif
 }
 
 static void
@@ -1351,7 +1242,6 @@ init_irqs(CDL_Model *spec)
     }
 }
 
-#ifndef CONFIG_KERNEL_STABLE
 /* Initialise virtual address spaces */
 static void
 set_asid(CDL_Model *spec UNUSED, CDL_ObjID page)
@@ -1360,12 +1250,10 @@ set_asid(CDL_Model *spec UNUSED, CDL_ObjID page)
     int error = seL4_ARCH_ASIDPool_Assign(seL4_CapInitThreadASIDPool, sel4_page);
     seL4_AssertSuccess(error);
 }
-#endif //!CONFIG_KERNEL_STABLE
 
 static void
 init_pd_asids(CDL_Model *spec)
 {
-#ifndef CONFIG_KERNEL_STABLE
     debug_printf("Initialising Page Directory ASIDs...\n");
 
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
@@ -1383,7 +1271,6 @@ init_pd_asids(CDL_Model *spec)
         }
 #endif
     }
-#endif //!CONFIG_KERNEL_STABLE
 }
 
 static void
