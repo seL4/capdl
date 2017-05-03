@@ -896,7 +896,7 @@ create_sched_ctrl_caps(seL4_BootInfo *bi)
 
 /* Initialise SCs */
 static void
-init_sc(CDL_Model *spec, CDL_ObjID sc, UNUSED seL4_BootInfo *bi)
+init_sc(CDL_Model *spec, CDL_ObjID sc, CDL_Core affinity)
 {
     CDL_Object *cdl_sc = get_spec_object(spec, sc);
 
@@ -907,27 +907,15 @@ init_sc(CDL_Model *spec, CDL_ObjID sc, UNUSED seL4_BootInfo *bi)
     debug_printf("budget: %llu, period: %llu, data: %u\n", budget, period, data);
 
     seL4_CPtr UNUSED seL4_sc = orig_caps(sc);
-
+    seL4_CPtr UNUSED sched_control = sched_ctrl_caps(affinity);
 #ifdef CONFIG_KERNEL_RT
-    assert(bi->schedcontrol.start != seL4_CapNull);
     /* Assign the sched context to run on the CPU that the root task runs on. */
-    int error = seL4_SchedControl_Configure(bi->schedcontrol.start + bi->nodeID,
+    int error = seL4_SchedControl_Configure(sched_control,
                                             seL4_sc, budget, period, 0);
     seL4_AssertSuccess(error);
 #endif
 }
 
-static void
-init_scs(CDL_Model *spec, seL4_BootInfo *bi)
-{
-    debug_printf("Initialising SCs...\n");
-    for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
-        if (spec->objects[obj_id].type == CDL_SchedContext) {
-            debug_printf(" Initialising %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
-            init_sc(spec, obj_id, bi);
-        }
-    }
-}
 
 /* Initialise TCBs */
 static void
@@ -954,7 +942,7 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
 
     seL4_Word ipcbuffer_addr = CDL_TCB_IPCBuffer_Addr(cdl_tcb);
     uint8_t priority = CDL_TCB_Priority(cdl_tcb);
-    uint8_t UNUSED affinity = CDL_TCB_Affinity(cdl_tcb);
+    CDL_Core UNUSED affinity = CDL_TCB_Affinity(cdl_tcb);
     uint8_t UNUSED max_priority = CDL_TCB_MaxPriority(cdl_tcb);
     uint8_t UNUSED criticality = CDL_TCB_Criticality(cdl_tcb);
     uint8_t UNUSED max_criticality = CDL_TCB_MaxCriticality(cdl_tcb);
@@ -985,6 +973,10 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
      */
     seL4_PrioProps_t prio;
     seL4_PrioProps_ptr_new(&prio, (seL4_Uint32) max_priority, (seL4_Uint32) priority);
+
+    if (sel4_sc) {
+        init_sc(spec, CDL_Cap_ObjID(cdl_sc), affinity);
+    }
 
     error = seL4_TCB_Configure(sel4_tcb, sel4_fault_ep,
                                prio, sel4_sc,
@@ -1810,9 +1802,6 @@ init_system(CDL_Model *spec)
     init_elfs(spec, bootinfo);
     init_fill_frames(spec, &simple);
     init_vspace(spec);
-    if (config_set(CONFIG_KERNEL_RT)) {
-        init_scs(spec, bootinfo);
-    }
     init_tcbs(spec);
     init_cspace(spec);
     start_threads(spec);
