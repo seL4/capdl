@@ -80,7 +80,7 @@ data Cap
             capObj :: ObjID }
         | DomainCap
         | SCCap { capObj :: ObjID }
-        | SchedControlCap
+        | SchedControlCap { core :: Word }
         | RTReplyCap { capObj :: ObjID }
 
         -- arch specific caps, ARM11, IA32 and X86_64 merged
@@ -319,7 +319,7 @@ tcbSCSlot = 5
 
 --
 -- The string used when defining an IOSpaceMasterCap, an ASIDControlCap,
--- an IRQControlCap or a DomainCap.
+-- an IRQControlCap, a DomainCap or a SchedControlCap.
 --
 ioSpaceMaster :: String
 ioSpaceMaster = "io_space_master"
@@ -332,7 +332,12 @@ irqControl = "irq_control"
 
 domain :: String
 domain = "domain"
+
+schedControl :: String
 schedControl = "sched_control"
+
+capStrings :: [String]
+capStrings = [ioSpaceMaster, asidControl, irqControl, domain, schedControl]
 
 --
 -- Determine if the given capability points to an object.
@@ -343,7 +348,7 @@ hasObjID IOSpaceMasterCap = False
 hasObjID ASIDControlCap = False
 hasObjID IRQControlCap = False
 hasObjID DomainCap = False
-hasObjID SchedControlCap = False
+hasObjID (SchedControlCap {}) = False
 hasObjID _  = True
 
 --

@@ -37,7 +37,10 @@ objects {
 
 } caps {
 
-  cnode_booter {1: rm_ut}
+  cnode_booter {
+    1: rm_ut
+    2: sched_control (core: 0)
+  }
   
   rm_ap {1: rm_pd}
   

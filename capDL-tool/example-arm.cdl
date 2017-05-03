@@ -103,6 +103,7 @@ cap_name2 = (irq_table, 0)
 
 cnode_booter {
   001: rm_ut
+  sched_control (core: 0)
 }
 
 test[2..] {

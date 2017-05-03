@@ -528,6 +528,11 @@ cap_param =
         r <- ranges
         return $ Range r
     <|> do
+        reserved "core"
+        colon
+        n <- number
+        return $ Core n
+    <|> do
         reserved "reply"
         return Reply
     <|> do

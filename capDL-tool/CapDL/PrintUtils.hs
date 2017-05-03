@@ -288,6 +288,8 @@ printAsid (high, low) = text "(" <> num high <> text ", " <> num low <> text ")"
 
 prettyAsid asid = [text "asid:" <+> printAsid asid]
 
+prettyCore core = [text "core:" <+> num core]
+
 maybeAsid Nothing = []
 maybeAsid (Just asid) = prettyAsid asid
 
@@ -313,6 +315,7 @@ maybeCapParams cap = case cap of
     PDCap _ asid -> capParams (maybeAsid asid)
     ASIDPoolCap _ asid -> capParams (prettyAsid asid)
     IOPortsCap _ ports -> capParams (portsRange ports)
+    SchedControlCap core -> capParams (prettyCore core)
     _ -> empty
 
 printCap :: Cap -> Doc
@@ -322,7 +325,7 @@ printCap cap = case cap of
     ASIDControlCap -> text asidControl
     IRQControlCap -> text irqControl
     DomainCap -> text domain
-    SchedControlCap -> text schedControl
+    (SchedControlCap {}) -> text schedControl
     _ -> text $ fst $ objID cap
 
 sameName :: ObjID -> ObjID -> Bool

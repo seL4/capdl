@@ -654,28 +654,38 @@ checkSlot :: Maybe Word -> SlotState Word
 checkSlot (Just slot) = return slot
 checkSlot Nothing = getSlot
 
+validCapPars' :: Name -> [CapParam] -> Bool
+validCapPars' name ps
+    | name == schedControl = subsetConstrs ps [Core undefined]
+    | otherwise = null ps
+
+getCore :: ObjID -> [CapParam] -> Word
+getCore containerName [] =
+    error ("Needs core parameter for sched_control cap in " ++ printID containerName)
+getCore _ (Core n:_) = n
+getCore containerName (_:ps) = getCore containerName ps
+
+capOf' :: ObjID -> Name -> [CapParam] -> Cap
+capOf' containerName capName ps
+    | capName == ioSpaceMaster = IOSpaceMasterCap
+    | capName == asidControl = ASIDControlCap
+    | capName == irqControl = IRQControlCap
+    | capName == domain = DomainCap
+    | capName == schedControl = SchedControlCap (getCore containerName ps)
+    | otherwise =
+        error ("capOf' called with a name it doesn't know about: " ++ capName)
+
 slotsAndCapsOf :: ObjMap Word-> ObjID -> CapMapping -> SlotState [(Word, Cap)]
 slotsAndCapsOf objs objName (CapMapping slot _ nameRef params _)
-    | (nameRef, params) == ((ioSpaceMaster, []), []) = do
-        slot' <- checkSlot slot
-        putSlot slot'
-        return [(slot', IOSpaceMasterCap)]
-    | (nameRef, params) == ((asidControl, []), []) = do
-        slot' <- checkSlot slot
-        putSlot slot'
-        return [(slot', ASIDControlCap)]
-    | (nameRef, params) == ((irqControl, []), []) = do
-        slot' <- checkSlot slot
-        putSlot slot'
-        return [(slot', IRQControlCap)]
-    | (nameRef, params) == ((domain, []), []) = do
-        slot' <- checkSlot slot
-        putSlot slot'
-        return [(slot', DomainCap)]
-    | (nameRef, params) == ((schedControl, []), []) = do
-        slot' <- checkSlot slot
-        putSlot slot'
-        return [(slot', SchedControlCap)]
+    | fst nameRef `elem` capStrings && null (snd nameRef) = do
+        let (name, []) = nameRef
+        if validCapPars' name params
+            then do
+                slot' <- checkSlot slot
+                putSlot slot'
+                return [(slot', capOf' objName name params)]
+            else error ("Incorrect params for cap to " ++ name ++
+                        " in " ++ printID objName)
     | otherwise = do
         slot' <- checkSlot slot
         let caps = capsOf objs objName (refToIDs objs nameRef) params

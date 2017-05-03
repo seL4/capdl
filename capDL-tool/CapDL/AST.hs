@@ -146,6 +146,8 @@ data CapParam
         theBadge :: Word }
     | Range {
         theRange :: [Range] }
+    | Core {
+        theCore :: Word }
     | Reply
     | MasterReply
     | Asid {
