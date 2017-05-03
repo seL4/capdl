@@ -343,6 +343,17 @@ class SC(Object):
         s = '%(name)s = sc (period: %(period)s, budget: %(budget)s, data: %(data)s)' % self.__dict__
         return s
 
+class SchedControl(Object):
+    def __init__(self, name, core=0):
+        super(SchedControl, self).__init__(name)
+        self.core = core
+
+    def __repr__(self):
+        # no object representation for a sched control
+        s = ""
+        return s
+
+
 class RTReply(Object):
     def __init__(self, name):
         super(RTReply, self).__init__(name)

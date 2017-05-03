@@ -13,7 +13,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from .Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
     Notification, TCB, Untyped, IOPageTable, Object, IRQ, IOPorts, IODevice, \
-    VCPU, ASIDPool, SC, RTReply, \
+    VCPU, ASIDPool, SC, SchedControl, RTReply, \
     seL4_UntypedObject, seL4_TCBObject, seL4_EndpointObject, \
     seL4_NotificationObject, seL4_CapTableObject, seL4_ARM_SmallPageObject, seL4_ARM_LargePageObject, \
     seL4_ARM_SectionObject, seL4_ARM_SuperSectionObject, seL4_ARM_PageTableObject, \
@@ -126,6 +126,8 @@ class ObjectAllocator(object):
             o = Frame(name, frame_type[0].size, **kwargs)
         elif type == seL4_SchedContextObject:
             o = SC(name)
+        elif type == seL4_SchedControl:
+            o = SchedControl(name)
         elif type == seL4_RTReplyObject:
             o = RTReply(name)
         else:

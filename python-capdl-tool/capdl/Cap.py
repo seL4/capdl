@@ -65,6 +65,9 @@ class Cap(object):
     def __repr__(self):
         extra = []
 
+        if isinstance(self.referent, Object.SchedControl):
+            return "sched_control (core: %d)" % self.referent.core
+
         if isinstance(self.referent, Object.Frame) or \
            isinstance(self.referent, Object.Endpoint) or \
            isinstance(self.referent, Object.Notification):

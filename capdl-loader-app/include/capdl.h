@@ -74,6 +74,8 @@ typedef seL4_Word CDL_ObjID;
 
 /* IRQ number: Hardware IRQ number */
 typedef seL4_Word CDL_IRQ;
+/* Core id */
+typedef seL4_Word CDL_Core;
 
 /* Capability: */
 typedef enum {
@@ -258,6 +260,7 @@ typedef struct {
         CDL_IOAPICIRQExtraInfo ioapicirq_extra;
         CDL_MSIIRQExtraInfo msiirq_extra;
         void *paddr; /* Physical address; only relevant for frames and untyped objects. */
+        CDL_Core core; /* core for sched control */
     };
     /* The following member has a more specific type, CDL_ObjectType, but by forcing it into a
      * uint8_t we can reduce the size of this struct.
@@ -379,4 +382,6 @@ CDL_SC_Budget(CDL_Object *obj)               { return obj->sc_extra.budget; }
 static inline seL4_Word
 CDL_SC_Data(CDL_Object *obj)               { return obj->sc_extra.data; }
 
+static inline CDL_Core
+CDL_SchedControl_Core(CDL_Object *obj)    { return obj->core; }
 #endif

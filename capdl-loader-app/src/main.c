@@ -53,7 +53,7 @@
 static seL4_CPtr capdl_to_sel4_orig[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 static seL4_CPtr capdl_to_sel4_copy[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 static seL4_CPtr capdl_to_sel4_irq[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
-
+static seL4_CPtr capdl_to_sched_ctrl[CONFIG_MAX_NUM_NODES];
 // List of untyped cptrs, sorted from largest to smallest.
 static seL4_CPtr untyped_cptrs[CONFIG_MAX_NUM_BOOTINFO_UNTYPED_CAPS];
 
@@ -106,7 +106,7 @@ next_free_slot(void)
 }
 
 typedef enum {MOVE, COPY} init_cnode_mode;
-typedef enum {ORIG, DUP, IRQ} seL4_cap_type;
+typedef enum {ORIG, DUP, IRQ, SCHED_CTRL} seL4_cap_type;
 
 static seL4_CPtr
 orig_caps(CDL_ObjID object_id) {
@@ -126,6 +126,12 @@ irq_caps(CDL_IRQ irq) {
     return capdl_to_sel4_irq[irq];
 }
 
+static seL4_CPtr
+sched_ctrl_caps(CDL_Core id) {
+    assert(id < CONFIG_MAX_NUM_NODES);
+    return capdl_to_sched_ctrl[id];
+}
+
 static void
 add_sel4_cap(CDL_ObjID object_id, seL4_cap_type type, seL4_CPtr slot)
 {
@@ -135,6 +141,8 @@ add_sel4_cap(CDL_ObjID object_id, seL4_cap_type type, seL4_CPtr slot)
         capdl_to_sel4_copy[object_id] = slot;
     } else if (type == IRQ) {
         capdl_to_sel4_irq[object_id] = slot;
+    } else if (type == SCHED_CTRL) {
+        capdl_to_sched_ctrl[object_id] = slot;
     }
 }
 
@@ -876,6 +884,16 @@ duplicate_caps(CDL_Model *spec)
     }
 }
 
+static void
+create_sched_ctrl_caps(seL4_BootInfo *bi)
+{
+#ifdef CONFIG_KERNEL_RT
+    for (seL4_Word i = 0; i <= bi->schedcontrol.end - bi->schedcontrol.start; i++) {
+        add_sel4_cap(i, SCHED_CTRL, i + bi->schedcontrol.start);
+    }
+#endif
+}
+
 /* Initialise SCs */
 static void
 init_sc(CDL_Model *spec, CDL_ObjID sc, UNUSED seL4_BootInfo *bi)
@@ -1604,6 +1622,9 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
         case CDL_IRQHandlerCap:
             src_index = irq_caps(target_cap_irq);
             break;
+        case CDL_SchedControlCap:
+            src_index = sched_ctrl_caps(CDL_SchedControl_Core(get_spec_object(spec, target_cap_obj)));
+            break;
         default:
             src_index = orig_caps(target_cap_obj);
         break;
@@ -1779,6 +1800,9 @@ init_system(CDL_Model *spec)
 
     create_objects(spec, bootinfo);
     create_irq_caps(spec);
+    if (config_set(CONFIG_KERNEL_RT)) {
+        create_sched_ctrl_caps(bootinfo);
+    }
     duplicate_caps(spec);
 
     init_irqs(spec);
