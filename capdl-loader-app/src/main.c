@@ -35,9 +35,6 @@
 #define PD_SLOT(vaddr)   ((vaddr >> (PT_SIZE + FRAME_SIZE)) & (( 1 << PD_SIZE) - 1))
 #define PT_SLOT(vaddr)   ((vaddr >> FRAME_SIZE) & ((1 << PT_SIZE) - 1))
 
-#define ANSI_RESET "\033[0m"
-#define ANSI_GREEN   ANSI_RESET "\033[32m"
-
 #define CAPDL_SHARED_FRAMES
 
 #define STACK_ALIGNMENT_BYTES 16
@@ -1813,6 +1810,6 @@ main(void)
     ZF_LOGD("We used %d CSlots (%.2LF%% of our CNode)\n", get_free_slot(),
         (long double)get_free_slot() /
         (long double)(1U << CONFIG_ROOT_CNODE_SIZE_BITS) * 100);
-    ZF_LOGD(ANSI_GREEN "Done; suspending..." ANSI_RESET "\n");
+    ZF_LOGD(A_RESET A_FG_G "Done; suspending..." A_RESET "\n");
     seL4_TCB_Suspend(seL4_CapInitThreadTCB);
 }
