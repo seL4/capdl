@@ -24,8 +24,7 @@
 
 #include <utils/util.h>
 #include <sel4/sel4.h>
-
-#include "debug.h"
+#include <sel4utils/sel4_zf_logif.h>
 #include "capdl.h"
 
 #include "capdl_spec.h"
@@ -91,7 +90,7 @@ next_free_slot(void)
 {
     free_slot_start++;
     if (free_slot_start >= free_slot_end)
-        die("Ran out of free slots!");
+        ZF_LOGF("Ran out of free slots!");
 }
 
 typedef enum {MOVE, COPY} init_cnode_mode;
@@ -152,7 +151,7 @@ get_capData(CDL_CapData d)
         case CDL_CapData_Raw:
             return (seL4_CapData_t){{d.data}};
         default:
-            die("invalid cap data");
+            ZF_LOGF("invalid cap data");
             return (seL4_CapData_t){{0}};
     }
 }
@@ -176,7 +175,7 @@ static CDL_Cap *get_cdl_frame_pdpt(CDL_ObjID root, uintptr_t vaddr, CDL_Model *s
     CDL_Object *cdl_pml4 = get_spec_object(spec, root);
     CDL_Cap *pdpt_cap = get_cap_at(cdl_pml4, PML4_SLOT(vaddr));
     if (pdpt_cap == NULL) {
-        die("Could not find PD cap %s[%d]", CDL_Obj_Name(cdl_pml4), (int)PML4_SLOT(vaddr));
+        ZF_LOGF("Could not find PD cap %s[%d]", CDL_Obj_Name(cdl_pml4), (int)PML4_SLOT(vaddr));
     }
     return pdpt_cap;
 }
@@ -187,7 +186,7 @@ static CDL_Cap *get_cdl_frame_pd(CDL_ObjID root, uintptr_t vaddr, CDL_Model *spe
     CDL_Object *cdl_pdpt = get_spec_object(spec, CDL_Cap_ObjID(pdpt_cap));
     CDL_Cap *pd_cap = get_cap_at(cdl_pdpt, PDPT_SLOT(vaddr));
     if (pd_cap == NULL) {
-        die("Could not find PD cap %s[%d]", CDL_Obj_Name(cdl_pdpt), (int)PDPT_SLOT(vaddr));
+        ZF_LOGF("Could not find PD cap %s[%d]", CDL_Obj_Name(cdl_pdpt), (int)PDPT_SLOT(vaddr));
     }
     return pd_cap;
 }
@@ -203,7 +202,7 @@ static CDL_Cap *get_cdl_frame_pt(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
 #endif
     CDL_Cap *pt_cap = get_cap_at(cdl_pd, PD_SLOT(vaddr));
     if (pt_cap == NULL) {
-        die("Could not find PT cap %s[%d]", CDL_Obj_Name(cdl_pd), (int)PD_SLOT(vaddr));
+        ZF_LOGF("Could not find PT cap %s[%d]", CDL_Obj_Name(cdl_pd), (int)PD_SLOT(vaddr));
     }
     return pt_cap;
 }
@@ -234,7 +233,7 @@ static CDL_Cap *get_cdl_frame_cap(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec
     CDL_Object *cdl_pt = get_spec_object(spec, CDL_Cap_ObjID(pt_cap));
     CDL_Cap *frame_cap = get_cap_at(cdl_pt, PT_SLOT(vaddr));
     if (frame_cap == NULL) {
-        die("Could not find frame cap %s[%d]", CDL_Obj_Name(cdl_pt), (int)PT_SLOT(vaddr));
+        ZF_LOGF("Could not find frame cap %s[%d]", CDL_Obj_Name(cdl_pt), (int)PT_SLOT(vaddr));
     }
 
     return frame_cap;
@@ -273,7 +272,7 @@ seL4_frame_type(int size)
             return seL4_X86_LargePageObject;
 #endif
         default:
-            die("illegal frame size");
+            ZF_LOGF("illegal frame size");
     }
 }
 
@@ -333,14 +332,14 @@ void init_copy_frame(seL4_BootInfo *bootinfo)
     for (int i = 0; i < sizeof(copy_addr_with_pt) / PAGE_SIZE_4K; i++) {
 #ifdef CONFIG_ARCH_ARM
         error = seL4_ARM_Page_Unify_Instruction(copy_addr_frame + i, 0, PAGE_SIZE_4K);
-        seL4_AssertSuccess(error);
+        ZF_LOGF_IFERR(error, "");
 #endif
         error = seL4_ARCH_Page_Unmap(copy_addr_frame + i);
-        seL4_AssertSuccess(error);
+        ZF_LOGF_IFERR(error, "");
 
         if ((i + 1) % BIT(seL4_PageTableBits) == 0) {
             error = seL4_ARCH_PageTable_Unmap(copy_addr_pt + i / BIT(seL4_PageTableBits));
-            seL4_AssertSuccess(error);
+            ZF_LOGF_IFERR(error, "");
         }
     }
 }
@@ -353,11 +352,11 @@ elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
     void *elf_file = cpio_get_file(_capdl_archive,elf_name,&elf_size);
 
     if (elf_file == NULL) {
-        die("ELF file %s not found", elf_name);
+        ZF_LOGF("ELF file %s not found", elf_name);
     }
 
     if (elf_checkFile(elf_file) != 0)
-        die("Unable to read elf file %s at %p", elf_name, elf_file);
+        ZF_LOGF("Unable to read elf file %s at %p", elf_name, elf_file);
 
     ZF_LOGD("   ELF loading %s (from %p)... \n", elf_name, elf_file);
 
@@ -393,7 +392,7 @@ elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
             if (error == seL4_FailedLookup) {
                 error = seL4_ARCH_PageTable_Map(sel4_page_pt, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
                                            seL4_ARCH_Default_VMAttributes);
-                seL4_AssertSuccess(error);
+                ZF_LOGF_IFERR(error, "");
                 error = seL4_ARCH_Page_Map(sel4_page, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
                     seL4_ReadWrite, attribs);
             }
@@ -409,7 +408,7 @@ elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
                     ZF_LOGD("%p", (void*)addr.paddr);
                 }
                 ZF_LOGD(" -> %p (error = %d)\n", (void*)copy_addr, error);
-                seL4_AssertSuccess(error);
+                ZF_LOGF_IFERR(error, "");
             }
 
             /* copy until end of section or end of page */
@@ -421,14 +420,14 @@ elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
 
 #ifdef CONFIG_ARCH_ARM
             error = seL4_ARM_Page_Unify_Instruction(sel4_page, 0, sel4_page_size);
-            seL4_AssertSuccess(error);
+            ZF_LOGF_IFERR(error, "");
 #endif
             error = seL4_ARCH_Page_Unmap(sel4_page);
-            seL4_AssertSuccess(error);
+            ZF_LOGF_IFERR(error, "");
 
             if (sel4_page_pt != 0) {
                 error = seL4_ARCH_PageTable_Unmap(sel4_page_pt);
-                seL4_AssertSuccess(error);
+                ZF_LOGF_IFERR(error, "");
             }
 
             vaddr += len;
@@ -557,7 +556,7 @@ static int find_device_object(void *paddr, seL4_Word type, int size_bits, seL4_C
             /* Attempt to copy the cap */
             error = seL4_CNode_Copy(seL4_CapInitThreadCNode, free_slot, CONFIG_WORD_SIZE,
                                     seL4_CapInitThreadCNode, orig_caps(prev), CONFIG_WORD_SIZE, seL4_AllRights);
-            seL4_AssertSuccess(error);
+            ZF_LOGF_IFERR(error, "");
             add_sel4_cap(obj_id, ORIG, free_slot);
             return 0;
         }
@@ -592,7 +591,7 @@ static int find_device_object(void *paddr, seL4_Word type, int size_bits, seL4_C
                     }
                     addr = seL4_ARCH_Page_GetAddress(free_slot + 2);
                     error = seL4_CNode_Delete(seL4_CapInitThreadCNode, free_slot + 2, CONFIG_WORD_SIZE);
-                    seL4_AssertSuccess(error);
+                    ZF_LOGF_IFERR(error, "");
                     if (addr.error) {
                         return -1;
                     }
@@ -603,7 +602,7 @@ static int find_device_object(void *paddr, seL4_Word type, int size_bits, seL4_C
                     /* delete any holding cap */
                     if (hold_slot) {
                         error = seL4_CNode_Delete(seL4_CapInitThreadCNode, hold_slot, CONFIG_WORD_SIZE);
-                        seL4_AssertSuccess(error);
+                        ZF_LOGF_IFERR(error, "");
                     }
                     return 0;
                 }
@@ -614,11 +613,11 @@ static int find_device_object(void *paddr, seL4_Word type, int size_bits, seL4_C
                 /* if we are currently using a hold slot we can just delete the cap, otherwise start the hold */
                 if (hold_slot) {
                     error = seL4_CNode_Delete(seL4_CapInitThreadCNode, free_slot, CONFIG_WORD_SIZE);
-                    seL4_AssertSuccess(error);
+                    ZF_LOGF_IFERR(error, "");
                 } else {
                     hold_slot = free_slot + 1;
                     error = seL4_CNode_Move(seL4_CapInitThreadCNode, hold_slot, CONFIG_WORD_SIZE, seL4_CapInitThreadCNode, free_slot, CONFIG_WORD_SIZE);
-                    seL4_AssertSuccess(error);
+                    ZF_LOGF_IFERR(error, "");
                 }
             }
         }
@@ -692,7 +691,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
 
             int err = seL4_CNode_Copy(root, free_slot, depth,
                 root, index, depth, seL4_AllRights);
-            seL4_AssertSuccess(err);
+            ZF_LOGF_IFERR(err, "");
 
             add_sel4_cap(obj_id, ORIG, free_slot);
 
@@ -714,7 +713,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
                 continue;
             }
 
-            die("Failed to find device frame at paddr = %p\n", obj->paddr);
+            ZF_LOGF("Failed to find device frame at paddr = %p\n", obj->paddr);
         }
 
         // Never create Interrupt objects here
@@ -753,7 +752,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
                 continue;
             }
 
-            die("Failed to find device untyped at paddr = %p, size_bits = %d\n", obj->paddr, obj_size);
+            ZF_LOGF("Failed to find device untyped at paddr = %p, size_bits = %d\n", obj->paddr, obj_size);
         }
 
         // Create object
@@ -769,7 +768,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
                     free_slot_index++;
                     seL4_CPtr asid_slot = free_slot_start + free_slot_index;
                     err = seL4_ARCH_ASIDControl_MakePool(seL4_CapASIDControl, free_slot, seL4_CapInitThreadCNode, asid_slot, CONFIG_WORD_SIZE);
-                    seL4_AssertSuccess(err);
+                    ZF_LOGF_IFERR(err, "");
                     free_slot = asid_slot;
                 }
                 add_sel4_cap(obj_id, ORIG, free_slot);
@@ -780,7 +779,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
                 ut_index++;
             } else {
                 /* Exit with failure. */
-                seL4_AssertSuccess(err);
+                ZF_LOGF_IFERR(err, "");
             }
         }
     }
@@ -789,7 +788,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
 
     if (obj_id_index != spec->num) {
         /* We didn't iterate through all the objects. */
-        die("Ran out of untyped memory while creating objects.");
+        ZF_LOGF("Ran out of untyped memory while creating objects.");
     }
 }
 
@@ -817,7 +816,7 @@ create_irq_cap(CDL_IRQ irq, CDL_Object *obj, seL4_CPtr free_slot)
 #if defined(CONFIG_ARCH_X86)
     }
 #endif
-    seL4_AssertSuccess(error);
+    ZF_LOGF_IFERR(error, "");
 
     add_sel4_cap(irq, IRQ, index);
 }
@@ -854,7 +853,7 @@ duplicate_cap(CDL_ObjID object_id, int free_slot)
 
     int error = seL4_CNode_Copy(dest_root, dest_index, dest_depth,
                                 src_root, src_index, src_depth, rights);
-    seL4_AssertSuccess(error);
+    ZF_LOGF_IFERR(error, "");
 
     add_sel4_cap(object_id, DUP, dest_index);
 }
@@ -901,7 +900,7 @@ init_sc(CDL_Model *spec, CDL_ObjID sc, CDL_Core affinity)
     /* Assign the sched context to run on the CPU that the root task runs on. */
     int error = seL4_SchedControl_Configure(sched_control,
                                             seL4_sc, budget, period, 0);
-    seL4_AssertSuccess(error);
+    ZF_LOGF_IFERR(error, "");
 #endif
 }
 
@@ -915,12 +914,12 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     CDL_Cap *cdl_cspace_root = get_cap_at(cdl_tcb, CDL_TCB_CTable_Slot);
 #ifndef CONFIG_CAPDL_LOADER_ALLOW_NO_CSPACE
     if (cdl_cspace_root == NULL) {
-        die("Could not find CSpace cap for %s", CDL_Obj_Name(cdl_tcb));
+        ZF_LOGF("Could not find CSpace cap for %s", CDL_Obj_Name(cdl_tcb));
     }
 #endif
     CDL_Cap *cdl_vspace_root = get_cap_at(cdl_tcb, CDL_TCB_VTable_Slot);
     if (cdl_vspace_root == NULL) {
-        die("Could not find VSpace cap for %s", CDL_Obj_Name(cdl_tcb));
+        ZF_LOGF("Could not find VSpace cap for %s", CDL_Obj_Name(cdl_tcb));
     }
     CDL_Cap *cdl_ipcbuffer   = get_cap_at(cdl_tcb, CDL_TCB_IPCBuffer_Slot);
     if (cdl_ipcbuffer == NULL) {
@@ -977,14 +976,14 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
                                sel4_cspace_root, sel4_cspace_root_data,
                                sel4_vspace_root, sel4_vspace_root_data,
                                ipcbuffer_addr, sel4_ipcbuffer);
-    seL4_AssertSuccess(error);
+    ZF_LOGF_IFERR(error, "");
 
 #if CONFIG_MAX_NUM_NODES > 1
     error = seL4_TCB_SetAffinity(sel4_tcb, affinity);
 #endif
 
 #endif
-    seL4_AssertSuccess(error);
+    ZF_LOGF_IFERR(error, "");
 
 #ifdef SEL4_DEBUG_KERNEL
     /* Name the thread after its TCB name if possible. We need to do some
@@ -1013,7 +1012,7 @@ configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
     uintptr_t sp = CDL_TCB_SP(cdl_tcb);
 
     if (sp % (sizeof(uintptr_t) * 2) != 0) {
-        die("TCB %s's stack pointer is not dword-aligned", CDL_Obj_Name(&spec->objects[tcb]));
+        ZF_LOGF("TCB %s's stack pointer is not dword-aligned", CDL_Obj_Name(&spec->objects[tcb]));
     }
     int reg_args = 0;
 #if defined(CONFIG_ARCH_ARM)
@@ -1029,7 +1028,7 @@ configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
 
     if (argc > reg_args) {
 #ifdef CONFIG_CAPDL_LOADER_CC_REGISTERS
-        die("TCB %s has more than four arguments, which is not supported using"
+        ZF_LOGF("TCB %s has more than four arguments, which is not supported using"
             " the register calling convention", CDL_Obj_Name(&spec->objects[tcb]));
 #else //!CONFIG_CAPDL_LOADER_CC_REGISTERS
         /* We need to map the TCB's stack into our address space because there
@@ -1041,7 +1040,7 @@ configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
         CDL_ObjID pd = CDL_Cap_ObjID(cdl_vspace_root);
 
         if (STACK_ALIGNMENT_BYTES % sizeof(*argv)) {
-            die("Stack alignment requirement not evenly divisible by argument size");
+            ZF_LOGF("Stack alignment requirement not evenly divisible by argument size");
         }
 
         /* The stack pointer of new threads will initially be aligned to
@@ -1073,7 +1072,7 @@ configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
 #endif
         int error = seL4_ARCH_Page_Map(frame, seL4_CapInitThreadPD, (seL4_Word)copy_addr_with_pt,
             seL4_ReadWrite, attribs);
-        seL4_AssertSuccess(error);
+        ZF_LOGF_IFERR(error, "");
 
         /* Write all necessary arguments to the TCB's stack. */
         for (int i = argc - 1; i >= 0 && i >= reg_args; i--) {
@@ -1081,7 +1080,7 @@ configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
                 /* We could support this case with more complicated logic, but
                  * choose not to.
                  */
-                die("TCB %s's initial arguments cause its stack to cross a page boundary",
+                ZF_LOGF("TCB %s's initial arguments cause its stack to cross a page boundary",
                     CDL_Obj_Name(&spec->objects[tcb]));
             }
             sp -= sizeof(seL4_Word);
@@ -1090,10 +1089,10 @@ configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
 
 #ifdef CONFIG_ARCH_ARM
         error = seL4_ARM_Page_Unify_Instruction(frame, 0, PAGE_SIZE_4K);
-        seL4_AssertSuccess(error);
+        ZF_LOGF_IFERR(error, "");
 #endif //CONFIG_ARCH_ARM
         error = seL4_ARCH_Page_Unmap(frame);
-        seL4_AssertSuccess(error);
+        ZF_LOGF_IFERR(error, "");
 #endif //CONFIG_CAPDL_LOADER_CC_REGISTERS
     }
 
@@ -1139,12 +1138,12 @@ configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
     int error = seL4_TCB_WriteRegisters(sel4_tcb, false, 0,
                                         sizeof(seL4_UserContext) / sizeof(seL4_Word),
                                         &global_user_context);
-    seL4_AssertSuccess(error);
+    ZF_LOGF_IFERR(error, "");
 
     uint32_t UNUSED domain = CDL_TCB_Domain(cdl_tcb);
     ZF_LOGD("  Assigning thread to domain %u...\n", domain);
     error = seL4_DomainSet_Set(seL4_CapDomain, domain, sel4_tcb);
-    seL4_AssertSuccess(error);
+    ZF_LOGF_IFERR(error, "");
 }
 
 static void
@@ -1169,7 +1168,7 @@ init_elf(CDL_Model *spec, CDL_ObjID tcb, seL4_BootInfo *bootinfo)
 
     CDL_Cap *cdl_vspace_root = get_cap_at(cdl_tcb, CDL_TCB_VTable_Slot);
     if (cdl_vspace_root == NULL) {
-        die("Could not find VSpace cap for %s", CDL_Obj_Name(cdl_tcb));
+        ZF_LOGF("Could not find VSpace cap for %s", CDL_Obj_Name(cdl_tcb));
     }
 
     elf_load_frames(CDL_TCB_ElfName(cdl_tcb), CDL_Cap_ObjID(cdl_vspace_root), spec, bootinfo);
@@ -1212,10 +1211,10 @@ init_irq(CDL_Model *spec, CDL_IRQ irq_no)
     assert(cdl_irq != NULL);
 
     if (cdl_irq->size_bits != 0) {
-        die("Misconfigured IRQ; an IRQ must have a size of 0.\n");
+        ZF_LOGF("Misconfigured IRQ; an IRQ must have a size of 0.\n");
     }
     if (cdl_irq->slots.num > 1) {
-        die("Misconfigured IRQ; an IRQ cannot have more than one assigned endpoint.\n");
+        ZF_LOGF("Misconfigured IRQ; an IRQ cannot have more than one assigned endpoint.\n");
     }
 
     if (cdl_irq->slots.num == 1) {
@@ -1224,7 +1223,7 @@ init_irq(CDL_Model *spec, CDL_IRQ irq_no)
         seL4_CPtr endpoint_cptr = orig_caps(CDL_Cap_ObjID(endpoint_cap));
 
         int error = seL4_IRQHandler_SetNotification (irq_handler_cap, endpoint_cptr);
-        seL4_AssertSuccess(error);
+        ZF_LOGF_IFERR(error, "");
     }
 }
 
@@ -1247,7 +1246,7 @@ set_asid(CDL_Model *spec UNUSED, CDL_ObjID page)
 {
     seL4_CPtr sel4_page = orig_caps(page);
     int error = seL4_ARCH_ASIDPool_Assign(seL4_CapInitThreadASIDPool, sel4_page);
-    seL4_AssertSuccess(error);
+    ZF_LOGF_IFERR(error, "");
 }
 
 static void
@@ -1293,7 +1292,7 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
 
     if (CDL_Cap_Type(page_cap) == CDL_PTCap) {
         int error = seL4_ARCH_PageTable_Map(sel4_page, sel4_pd, vaddr, vm_attribs);
-        seL4_AssertSuccess(error);
+        ZF_LOGF_IFERR(error, "");
 
     } else if (CDL_Cap_Type(page_cap) == CDL_FrameCap) {
 #ifdef CAPDL_SHARED_FRAMES
@@ -1302,7 +1301,7 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
 
         int error_0 = seL4_CNode_Copy(seL4_CapInitThreadCNode, dest_index, CONFIG_WORD_SIZE,
                                       seL4_CapInitThreadCNode, sel4_page, CONFIG_WORD_SIZE, seL4_AllRights);
-        seL4_AssertSuccess(error_0);
+        ZF_LOGF_IFERR(error_0, "");
 
         next_free_slot();
         sel4_page = dest_index;
@@ -1340,7 +1339,7 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
                 ZF_LOGD("%p", (void*)addr.paddr);
             }
             ZF_LOGD(" -> %p (error = %d)\n", (void*)vaddr, error);
-            seL4_AssertSuccess(error);
+            ZF_LOGF_IFERR(error, "");
         }
 #ifdef CONFIG_ARCH_ARM
         /* When seL4 creates a new frame object it zeroes the associated memory
@@ -1358,11 +1357,11 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
             seL4_Word size_bits = spec->objects[page].size_bits;
             assert(size_bits <= sizeof(uintptr_t) * CHAR_BIT - 1 && "illegal object size");
             error = seL4_ARM_Page_CleanInvalidate_Data(sel4_page, 0, BIT(size_bits));
-            seL4_AssertSuccess(error);
+            ZF_LOGF_IFERR(error, "");
         }
 #endif
     } else {
-        die("attempt to map something that is not a frame or PT");
+        ZF_LOGF("attempt to map something that is not a frame or PT");
     }
 }
 
@@ -1618,12 +1617,12 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
             ZF_LOGD("moving...\n");
             int error = seL4_CNode_Move(dest_root, dest_index, dest_depth,
                                         src_root, src_index, src_depth);
-            seL4_AssertSuccess(error);
+            ZF_LOGF_IFERR(error, "");
         } else {
             ZF_LOGD("mutating (with badge/guard %p)...\n", (void*)target_cap_data.words[0]);
             int error = seL4_CNode_Mutate(dest_root, dest_index, dest_depth,
                                           src_root, src_index, src_depth, target_cap_data);
-            seL4_AssertSuccess(error);
+            ZF_LOGF_IFERR(error, "");
         }
     } else if (mode == COPY && !move_cap) {
         if (is_frame_cap && target_cap->mapping_container_id != INVALID_OBJ_ID) {
@@ -1649,12 +1648,12 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
             /* Move the cap to the frame used for the mapping into the destination slot. */
             int error = seL4_CNode_Move(dest_root, dest_index, dest_depth,
                                         src_root, mapped_frame_cap, src_depth);
-            seL4_AssertSuccess(error);
+            ZF_LOGF_IFERR(error, "");
         } else {
           ZF_LOGD("minting (with badge/guard %p)...\n", (void*)target_cap_data.words[0]);
           int error = seL4_CNode_Mint(dest_root, dest_index, dest_depth,
                                       src_root, src_index, src_depth, target_cap_rights, target_cap_data);
-          seL4_AssertSuccess(error);
+          ZF_LOGF_IFERR(error, "");
         }
     } else {
         ZF_LOGD("skipping\n");
@@ -1709,7 +1708,7 @@ start_threads(CDL_Model *spec)
             ZF_LOGD(" Starting %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
             seL4_CPtr tcb = orig_caps(obj_id);
             int error = seL4_TCB_Resume(tcb);
-            seL4_AssertSuccess(error);
+            ZF_LOGF_IFERR(error, "");
         }
     }
 }
@@ -1731,7 +1730,7 @@ init_fill_frames(CDL_Model *spec, simple_t * simple)
             error = seL4_ARCH_Page_Map(cap, seL4_CapInitThreadPD, (seL4_Word)copy_addr_with_pt,
                 seL4_ReadWrite, seL4_ARCH_Default_VMAttributes);
         }
-        seL4_AssertSuccess(error);
+        ZF_LOGF_IFERR(error, "");
 
         /* Determine destination */
         uintptr_t dest = base + spec->frame_fill[i].dest_offset;
@@ -1757,12 +1756,12 @@ init_fill_frames(CDL_Model *spec, simple_t * simple)
             seL4_Word arch_info = simple_get_arch_info(simple);
             memcpy((void*)dest, &arch_info, MIN(max, sizeof(arch_info)));
         } else {
-            die("Unsupported frame fill type %s", spec->frame_fill[i].type);
+            ZF_LOGF("Unsupported frame fill type %s", spec->frame_fill[i].type);
         }
 
         /* Unmap the frame */
         error = seL4_ARCH_Page_Unmap(cap);
-        seL4_AssertSuccess(error);
+        ZF_LOGF_IFERR(error, "");
     }
 }
 
