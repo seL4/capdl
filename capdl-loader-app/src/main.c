@@ -38,14 +38,6 @@
 #define ANSI_RESET "\033[0m"
 #define ANSI_GREEN   ANSI_RESET "\033[32m"
 
-#ifndef CONFIG_CAPDL_LOADER_PRINTF
-    #define debug_printf(...) do { } while (0)
-
-#else
-    #define debug_printf(args...) printf(args)
-
-#endif
-
 #define CAPDL_SHARED_FRAMES
 
 #define STACK_ALIGNMENT_BYTES 16
@@ -370,10 +362,10 @@ elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
     if (elf_checkFile(elf_file) != 0)
         die("Unable to read elf file %s at %p", elf_name, elf_file);
 
-    debug_printf("   ELF loading %s (from %p)... \n", elf_name, elf_file);
+    ZF_LOGD("   ELF loading %s (from %p)... \n", elf_name, elf_file);
 
     for (int i = 0; i < elf_getNumProgramHeaders(elf_file); i++) {
-        debug_printf("    to %p... ", (void*)(uintptr_t)elf_getProgramHeaderVaddr(elf_file, i));
+        ZF_LOGD("    to %p... ", (void*)(uintptr_t)elf_getProgramHeaderVaddr(elf_file, i));
 
         size_t f_len = elf_getProgramHeaderFileSize(elf_file, i);
         uintptr_t dest = elf_getProgramHeaderVaddr(elf_file, i);
@@ -381,13 +373,13 @@ elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
 
         //Skip non loadable headers
         if(elf_getProgramHeaderType(elf_file, i) != PT_LOAD) {
-            debug_printf("Skipping non loadable header\n");
+            ZF_LOGD("Skipping non loadable header\n");
             continue;
         }
         uintptr_t vaddr = dest;
 
         while (vaddr < dest + f_len) {
-            debug_printf(".");
+            ZF_LOGD(".");
 
             /* map frame into the loader's address space so we can write to it */
             seL4_CPtr sel4_page = get_frame_cap(pd, vaddr, spec);
@@ -412,14 +404,14 @@ elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
                 /* Try and retrieve some useful information to help the user
                  * diagnose the error.
                  */
-                debug_printf("Failed to map frame ");
+                ZF_LOGD("Failed to map frame ");
                 seL4_ARCH_Page_GetAddress_t addr UNUSED = seL4_ARCH_Page_GetAddress(sel4_page);
                 if (addr.error) {
-                    debug_printf("<unknown physical address (error = %d)>", addr.error);
+                    ZF_LOGD("<unknown physical address (error = %d)>", addr.error);
                 } else {
-                    debug_printf("%p", (void*)addr.paddr);
+                    ZF_LOGD("%p", (void*)addr.paddr);
                 }
-                debug_printf(" -> %p (error = %d)\n", (void*)copy_addr, error);
+                ZF_LOGD(" -> %p (error = %d)\n", (void*)copy_addr, error);
                 seL4_AssertSuccess(error);
             }
 
@@ -449,7 +441,7 @@ elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
          * encountered it will be skipped as it is not considered loadable. A
          * bit of a hack, but fine for now.
          */
-        debug_printf(" Marking header as loaded\n");
+        ZF_LOGD(" Marking header as loaded\n");
         if (((struct Elf32_Header*)elf_file)->e_ident[EI_CLASS] == ELFCLASS32) {
             elf32_getProgramHeaderTable(elf_file)[i].p_type = PT_NULL;
         } else if (((struct Elf64_Header*)elf_file)->e_ident[EI_CLASS] == ELFCLASS64) {
@@ -470,7 +462,7 @@ sort_untypeds(seL4_BootInfo *bootinfo)
     seL4_CPtr untyped_start = bootinfo->untyped.start;
     seL4_CPtr untyped_end = bootinfo->untyped.end;
 
-    debug_printf("Sorting untypeds...\n");
+    ZF_LOGD("Sorting untypeds...\n");
 
     seL4_Word count[CONFIG_WORD_SIZE] = {0};
 
@@ -492,12 +484,12 @@ sort_untypeds(seL4_BootInfo *bootinfo)
     // Store untypeds in untyped_cptrs array.
     for (seL4_Word untyped_index = 0; untyped_index != untyped_end - untyped_start; untyped_index++) {
         if (bootinfo->untypedList[untyped_index].isDevice) {
-            debug_printf("Untyped %3d (cptr=%p) (addr=%p) is of size %2d. Skipping as it is device\n",
+            ZF_LOGD("Untyped %3d (cptr=%p) (addr=%p) is of size %2d. Skipping as it is device\n",
                          untyped_index, (void*)(untyped_start + untyped_index),
                          (void*)bootinfo->untypedList[untyped_index].paddr,
                          bootinfo->untypedList[untyped_index].sizeBits);
         } else {
-            debug_printf("Untyped %3d (cptr=%p) (addr=%p) is of size %2d. Placing in slot %d...\n",
+            ZF_LOGD("Untyped %3d (cptr=%p) (addr=%p) is of size %2d. Placing in slot %d...\n",
                          untyped_index, (void*)(untyped_start + untyped_index),
                          (void*)bootinfo->untypedList[untyped_index].paddr,
                          bootinfo->untypedList[untyped_index].sizeBits,
@@ -513,7 +505,7 @@ sort_untypeds(seL4_BootInfo *bootinfo)
 static void
 parse_bootinfo(seL4_BootInfo *bootinfo)
 {
-    debug_printf("Parsing bootinfo...\n");
+    ZF_LOGD("Parsing bootinfo...\n");
 
     free_slot_start = bootinfo->empty.start;
     free_slot_end = bootinfo->empty.end;
@@ -533,21 +525,21 @@ parse_bootinfo(seL4_BootInfo *bootinfo)
      */
     assert(free_slot_end - free_slot_start >= CONFIG_CAPDL_LOADER_MAX_OBJECTS);
 
-    debug_printf("  %ld free cap slots, from %ld to %ld\n", (long)(free_slot_end - free_slot_start), (long)free_slot_start, (long)free_slot_end);
+    ZF_LOGD("  %ld free cap slots, from %ld to %ld\n", (long)(free_slot_end - free_slot_start), (long)free_slot_start, (long)free_slot_end);
 
 #if CONFIG_CAPDL_LOADER_PRINT_UNTYPEDS
     int num_untyped = bootinfo->untyped.end - bootinfo->untyped.start;
-    debug_printf("  Untyped memory (%d)\n", num_untyped);
+    ZF_LOGD("  Untyped memory (%d)\n", num_untyped);
     for (int i = 0; i < num_untyped; i++) {
         uintptr_t ut_paddr = bootinfo->untypedList[i].paddr;
         uintptr_t ut_size = bootinfo->untypedList[i].sizeBits;
         bool ut_isDevice = bootinfo->untypedList[i].isDevice;
-        debug_printf("    0x%016" PRIxPTR " - 0x%016" PRIxPTR " (%s)\n", ut_paddr,
+        ZF_LOGD("    0x%016" PRIxPTR " - 0x%016" PRIxPTR " (%s)\n", ut_paddr,
             ut_paddr + (1 << ut_size), ut_isDevice ? "device" : "memory");
     }
 #endif
 
-    debug_printf("Loader is running in domain %d\n", bootinfo->initThreadDomain);
+    ZF_LOGD("Loader is running in domain %d\n", bootinfo->initThreadDomain);
 
     first_arm_iospace = bootinfo->ioSpaceCaps.start;
 }
@@ -668,7 +660,7 @@ retype_untyped(seL4_CPtr free_slot, seL4_CPtr free_untyped,
 static void
 create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
 {
-    debug_printf("Creating objects...\n");
+    ZF_LOGD("Creating objects...\n");
 
     unsigned int obj_id_index = 0;
     unsigned int free_slot_index = 0;
@@ -692,7 +684,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
         int obj_size = 0;
 
 #ifdef CONFIG_CAPDL_LOAD_PRINT_CAPDL_OBJECTS
-        debug_printf("Creating object %s in slot %ld, from untyped %lx...\n", CDL_Obj_Name(obj), (long)free_slot, (long)untyped_cptr);
+        ZF_LOGD("Creating object %s in slot %ld, from untyped %lx...\n", CDL_Obj_Name(obj), (long)free_slot, (long)untyped_cptr);
 #endif
 
 #ifdef CONFIG_ARCH_X86
@@ -715,7 +707,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
 
         if (capdl_obj_type == CDL_Frame && obj->paddr != NULL) {
             obj_size = CDL_Obj_SizeBits(obj);
-            debug_printf(" device frame, paddr = %p, size = %d bits\n", obj->paddr, obj_size);
+            ZF_LOGD(" device frame, paddr = %p, size = %d bits\n", obj->paddr, obj_size);
 
             /* This is a device frame. Look for it in bootinfo. */
             if (find_device_frame(obj->paddr, obj_size, free_slot, obj_id, bootinfo, spec) == 0) {
@@ -738,7 +730,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
         } else {
             obj_size = CDL_Obj_SizeBits(obj);
             if (capdl_obj_type == CDL_CNode) {
-                debug_printf(" (CNode of size %d bits)\n", obj_size);
+                ZF_LOGD(" (CNode of size %d bits)\n", obj_size);
             }
 
             // CapDL types are not the same as seL4 types,
@@ -754,7 +746,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
         }
 
         if (capdl_obj_type == CDL_Untyped && obj->paddr != NULL) {
-            debug_printf(" device untyped, paddr = %p, size_bits = %d\n", obj->paddr, obj_size);
+            ZF_LOGD(" device untyped, paddr = %p, size_bits = %d\n", obj->paddr, obj_size);
 
             /* This is a device untyped. Look for it in bootinfo. */
             if (find_device_untyped(obj->paddr, obj_size, free_slot, obj_id, bootinfo, spec) == seL4_NoError) {
@@ -836,13 +828,13 @@ create_irq_cap(CDL_IRQ irq, CDL_Object *obj, seL4_CPtr free_slot)
 static void
 create_irq_caps(CDL_Model *spec)
 {
-    debug_printf("Creating irq handler caps...\n");
+    ZF_LOGD("Creating irq handler caps...\n");
 
     for (CDL_IRQ irq = 0; irq < CONFIG_CAPDL_LOADER_MAX_IRQS; irq++) {
         if (spec->irqs[irq] != INVALID_OBJ_ID) {
             seL4_CPtr free_slot = get_free_slot();
 
-            debug_printf(" Creating irq handler cap for IRQ %d...\n", irq);
+            ZF_LOGD(" Creating irq handler cap for IRQ %d...\n", irq);
             create_irq_cap(irq, &spec->objects[spec->irqs[irq]], free_slot);
             next_free_slot();
         }
@@ -873,10 +865,10 @@ duplicate_cap(CDL_ObjID object_id, int free_slot)
 static void
 duplicate_caps(CDL_Model *spec)
 {
-    debug_printf("Duplicating CNodes...\n");
+    ZF_LOGD("Duplicating CNodes...\n");
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
         if (spec->objects[obj_id].type == CDL_CNode || spec->objects[obj_id].type == CDL_TCB) {
-            debug_printf(" Duplicating %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
+            ZF_LOGD(" Duplicating %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
             int free_slot = get_free_slot();
             duplicate_cap(obj_id, free_slot);
             next_free_slot();
@@ -904,7 +896,7 @@ init_sc(CDL_Model *spec, CDL_ObjID sc, CDL_Core affinity)
     uint64_t UNUSED period = CDL_SC_Period(cdl_sc);
     seL4_Word UNUSED data = CDL_SC_Data(cdl_sc);
 
-    debug_printf("budget: %llu, period: %llu, data: %u\n", budget, period, data);
+    ZF_LOGD("budget: %llu, period: %llu, data: %u\n", budget, period, data);
 
     seL4_CPtr UNUSED seL4_sc = orig_caps(sc);
     seL4_CPtr UNUSED sched_control = sched_ctrl_caps(affinity);
@@ -935,7 +927,7 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     }
     CDL_Cap *cdl_ipcbuffer   = get_cap_at(cdl_tcb, CDL_TCB_IPCBuffer_Slot);
     if (cdl_ipcbuffer == NULL) {
-        debug_printf("  Warning: TCB has no IPC buffer\n");
+        ZF_LOGD("  Warning: TCB has no IPC buffer\n");
     }
 
     CDL_Cap *cdl_sc   = get_cap_at(cdl_tcb, CDL_TCB_SC_Slot);
@@ -1134,16 +1126,16 @@ configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
         .rcx = argc > 3 ? argv[3] : 0,
 #endif
     };
-    debug_printf("  Setting up _start(");
+    ZF_LOGD("  Setting up _start(");
     for (int i = 0; i < argc; i++) {
-        debug_printf("%p", (void*)argv[i]);
+        ZF_LOGD("%p", (void*)argv[i]);
         if (i != argc - 1) {
-            debug_printf(", ");
+            ZF_LOGD(", ");
         }
     }
-    debug_printf(")...\n");
-    debug_printf("pc = %p\n", (void*)pc);
-    debug_printf("sp = %p\n", (void*)sp);
+    ZF_LOGD(")...\n");
+    ZF_LOGD("pc = %p\n", (void*)pc);
+    ZF_LOGD("sp = %p\n", (void*)sp);
 
     global_user_context = regs;
 
@@ -1153,7 +1145,7 @@ configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
     seL4_AssertSuccess(error);
 
     uint32_t UNUSED domain = CDL_TCB_Domain(cdl_tcb);
-    debug_printf("  Assigning thread to domain %u...\n", domain);
+    ZF_LOGD("  Assigning thread to domain %u...\n", domain);
     error = seL4_DomainSet_Set(seL4_CapDomain, domain, sel4_tcb);
     seL4_AssertSuccess(error);
 }
@@ -1161,13 +1153,13 @@ configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
 static void
 init_tcbs(CDL_Model *spec)
 {
-    debug_printf("Initialising TCBs...\n");
+    ZF_LOGD("Initialising TCBs...\n");
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
         if (spec->objects[obj_id].type == CDL_TCB) {
-            debug_printf(" Initialising %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
+            ZF_LOGD(" Initialising %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
             init_tcb(spec, obj_id);
 
-            debug_printf(" Configuring %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
+            ZF_LOGD(" Configuring %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
             configure_tcb(spec, obj_id);
         }
     }
@@ -1189,8 +1181,8 @@ init_elf(CDL_Model *spec, CDL_ObjID tcb, seL4_BootInfo *bootinfo)
 static void
 init_elfs(CDL_Model *spec, seL4_BootInfo *bootinfo)
 {
-    debug_printf("Initialising ELFs...\n");
-    debug_printf(" Available ELFs:\n");
+    ZF_LOGD("Initialising ELFs...\n");
+    ZF_LOGD(" Available ELFs:\n");
     for (int j = 0; ; j++) {
         const char *name = NULL;
         unsigned long size;
@@ -1198,12 +1190,12 @@ init_elfs(CDL_Model *spec, seL4_BootInfo *bootinfo)
         if (ptr == NULL) {
             break;
         }
-        debug_printf("  %d: %s, offset: %p, size: %lu\n", j, name,
+        ZF_LOGD("  %d: %s, offset: %p, size: %lu\n", j, name,
             (void*)((uintptr_t)ptr - (uintptr_t)_capdl_archive), size);
     }
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
         if (spec->objects[obj_id].type == CDL_TCB) {
-            debug_printf(" Initialising ELF for %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
+            ZF_LOGD(" Initialising ELF for %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
             init_elf(spec, obj_id, bootinfo);
         }
     }
@@ -1242,11 +1234,11 @@ init_irq(CDL_Model *spec, CDL_IRQ irq_no)
 static void
 init_irqs(CDL_Model *spec)
 {
-    debug_printf("Initialising IRQ handler caps...\n");
+    ZF_LOGD("Initialising IRQ handler caps...\n");
 
     for (CDL_IRQ irq = 0; irq < CONFIG_CAPDL_LOADER_MAX_IRQS; irq++) {
         if (spec->irqs[irq] != INVALID_OBJ_ID) {
-            debug_printf(" Initialising handler for IRQ %d...\n", irq);
+            ZF_LOGD(" Initialising handler for IRQ %d...\n", irq);
             init_irq(spec, irq);
         }
     }
@@ -1264,18 +1256,18 @@ set_asid(CDL_Model *spec UNUSED, CDL_ObjID page)
 static void
 init_pd_asids(CDL_Model *spec)
 {
-    debug_printf("Initialising Page Directory ASIDs...\n");
+    ZF_LOGD("Initialising Page Directory ASIDs...\n");
 
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
 #ifdef CONFIG_ARCH_X86_64
         if (spec->objects[obj_id].type == CDL_PML4) {
-            debug_printf(" Initialising pml4 ASID %s...\n",
+            ZF_LOGD(" Initialising pml4 ASID %s...\n",
                          CDL_Obj_Name(&spec->objects[obj_id]));
             set_asid(spec, obj_id);
         }
 #else
         if (spec->objects[obj_id].type == CDL_PD) {
-            debug_printf(" Initialising page directory ASID %s...\n",
+            ZF_LOGD(" Initialising page directory ASID %s...\n",
                          CDL_Obj_Name(&spec->objects[obj_id]));
             set_asid(spec, obj_id);
         }
@@ -1294,7 +1286,7 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
     seL4_CPtr sel4_pd = orig_caps(pd_id);
 
     seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(page_cap);
-    debug_printf("   Mapping %s into %s with rights={G: %d, R: %d, W: %d}, vaddr=0x%x, vm_attribs=0x%x\n",
+    ZF_LOGD("   Mapping %s into %s with rights={G: %d, R: %d, W: %d}, vaddr=0x%x, vm_attribs=0x%x\n",
                   CDL_Obj_Name(&spec->objects[page]),
                   CDL_Obj_Name(&spec->objects[pd_id]),
                   seL4_CapRights_get_capAllowGrant(rights),
@@ -1343,14 +1335,14 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
             /* Try and retrieve some useful information to help the user
              * diagnose the error.
              */
-            debug_printf("Failed to map frame ");
+            ZF_LOGD("Failed to map frame ");
             seL4_ARCH_Page_GetAddress_t addr UNUSED = seL4_ARCH_Page_GetAddress(sel4_page);
             if (addr.error) {
-                debug_printf("<unknown physical address (error = %d)>", addr.error);
+                ZF_LOGD("<unknown physical address (error = %d)>", addr.error);
             } else {
-                debug_printf("%p", (void*)addr.paddr);
+                ZF_LOGD("%p", (void*)addr.paddr);
             }
-            debug_printf(" -> %p (error = %d)\n", (void*)vaddr, error);
+            ZF_LOGD(" -> %p (error = %d)\n", (void*)vaddr, error);
             seL4_AssertSuccess(error);
         }
 #ifdef CONFIG_ARCH_ARM
@@ -1452,7 +1444,7 @@ init_pml4(CDL_Model *spec, CDL_ObjID pml4)
 static void
 map_page_directory_slot(CDL_Model *spec UNUSED, CDL_ObjID pd_id, CDL_CapSlot *pd_slot)
 {
-    debug_printf("  Mapping slot %d in %s\n", pd_slot->slot, CDL_Obj_Name(&spec->objects[pd_id]));
+    ZF_LOGD("  Mapping slot %d in %s\n", pd_slot->slot, CDL_Obj_Name(&spec->objects[pd_id]));
     CDL_Cap *page_cap = CDL_CapSlot_Cap(pd_slot);
 
     seL4_Word page_vaddr = CDL_CapSlot_Slot(pd_slot) << (PT_SIZE + FRAME_SIZE);
@@ -1479,7 +1471,7 @@ map_page_table_slot(CDL_Model *spec UNUSED, CDL_ObjID pd, CDL_ObjID pt UNUSED,
     seL4_Word page_vaddr = pt_vaddr + (CDL_CapSlot_Slot(pt_slot) << FRAME_SIZE);
     seL4_CapRights_t page_rights = CDL_seL4_Cap_Rights(page_cap);
 
-    debug_printf("  Mapping %s into %s[%d] with rights={G: %d, R: %d, W: %d}, vaddr=0x%" PRIxPTR "\n",
+    ZF_LOGD("  Mapping %s into %s[%d] with rights={G: %d, R: %d, W: %d}, vaddr=0x%" PRIxPTR "\n",
         CDL_Obj_Name(&spec->objects[pt]), CDL_Obj_Name(&spec->objects[pd]), pt_slot->slot,
         seL4_CapRights_get_capAllowGrant(page_rights),
         seL4_CapRights_get_capAllowRead(page_rights),
@@ -1516,35 +1508,35 @@ map_page_directory_page_tables(CDL_Model *spec, CDL_ObjID pd)
 static void
 init_vspace(CDL_Model *spec)
 {
-    debug_printf("Initialising VSpaces...\n");
+    ZF_LOGD("Initialising VSpaces...\n");
 
 #ifdef CONFIG_ARCH_X86_64
     /* Have no understanding of the logic of model of whatever the hell the
        other code in this function is doing as it is pure gibberish. For
        x86_64 we will just do the obvious recursive initialization */
-    debug_printf("================================\n");
+    ZF_LOGD("================================\n");
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
         if (spec->objects[obj_id].type == CDL_PML4) {
-            debug_printf(" Initialising pml4 %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
+            ZF_LOGD(" Initialising pml4 %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
             init_pml4(spec, obj_id);
         }
     }
 #else
-    debug_printf("================================\n");
-    debug_printf("Initialising page directories...\n");
+    ZF_LOGD("================================\n");
+    ZF_LOGD("Initialising page directories...\n");
 
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
         if (spec->objects[obj_id].type == CDL_PD) {
-            debug_printf(" Initialising page directory %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
+            ZF_LOGD(" Initialising page directory %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
             map_page_directory(spec, obj_id);
         }
     }
 
-    debug_printf("===========================\n");
-    debug_printf("Initialising page tables...\n");
+    ZF_LOGD("===========================\n");
+    ZF_LOGD("Initialising page tables...\n");
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
         if (spec->objects[obj_id].type == CDL_PD) {
-            debug_printf(" Initialising page tables in %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
+            ZF_LOGD(" Initialising page tables in %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
             map_page_directory_page_tables(spec, obj_id);
         }
     }
@@ -1626,12 +1618,12 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
 
     if (mode == MOVE && move_cap) {
         if (is_ep_cap || is_irq_handler_cap) {
-            debug_printf("moving...\n");
+            ZF_LOGD("moving...\n");
             int error = seL4_CNode_Move(dest_root, dest_index, dest_depth,
                                         src_root, src_index, src_depth);
             seL4_AssertSuccess(error);
         } else {
-            debug_printf("mutating (with badge/guard %p)...\n", (void*)target_cap_data.words[0]);
+            ZF_LOGD("mutating (with badge/guard %p)...\n", (void*)target_cap_data.words[0]);
             int error = seL4_CNode_Mutate(dest_root, dest_index, dest_depth,
                                           src_root, src_index, src_depth, target_cap_data);
             seL4_AssertSuccess(error);
@@ -1662,13 +1654,13 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
                                         src_root, mapped_frame_cap, src_depth);
             seL4_AssertSuccess(error);
         } else {
-          debug_printf("minting (with badge/guard %p)...\n", (void*)target_cap_data.words[0]);
+          ZF_LOGD("minting (with badge/guard %p)...\n", (void*)target_cap_data.words[0]);
           int error = seL4_CNode_Mint(dest_root, dest_index, dest_depth,
                                       src_root, src_index, src_depth, target_cap_rights, target_cap_data);
           seL4_AssertSuccess(error);
         }
     } else {
-        debug_printf("skipping\n");
+        ZF_LOGD("skipping\n");
     }
 }
 
@@ -1679,11 +1671,11 @@ init_cnode(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode)
     for (unsigned int slot_index = 0; slot_index < CDL_Obj_NumSlots(cdl_cnode); slot_index++) {
         if (CDL_Obj_GetSlot(cdl_cnode, slot_index)->cap.type == CDL_IRQHandlerCap) {
             CDL_IRQ UNUSED irq = CDL_Obj_GetSlot(cdl_cnode, slot_index)->cap.irq;
-            debug_printf("  Populating slot %d with cap to IRQ %d, name %s...\n",
+            ZF_LOGD("  Populating slot %d with cap to IRQ %d, name %s...\n",
                          CDL_Obj_GetSlot(cdl_cnode, slot_index)->slot, irq,
                          CDL_Obj_Name(&spec->objects[spec->irqs[irq]]));
         } else {
-            debug_printf("  Populating slot %d with cap to %s...\n",
+            ZF_LOGD("  Populating slot %d with cap to %s...\n",
                          CDL_Obj_GetSlot(cdl_cnode, slot_index)->slot,
                          CDL_Obj_Name(&spec->objects[CDL_Obj_GetSlot(cdl_cnode, slot_index)->cap.obj_id]));
         }
@@ -1694,18 +1686,18 @@ init_cnode(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode)
 static void
 init_cspace(CDL_Model *spec)
 {
-    debug_printf("Copying Caps...\n");
+    ZF_LOGD("Copying Caps...\n");
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
         if (spec->objects[obj_id].type == CDL_CNode) {
-            debug_printf(" Copying into %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
+            ZF_LOGD(" Copying into %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
             init_cnode(spec, COPY, obj_id);
         }
     }
 
-    debug_printf("Moving Caps...\n");
+    ZF_LOGD("Moving Caps...\n");
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
         if (spec->objects[obj_id].type == CDL_CNode) {
-            debug_printf(" Moving into %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
+            ZF_LOGD(" Moving into %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
             init_cnode(spec, MOVE, obj_id);
         }
     }
@@ -1714,10 +1706,10 @@ init_cspace(CDL_Model *spec)
 static void
 start_threads(CDL_Model *spec)
 {
-    debug_printf("Starting threads...\n");
+    ZF_LOGD("Starting threads...\n");
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
         if (spec->objects[obj_id].type == CDL_TCB) {
-            debug_printf(" Starting %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
+            ZF_LOGD(" Starting %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
             seL4_CPtr tcb = orig_caps(obj_id);
             int error = seL4_TCB_Resume(tcb);
             seL4_AssertSuccess(error);
@@ -1815,12 +1807,12 @@ main(void)
     platsupport_serial_setup_bootinfo_failsafe();
 #endif
 
-    debug_printf("Starting Loader...\n");
+    ZF_LOGD("Starting Loader...\n");
     init_system(&capdl_spec);
 
-    debug_printf("We used %d CSlots (%.2LF%% of our CNode)\n", get_free_slot(),
+    ZF_LOGD("We used %d CSlots (%.2LF%% of our CNode)\n", get_free_slot(),
         (long double)get_free_slot() /
         (long double)(1U << CONFIG_ROOT_CNODE_SIZE_BITS) * 100);
-    debug_printf(ANSI_GREEN "Done; suspending..." ANSI_RESET "\n");
+    ZF_LOGD(ANSI_GREEN "Done; suspending..." ANSI_RESET "\n");
     seL4_TCB_Suspend(seL4_CapInitThreadTCB);
 }
