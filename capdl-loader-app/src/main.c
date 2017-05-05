@@ -30,10 +30,10 @@
 
 #include "capdl_spec.h"
 
-#define PML4_SLOT(vaddr) ((vaddr >> (PDPT_SIZE + PD_SIZE + PT_SIZE + FRAME_SIZE)) & (( 1 << PML4_SIZE) - 1))
-#define PDPT_SLOT(vaddr) ((vaddr >> (PD_SIZE + PT_SIZE + FRAME_SIZE)) & (( 1 << PDPT_SIZE) - 1))
-#define PD_SLOT(vaddr)   ((vaddr >> (PT_SIZE + FRAME_SIZE)) & (( 1 << PD_SIZE) - 1))
-#define PT_SLOT(vaddr)   ((vaddr >> FRAME_SIZE) & ((1 << PT_SIZE) - 1))
+#define PML4_SLOT(vaddr) ((vaddr >> (seL4_PDPTBits + seL4_PageDirBits + seL4_PageTableBits + seL4_PageBits)) & (( 1 << seL4_PML4Bits) - 1))
+#define PDPT_SLOT(vaddr) ((vaddr >> (seL4_PageDirBits + seL4_PageTableBits + seL4_PageBits)) & (( 1 << seL4_PDPTBits) - 1))
+#define PD_SLOT(vaddr)   ((vaddr >> (seL4_PageTableBits + seL4_PageBits)) & (( 1 << seL4_PageDirBits) - 1))
+#define PT_SLOT(vaddr)   ((vaddr >> seL4_PageBits) & ((1 << seL4_PageTableBits) - 1))
 
 #define CAPDL_SHARED_FRAMES
 
@@ -338,8 +338,8 @@ void init_copy_frame(seL4_BootInfo *bootinfo)
         error = seL4_ARCH_Page_Unmap(copy_addr_frame + i);
         seL4_AssertSuccess(error);
 
-        if ((i + 1) % (1 << PT_SIZE) == 0) {
-            error = seL4_ARCH_PageTable_Unmap(copy_addr_pt + i / (1 << PT_SIZE));
+        if ((i + 1) % (1 << seL4_PageTableBits) == 0) {
+            error = seL4_ARCH_PageTable_Unmap(copy_addr_pt + i / (1 << seL4_PageTableBits));
             seL4_AssertSuccess(error);
         }
     }
@@ -1374,7 +1374,7 @@ init_pt(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pt_base, CDL_ObjID pt)
     for (unsigned long slot_index = 0; slot_index < CDL_Obj_NumSlots(obj); slot_index++) {
         CDL_CapSlot *slot = CDL_Obj_GetSlot(obj, slot_index);
         unsigned long obj_slot = CDL_CapSlot_Slot(slot);
-        uintptr_t base = pt_base + (obj_slot << (FRAME_SIZE));
+        uintptr_t base = pt_base + (obj_slot << (seL4_PageBits));
         CDL_Cap *frame_cap = CDL_CapSlot_Cap(slot);
         seL4_CapRights_t frame_rights = CDL_seL4_Cap_Rights(frame_cap);
         map_page(spec, frame_cap, pml4, frame_rights, base);
@@ -1387,7 +1387,7 @@ init_pd(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pd_base, CDL_ObjID pd)
     for (unsigned long slot_index = 0; slot_index < CDL_Obj_NumSlots(obj); slot_index++) {
         CDL_CapSlot *slot = CDL_Obj_GetSlot(obj, slot_index);
         unsigned long obj_slot = CDL_CapSlot_Slot(slot);
-        uintptr_t base = pd_base + (obj_slot << (PT_SIZE + FRAME_SIZE));
+        uintptr_t base = pd_base + (obj_slot << (seL4_PageTableBits + seL4_PageBits));
         CDL_Cap *pt_cap = CDL_CapSlot_Cap(slot);
         CDL_ObjID pt_obj = CDL_Cap_ObjID(pt_cap);
         if (CDL_Cap_Type(pt_cap) == CDL_FrameCap) {
@@ -1407,7 +1407,7 @@ init_pdpt(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pdpt_base, CDL_ObjID pdpt)
     for (unsigned int slot_index = 0; slot_index < CDL_Obj_NumSlots(obj); slot_index++) {
         CDL_CapSlot *slot = CDL_Obj_GetSlot(obj, slot_index);
         unsigned long obj_slot = CDL_CapSlot_Slot(slot);
-        uintptr_t base = pdpt_base + (obj_slot << (PD_SIZE + PT_SIZE + FRAME_SIZE));
+        uintptr_t base = pdpt_base + (obj_slot << (seL4_PageDirBits + seL4_PageTableBits + seL4_PageBits));
         CDL_Cap *pd_cap = CDL_CapSlot_Cap(slot);
         CDL_ObjID pd_obj = CDL_Cap_ObjID(pd_cap);
         if (CDL_Cap_Type(pd_cap) == CDL_FrameCap) {
@@ -1427,7 +1427,7 @@ init_pml4(CDL_Model *spec, CDL_ObjID pml4)
     for (unsigned long slot_index = 0; slot_index < CDL_Obj_NumSlots(obj); slot_index++) {
         CDL_CapSlot *slot = CDL_Obj_GetSlot(obj, slot_index);
         unsigned long obj_slot = CDL_CapSlot_Slot(slot);
-        uintptr_t base = obj_slot << (PDPT_SIZE + PD_SIZE + PT_SIZE + FRAME_SIZE);
+        uintptr_t base = obj_slot << (seL4_PDPTBits + seL4_PageDirBits + seL4_PageTableBits + seL4_PageBits);
         CDL_Cap *pdpt_cap = CDL_CapSlot_Cap(slot);
         CDL_ObjID pdpt_obj = CDL_Cap_ObjID(pdpt_cap);
         seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(pdpt_cap);
@@ -1444,7 +1444,7 @@ map_page_directory_slot(CDL_Model *spec UNUSED, CDL_ObjID pd_id, CDL_CapSlot *pd
     ZF_LOGD("  Mapping slot %d in %s\n", pd_slot->slot, CDL_Obj_Name(&spec->objects[pd_id]));
     CDL_Cap *page_cap = CDL_CapSlot_Cap(pd_slot);
 
-    seL4_Word page_vaddr = CDL_CapSlot_Slot(pd_slot) << (PT_SIZE + FRAME_SIZE);
+    seL4_Word page_vaddr = CDL_CapSlot_Slot(pd_slot) << (seL4_PageTableBits + seL4_PageBits);
     seL4_CapRights_t page_rights = CDL_seL4_Cap_Rights(page_cap);
 
     map_page(spec, page_cap, pd_id, page_rights, page_vaddr);
@@ -1465,7 +1465,7 @@ map_page_table_slot(CDL_Model *spec UNUSED, CDL_ObjID pd, CDL_ObjID pt UNUSED,
 {
     CDL_Cap *page_cap = CDL_CapSlot_Cap(pt_slot);
 
-    seL4_Word page_vaddr = pt_vaddr + (CDL_CapSlot_Slot(pt_slot) << FRAME_SIZE);
+    seL4_Word page_vaddr = pt_vaddr + (CDL_CapSlot_Slot(pt_slot) << seL4_PageBits);
     seL4_CapRights_t page_rights = CDL_seL4_Cap_Rights(page_cap);
 
     ZF_LOGD("  Mapping %s into %s[%d] with rights={G: %d, R: %d, W: %d}, vaddr=0x%" PRIxPTR "\n",
@@ -1484,7 +1484,7 @@ map_page_table_slots(CDL_Model *spec, CDL_ObjID pd, CDL_CapSlot *pd_slot)
     CDL_Cap *page_cap = CDL_CapSlot_Cap(pd_slot);
     CDL_ObjID page = CDL_Cap_ObjID(page_cap);
 
-    seL4_Word page_vaddr = CDL_CapSlot_Slot(pd_slot) << (PT_SIZE + FRAME_SIZE);
+    seL4_Word page_vaddr = CDL_CapSlot_Slot(pd_slot) << (seL4_PageTableBits + seL4_PageBits);
 
     if (CDL_Cap_Type(page_cap) == CDL_PTCap) {
         CDL_Object *obj = get_spec_object(spec, page);

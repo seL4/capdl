@@ -20,8 +20,6 @@
 #include <stdlib.h>
 #include <utils/util.h>
 
-#define FRAME_SIZE      seL4_PageBits
-
 #define CDL_VM_CacheEnabled         seL4_ARCH_Default_VMAttributes
 #define CDL_VM_CacheDisabled        seL4_ARCH_Uncached_VMAttributes
 
@@ -31,27 +29,9 @@
 #define CDL_VM_WriteThrough         CDL_VM_CacheDisabled
 /* Note that this is the number of bits translated by the PT
  * not the size of the actual PT object */
-#ifdef ARM_HYP
-#define PT_SIZE 9
-#define PD_SIZE 11
-#else
-#define PT_SIZE 8
-#define PD_SIZE 12
-#endif
-
 #elif defined(CONFIG_ARCH_X86)
 
 #define CDL_VM_WriteThrough         seL4_X86_WriteThrough
-
-#if defined(CONFIG_ARCH_IA32)
-#define PT_SIZE         10
-#define PD_SIZE         10
-#elif defined(CONFIG_ARCH_X86_64)
-#define PT_SIZE         9
-#define PD_SIZE         9
-#define PDPT_SIZE       9
-#define PML4_SIZE       9
-#endif
 
 #endif
 
