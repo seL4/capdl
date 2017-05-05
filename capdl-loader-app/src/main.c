@@ -30,10 +30,10 @@
 
 #include "capdl_spec.h"
 
-#define PML4_SLOT(vaddr) ((vaddr >> (seL4_PDPTBits + seL4_PageDirBits + seL4_PageTableBits + seL4_PageBits)) & (( 1 << seL4_PML4Bits) - 1))
-#define PDPT_SLOT(vaddr) ((vaddr >> (seL4_PageDirBits + seL4_PageTableBits + seL4_PageBits)) & (( 1 << seL4_PDPTBits) - 1))
-#define PD_SLOT(vaddr)   ((vaddr >> (seL4_PageTableBits + seL4_PageBits)) & (( 1 << seL4_PageDirBits) - 1))
-#define PT_SLOT(vaddr)   ((vaddr >> seL4_PageBits) & ((1 << seL4_PageTableBits) - 1))
+#define PML4_SLOT(vaddr) ((vaddr >> (seL4_PDPTBits + seL4_PageDirBits + seL4_PageTableBits + seL4_PageBits)) & (BIT(seL4_PML4Bits) - 1))
+#define PDPT_SLOT(vaddr) ((vaddr >> (seL4_PageDirBits + seL4_PageTableBits + seL4_PageBits)) & (BIT(seL4_PDPTBits) - 1))
+#define PD_SLOT(vaddr)   ((vaddr >> (seL4_PageTableBits + seL4_PageBits)) & (BIT(seL4_PageDirBits) - 1))
+#define PT_SLOT(vaddr)   ((vaddr >> seL4_PageBits) & (BIT(seL4_PageTableBits) - 1))
 
 #define CAPDL_SHARED_FRAMES
 
@@ -338,8 +338,8 @@ void init_copy_frame(seL4_BootInfo *bootinfo)
         error = seL4_ARCH_Page_Unmap(copy_addr_frame + i);
         seL4_AssertSuccess(error);
 
-        if ((i + 1) % (1 << seL4_PageTableBits) == 0) {
-            error = seL4_ARCH_PageTable_Unmap(copy_addr_pt + i / (1 << seL4_PageTableBits));
+        if ((i + 1) % BIT(seL4_PageTableBits) == 0) {
+            error = seL4_ARCH_PageTable_Unmap(copy_addr_pt + i / BIT(seL4_PageTableBits));
             seL4_AssertSuccess(error);
         }
     }
@@ -532,7 +532,7 @@ parse_bootinfo(seL4_BootInfo *bootinfo)
         uintptr_t ut_size = bootinfo->untypedList[i].sizeBits;
         bool ut_isDevice = bootinfo->untypedList[i].isDevice;
         ZF_LOGD("    0x%016" PRIxPTR " - 0x%016" PRIxPTR " (%s)\n", ut_paddr,
-            ut_paddr + (1 << ut_size), ut_isDevice ? "device" : "memory");
+            ut_paddr + BIT(ut_size), ut_isDevice ? "device" : "memory");
     }
 #endif
 
