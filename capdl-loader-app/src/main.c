@@ -22,6 +22,7 @@
 #include <cpio/cpio.h>
 #include <simple-default/simple-default.h>
 
+#include <vka/kobject_t.h>
 #include <utils/util.h>
 #include <sel4/sel4.h>
 #include <sel4utils/sel4_zf_logif.h>
@@ -250,30 +251,6 @@ static seL4_CPtr
 get_frame_size(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
 {
     return BIT(CDL_Obj_SizeBits(&spec->objects[CDL_Cap_ObjID(get_cdl_frame_cap(pd, vaddr, spec))]));
-}
-
-static seL4_ArchObjectType
-seL4_frame_type(int size)
-{
-    switch (size) {
-#ifdef CONFIG_ARCH_ARM
-        case seL4_PageBits:
-            return seL4_ARM_SmallPageObject;
-        case seL4_LargePageBits:
-            return seL4_ARM_LargePageObject;
-        case seL4_SectionBits:
-            return seL4_ARM_SectionObject;
-        case seL4_SuperSectionBits:
-            return seL4_ARM_SuperSectionObject;
-#elif defined(CONFIG_ARCH_X86)
-        case seL4_PageBits:
-            return seL4_X86_4K;
-        case seL4_LargePageBits:
-            return seL4_X86_LargePageObject;
-#endif
-        default:
-            ZF_LOGF("illegal frame size");
-    }
 }
 
 void init_copy_frame(seL4_BootInfo *bootinfo)
@@ -584,7 +561,7 @@ static int find_device_object(void *paddr, seL4_Word type, int size_bits, seL4_C
                 if (addr.error) {
                     /* if this fails assume it's an untyped and create a temporary frame in it
                      * to get the address from */
-                    error = seL4_Untyped_Retype(free_slot, seL4_frame_type(seL4_PageBits), seL4_PageBits,
+                    error = seL4_Untyped_Retype(free_slot, arch_kobject_get_type(KOBJECT_FRAME, seL4_PageBits), seL4_PageBits,
                                                 seL4_CapInitThreadCNode, 0, 0, free_slot + 2, 1);
                     if (error) {
                         return -1;
@@ -627,7 +604,7 @@ static int find_device_object(void *paddr, seL4_Word type, int size_bits, seL4_C
 
 static int find_device_frame(void *paddr, int size_bits, seL4_CPtr free_slot, CDL_ObjID obj_id,
         seL4_BootInfo *bootinfo, CDL_Model *spec) {
-    return find_device_object(paddr, seL4_frame_type(size_bits), size_bits, free_slot, obj_id, bootinfo, spec);
+    return find_device_object(paddr, kobject_get_type(KOBJECT_FRAME, size_bits), size_bits, free_slot, obj_id, bootinfo, spec);
 }
 
 static int find_device_untyped(void *paddr, int size_bits, seL4_CPtr free_slot, CDL_ObjID obj_id,
@@ -732,7 +709,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
             // CapDL types are not the same as seL4 types,
             // as seL4 needs different types for different frame sizes.
             if (capdl_obj_type == CDL_Frame) {
-                obj_type = seL4_frame_type (obj_size);
+                obj_type = kobject_get_type(KOBJECT_FRAME, obj_size);
             } else if (capdl_obj_type == CDL_ASIDPool) {
                 obj_type = CDL_Untyped;
                 obj_size = 12;
