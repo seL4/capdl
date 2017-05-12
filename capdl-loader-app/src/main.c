@@ -1745,6 +1745,20 @@ init_fill_frames(CDL_Model *spec, simple_t * simple)
 }
 
 static void
+init_scs(CDL_Model *spec)
+{
+    ZF_LOGD(" Initialising SCs");
+    for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
+        if (spec->objects[obj_id].type == CDL_SchedContext) {
+            ZF_LOGD(" Initialising %s...", CDL_Obj_Name(&spec->objects[obj_id]));
+            /* all scs get configured on core 0, any scs that should be bound to a tcb will
+               be reconfigured for the correct core in init_tcbs */
+            init_sc(spec, obj_id, 0);
+        }
+    }
+}
+
+static void
 init_system(CDL_Model *spec)
 {
     seL4_BootInfo *bootinfo = platsupport_get_bootinfo();
@@ -1769,6 +1783,7 @@ init_system(CDL_Model *spec)
     init_elfs(spec, bootinfo);
     init_fill_frames(spec, &simple);
     init_vspace(spec);
+    init_scs(spec);
     init_tcbs(spec);
     init_cspace(spec);
     start_threads(spec);
