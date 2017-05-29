@@ -1250,7 +1250,12 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
     // TODO: We should not be using the original cap here
     seL4_CPtr sel4_page = orig_caps(page);
     seL4_CPtr sel4_pd = orig_caps(pd_id);
-
+#ifdef CONFIG_CAMKES_SW_BREAKPOINTS
+    /* Make instruction pages writeable to support software breakpoints */
+    if (seL4_CapRights_get_capAllowGrant(rights)) {
+        rights = seL4_CapRights_set_capAllowWrite(rights, true);
+    }
+#endif
     seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(page_cap);
     ZF_LOGD("   Mapping %s into %s with rights={G: %d, R: %d, W: %d}, vaddr=0x%x, vm_attribs=0x%x\n",
             CDL_Obj_Name(&spec->objects[page]),
