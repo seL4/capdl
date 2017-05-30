@@ -314,10 +314,10 @@ showObjectFields _ _ (SC info size_bits) _ _ _ =
     "}," +++
     ".size_bits = " ++ show sizeBits ++ ","
     where
-    sc_period = case info of {Just i -> case period i of {Just p -> p; _ -> 0}; _ -> 0}
-    sc_budget = case info of {Just i -> case budget i of {Just p -> p; _ -> 0}; _ -> 0}
-    sc_data = case info of {Just i -> case scData i of {Just p -> p; _ -> 0}; _ -> 0}
-    sizeBits = case size_bits of {Just s -> s; _ -> 0}
+    sc_period = fromMaybe 0 (maybe Nothing period info)
+    sc_budget = fromMaybe 0 (maybe Nothing budget info)
+    sc_data   = fromMaybe 0 (maybe Nothing scData info)
+    sizeBits  = fromMaybe 0 size_bits
 
 showObjectFields _ _ RTReply _ _ _ =
     ".type = CDL_RTReply,"
