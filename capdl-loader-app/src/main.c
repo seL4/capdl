@@ -536,7 +536,6 @@ static int find_device_object(void *paddr, seL4_Word type, int size_bits, seL4_C
             error = seL4_CNode_Copy(seL4_CapInitThreadCNode, free_slot, CONFIG_WORD_SIZE,
                                     seL4_CapInitThreadCNode, orig_caps(prev), CONFIG_WORD_SIZE, seL4_AllRights);
             ZF_LOGF_IFERR(error, "");
-            add_sel4_cap(obj_id, ORIG, free_slot);
             return 0;
         }
     }
@@ -577,7 +576,6 @@ static int find_device_object(void *paddr, seL4_Word type, int size_bits, seL4_C
                 }
                 if (addr.paddr == (uintptr_t)paddr) {
                     /* nailed it */
-                    add_sel4_cap(obj_id, ORIG, free_slot);
                     /* delete any holding cap */
                     if (hold_slot) {
                         error = seL4_CNode_Delete(seL4_CapInitThreadCNode, hold_slot, CONFIG_WORD_SIZE);
@@ -604,16 +602,6 @@ static int find_device_object(void *paddr, seL4_Word type, int size_bits, seL4_C
     return -1;
 }
 
-static int find_device_frame(void *paddr, int size_bits, seL4_CPtr free_slot, CDL_ObjID obj_id,
-        seL4_BootInfo *bootinfo, CDL_Model *spec) {
-    return find_device_object(paddr, kobject_get_type(KOBJECT_FRAME, size_bits), size_bits, free_slot, obj_id, bootinfo, spec);
-}
-
-static int find_device_untyped(void *paddr, int size_bits, seL4_CPtr free_slot, CDL_ObjID obj_id,
-        seL4_BootInfo *bootinfo, CDL_Model *spec) {
-    return find_device_object(paddr, seL4_UntypedObject, size_bits, free_slot, obj_id, bootinfo, spec);
-}
-
 /* Create objects */
 static int
 retype_untyped(seL4_CPtr free_slot, seL4_CPtr free_untyped,
@@ -630,6 +618,46 @@ retype_untyped(seL4_CPtr free_slot, seL4_CPtr free_untyped,
                                   root, node_index, node_depth, node_offset, no_objects);
 
     return err;
+}
+
+bool isDeviceObject(CDL_Object *obj) {
+    return (obj->paddr != NULL && (CDL_Obj_Type(obj) == CDL_Frame || CDL_Obj_Type(obj) == CDL_Untyped));
+}
+
+unsigned int
+create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_BootInfo *info, seL4_CPtr untyped_slot,
+              unsigned int free_slot)
+{
+    int obj_size = CDL_Obj_SizeBits(obj);
+    seL4_ArchObjectType obj_type;
+
+    switch (CDL_Obj_Type(obj)) {
+    case CDL_Frame:
+        obj_type = kobject_get_type(KOBJECT_FRAME, obj_size);
+        break;
+    case CDL_ASIDPool:
+        obj_type = CDL_Untyped;
+        obj_size = seL4_ASIDPoolBits;
+        break;
+    default:
+        obj_type = (seL4_ArchObjectType) CDL_Obj_Type(obj);
+    }
+
+    if (CDL_Obj_Type(obj) == CDL_CNode) {
+        ZF_LOGD(" (CNode of size %d bits)", obj_size);
+    }
+
+    seL4_Error err = seL4_NoError;
+    if (isDeviceObject(obj)) {
+        ZF_LOGD(" device frame/untyped, paddr = %p, size = %d bits\n", obj->paddr, obj_size);
+
+        /* This is a device object. Look for it in bootinfo. */
+        err = find_device_object(obj->paddr, obj_type, obj_size, free_slot, id, info, spec);
+        ZF_LOGF_IF(err != seL4_NoError, "Failed to find device frame/untyped at paddr = %p\n", obj->paddr);
+        return seL4_NoError;
+    } else {
+        return retype_untyped(free_slot, untyped_slot, obj_type, obj_size);
+    }
 }
 
 static void
@@ -649,118 +677,60 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
     while (obj_id_index < spec->num && ut_index < (bootinfo->untyped.end - bootinfo->untyped.start)) {
         CDL_ObjID obj_id = obj_id_index;
         seL4_CPtr free_slot = free_slot_start + free_slot_index;
-
         seL4_CPtr untyped_cptr = untyped_cptrs[ut_index];
-
         CDL_Object *obj = &spec->objects[obj_id_index];
-
         CDL_ObjectType capdl_obj_type = CDL_Obj_Type(obj);
-        seL4_ArchObjectType obj_type = seL4_ObjectTypeCount;
-        int obj_size = 0;
 
-#ifdef CONFIG_CAPDL_LOAD_PRINT_CAPDL_OBJECTS
-        ZF_LOGD("Creating object %s in slot %ld, from untyped %lx...\n", CDL_Obj_Name(obj), (long)free_slot, (long)untyped_cptr);
-#endif
+        ZF_LOGV("Creating object %s in slot %ld, from untyped %lx...\n", CDL_Obj_Name(obj), (long)free_slot,
+                                                                         (long)untyped_cptr);
 
+        switch (capdl_obj_type) {
 #ifdef CONFIG_ARCH_X86
-        if (capdl_obj_type == CDL_IOPorts) {
-            seL4_CPtr root = seL4_CapInitThreadCNode;
-            int index = seL4_CapIOPort;
-            int depth = CONFIG_WORD_SIZE;
-
-            int err = seL4_CNode_Copy(root, free_slot, depth,
-                root, index, depth, seL4_AllRights);
-            ZF_LOGF_IFERR(err, "");
-
+        case CDL_IOPorts: {
+            int err = seL4_CNode_Copy(seL4_CapInitThreadCNode, free_slot, CONFIG_WORD_SIZE,
+                                      seL4_CapInitThreadCNode, seL4_CapIOPort, CONFIG_WORD_SIZE,
+                                      seL4_AllRights);
+            ZF_LOGF_IFERR(err, "Failed to copy IO Port cap");
             add_sel4_cap(obj_id, ORIG, free_slot);
-
-            obj_id_index++;
             free_slot_index++;
-            continue;
+            break;
         }
 #endif
-
-        if (capdl_obj_type == CDL_Frame && obj->paddr != NULL) {
-            obj_size = CDL_Obj_SizeBits(obj);
-            ZF_LOGD(" device frame, paddr = %p, size = %d bits\n", obj->paddr, obj_size);
-
-            /* This is a device frame. Look for it in bootinfo. */
-            if (find_device_frame(obj->paddr, obj_size, free_slot, obj_id, bootinfo, spec) == 0) {
-                /* We found and added the frame. */
-                obj_id_index++;
-                free_slot_index++;
-                continue;
-            }
-
-            ZF_LOGF("Failed to find device frame at paddr = %p\n", obj->paddr);
-        }
-
-        // Never create Interrupt objects here
+        case CDL_Interrupt:
 #ifdef CONFIG_ARCH_X86
-        if (capdl_obj_type == CDL_Interrupt || capdl_obj_type == CDL_IOPorts || capdl_obj_type == CDL_IODevice || capdl_obj_type == CDL_IOAPICInterrupt || capdl_obj_type == CDL_MSIInterrupt) {
+        case CDL_IODevice:
+        case CDL_IOAPICInterrupt:
+        case CDL_MSIInterrupt:
 #else
-        if (capdl_obj_type == CDL_Interrupt || capdl_obj_type == CDL_ARMIODevice) {
+        case CDL_ARMIODevice:
 #endif
-            obj_id_index++;
-        } else {
-            obj_size = CDL_Obj_SizeBits(obj);
-            if (capdl_obj_type == CDL_CNode) {
-                ZF_LOGD(" (CNode of size %d bits)\n", obj_size);
-            }
-
-            // CapDL types are not the same as seL4 types,
-            // as seL4 needs different types for different frame sizes.
-            if (capdl_obj_type == CDL_Frame) {
-                obj_type = kobject_get_type(KOBJECT_FRAME, obj_size);
-            } else if (capdl_obj_type == CDL_ASIDPool) {
-                obj_type = CDL_Untyped;
-                obj_size = 12;
-            } else {
-                obj_type = (seL4_ArchObjectType) capdl_obj_type;
-            }
-        }
-
-        if (capdl_obj_type == CDL_Untyped && obj->paddr != NULL) {
-            ZF_LOGD(" device untyped, paddr = %p, size_bits = %d\n", obj->paddr, obj_size);
-
-            /* This is a device untyped. Look for it in bootinfo. */
-            if (find_device_untyped(obj->paddr, obj_size, free_slot, obj_id, bootinfo, spec) == seL4_NoError) {
-                /* We found and added the frame. */
-                obj_id_index++;
-                free_slot_index++;
-                continue;
-            }
-
-            ZF_LOGF("Failed to find device untyped at paddr = %p, size_bits = %d\n", obj->paddr, obj_size);
-        }
-
-        // Create object
-#ifdef CONFIG_ARCH_X86
-        if (capdl_obj_type != CDL_Interrupt && capdl_obj_type != CDL_IOPorts && capdl_obj_type != CDL_IODevice && capdl_obj_type != CDL_IOAPICInterrupt && capdl_obj_type != CDL_MSIInterrupt) {
-#else
-        if (capdl_obj_type != CDL_Interrupt && capdl_obj_type != CDL_ARMIODevice) {
-#endif
-            int err = retype_untyped(free_slot, untyped_cptr, obj_type, obj_size);
-
+            // Never create Interrupt objects here
+            break;
+        default: {
+            /* at this point we are definately creating an object - figure out what it is */
+            seL4_Error err = create_object(spec, obj, obj_id, bootinfo, untyped_cptr, free_slot);
             if (err == seL4_NoError) {
                 if (capdl_obj_type == CDL_ASIDPool) {
                     free_slot_index++;
                     seL4_CPtr asid_slot = free_slot_start + free_slot_index;
-                    err = seL4_ARCH_ASIDControl_MakePool(seL4_CapASIDControl, free_slot, seL4_CapInitThreadCNode, asid_slot, CONFIG_WORD_SIZE);
-                    ZF_LOGF_IFERR(err, "");
+                    err = seL4_ARCH_ASIDControl_MakePool(seL4_CapASIDControl, free_slot,
+                                                         seL4_CapInitThreadCNode, asid_slot, CONFIG_WORD_SIZE);
                     free_slot = asid_slot;
+                    ZF_LOGF_IFERR(err, "Failed to create asid pool");
                 }
                 add_sel4_cap(obj_id, ORIG, free_slot);
-
-                obj_id_index++;
                 free_slot_index++;
             } else if (err == seL4_NotEnoughMemory) {
+                /* go to the next untyped to allocate objects - this one is empty */
                 ut_index++;
+                /* we failed to process the current object, go back 1 */
+                obj_id_index--;
             } else {
                 /* Exit with failure. */
-                ZF_LOGF_IFERR(err, "");
+                ZF_LOGF_IFERR(err, "Untyped retype failed with unexpected error");
             }
-        }
+        }}
+        obj_id_index++;
     }
     // Update the free slot to go past all the objects we just made.
     free_slot_start += free_slot_index;
