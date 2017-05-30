@@ -210,7 +210,7 @@ prettyObjParams obj = case obj of
                                                                 prettyPCIDevice pci]
     ARMIODevice _ iospace -> text "io_device" <+> maybeParensList [prettyARMIODevice iospace]
     VCPU {} -> text "vcpu"
-    SC extra -> text "sc" <+> maybeParensList [prettySCExtraInfo extra]
+    SC extra mbits -> text "sc" <+> maybeParensList [prettySCExtraInfo extra, prettyMBits mbits]
     RTReply -> text "rtreply"
     IOAPICIrq _ ioapic pin level polarity -> text "ioapic_irq" <+> maybeParensList[prettyIOAPICNum ioapic, prettyIOAPICPin pin, prettyIOAPICLevel level, prettyIOAPICPolarity polarity]
     MSIIrq _ handle bus dev fun -> text "msi_irq" <+> maybeParensList[prettyMSIHandle handle, prettyMSIPCIBus bus, prettyMSIPCIDev dev, prettyMSIPCIFun fun]

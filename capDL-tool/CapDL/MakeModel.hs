@@ -411,7 +411,7 @@ validObjPars (Obj IOPorts_T ps []) = subsetConstrs ps [PortsSize undefined]
 validObjPars (Obj IODevice_T ps []) = subsetConstrs ps [DomainID undefined, PCIDevice undefined]
 validObjPars (Obj ARMIODevice_T ps []) = subsetConstrs ps [ARMIOSpace undefined]
 validObjPars (Obj SC_T ps []) =
-  subsetConstrs ps (replicate (numConstrs (Addr undefined)) (SCExtraParam undefined))
+  subsetConstrs ps ((replicate (numConstrs (Addr undefined)) (SCExtraParam undefined)) ++ [BitSize undefined])
 validObjPars (Obj IOAPICIrqSlot_T ps []) =
   subsetConstrs ps (replicate (numConstrs (Addr undefined)) (IOAPICIRQExtraParam undefined))
 validObjPars (Obj MSIIrqSlot_T ps []) =
@@ -442,7 +442,7 @@ objectOf n obj =
         Obj IOAPICIrqSlot_T ps [] -> IOAPICIrq Map.empty (getIOAPICIrqIoapic ps) (getIOAPICIrqPin ps) (getIOAPICIrqLevel ps) (getIOAPICIrqPolarity ps)
         Obj MSIIrqSlot_T ps [] -> MSIIrq Map.empty (getMSIIrqHandle ps) (getMSIIrqPCIBus ps) (getMSIIrqPCIDev ps) (getMSIIrqPCIFun ps)
         Obj VCPU_T [] [] -> VCPU
-        Obj SC_T ps [] -> SC (getSCExtraInfo n ps)
+        Obj SC_T ps [] -> SC (getSCExtraInfo n ps) (getMaybeBitSize ps)
         Obj RTReply_T [] [] -> RTReply
         Obj _ _ (_:_) ->
           error $ "Only untyped caps can have objects as content: " ++
@@ -570,7 +570,7 @@ getMaybeAsid (Asid asid : _) = Just asid
 getMaybeAsid (_ : ps) = getMaybeAsid ps
 
 getAsid :: ObjID -> ObjID -> [CapParam] -> Asid
-getAsid containerName objRef ps = 
+getAsid containerName objRef ps =
     case getMaybeAsid ps of
         Nothing -> error ("Needs asid parameter for cap to " ++ printID objRef ++
                           " in " ++ printID containerName)

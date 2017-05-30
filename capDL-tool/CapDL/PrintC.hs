@@ -305,17 +305,19 @@ showObjectFields _ _ (IODevice _ _ _) _ _ _ =
 showObjectFields _ _ (ARMIODevice _ _) _ _ _ =
     ".type = CDL_ARMIODevice,"
 showObjectFields _ _ VCPU _ _ _ = ".type = CDL_VCPU,"
-showObjectFields _ _ (SC info) _ _ _ =
+showObjectFields _ _ (SC info size_bits) _ _ _ =
     ".type = CDL_SchedContext," +++
     ".sc_extra = {" +++
         ".period = " ++ show sc_period ++ "," +++
         ".budget = " ++ show sc_budget ++ "," +++
         ".data = " ++ show sc_data ++ "," +++
-    "},"
+    "}," +++
+    ".size_bits = " ++ show sizeBits ++ ","
     where
     sc_period = case info of {Just i -> case period i of {Just p -> p; _ -> 0}; _ -> 0}
     sc_budget = case info of {Just i -> case budget i of {Just p -> p; _ -> 0}; _ -> 0}
     sc_data = case info of {Just i -> case scData i of {Just p -> p; _ -> 0}; _ -> 0}
+    sizeBits = case size_bits of {Just s -> s; _ -> 0}
 
 showObjectFields _ _ RTReply _ _ _ =
     ".type = CDL_RTReply,"

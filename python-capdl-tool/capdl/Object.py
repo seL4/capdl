@@ -333,14 +333,17 @@ class VCPU(Object):
         return '%s = vcpu' % self.name
 
 class SC(Object):
-    def __init__(self, name, period=0x0, budget=0x0, data=0x0):
+    def __init__(self, name, period=10000, budget=10000, data=0x0, size_bits='auto'):
         super(SC, self).__init__(name)
         self.period = period
         self.budget = budget
         self.data = data
+        if size_bits == 'auto':
+            size_bits = 8
+        self.size_bits = size_bits
 
     def __repr__(self):
-        s = '%(name)s = sc (period: %(period)s, budget: %(budget)s, data: %(data)s)' % self.__dict__
+        s = '%(name)s = sc (period: %(period)s, budget: %(budget)s, data: %(data)s, %(size_bits)s bits)' % self.__dict__
         return s
 
 class SchedControl(Object):

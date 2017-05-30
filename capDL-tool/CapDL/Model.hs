@@ -169,7 +169,8 @@ data KernelObject a
         maybeSizeBits :: Maybe Word,
         maybePaddr :: Maybe Word }
     | SC {
-        sc_extraInfo :: Maybe SCExtraInfo }
+        sc_extraInfo :: Maybe SCExtraInfo,
+        maybeSizeBits :: Maybe Word}
     | RTReply
 
 -- arch specific objects, ARM11, IA32 and X86_64 mixed
