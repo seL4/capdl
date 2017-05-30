@@ -1202,19 +1202,17 @@ init_pd_asids(CDL_Model *spec)
     ZF_LOGD("Initialising Page Directory ASIDs...\n");
 
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
+        CDL_ObjectType type;
 #ifdef CONFIG_ARCH_X86_64
-        if (spec->objects[obj_id].type == CDL_PML4) {
-            ZF_LOGD(" Initialising pml4 ASID %s...\n",
-                         CDL_Obj_Name(&spec->objects[obj_id]));
-            set_asid(spec, obj_id);
-        }
+        type = CDL_PML4;
 #else
-        if (spec->objects[obj_id].type == CDL_PD) {
-            ZF_LOGD(" Initialising page directory ASID %s...\n",
+        type = CDL_PD;
+#endif
+        if (spec->objects[obj_id].type == type) {
+            ZF_LOGD(" Initialising pd/pml4 ASID %s...\n",
                          CDL_Obj_Name(&spec->objects[obj_id]));
             set_asid(spec, obj_id);
         }
-#endif
     }
 }
 
