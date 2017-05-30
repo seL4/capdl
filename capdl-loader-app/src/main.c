@@ -749,24 +749,22 @@ create_irq_cap(CDL_IRQ irq, CDL_Object *obj, seL4_CPtr free_slot)
     int depth = CONFIG_WORD_SIZE;
     int error;
 
+    switch (CDL_Obj_Type(obj)) {
 #if defined(CONFIG_ARCH_X86)
-    if (CDL_Obj_Type(obj) == CDL_IOAPICInterrupt) {
-        error = seL4_IRQControl_GetIOAPIC(seL4_CapIRQControl, root, index, depth, \
-                      obj->ioapicirq_extra.ioapic, obj->ioapicirq_extra.ioapic_pin, \
-                      obj->ioapicirq_extra.level, obj->ioapicirq_extra.polarity, \
+    case CDL_IOAPICInterrupt:
+        error = seL4_IRQControl_GetIOAPIC(seL4_CapIRQControl, root, index, depth,
+                      obj->ioapicirq_extra.ioapic, obj->ioapicirq_extra.ioapic_pin,
+                      obj->ioapicirq_extra.level, obj->ioapicirq_extra.polarity,
                       irq);
-    } else if (CDL_Obj_Type(obj) == CDL_MSIInterrupt) {
-        error = seL4_IRQControl_GetMSI(seL4_CapIRQControl, root, index, depth, \
-                    obj->msiirq_extra.pci_bus, obj->msiirq_extra.pci_dev, \
+    case CDL_MSIInterrupt:
+        error = seL4_IRQControl_GetMSI(seL4_CapIRQControl, root, index, depth,
+                    obj->msiirq_extra.pci_bus, obj->msiirq_extra.pci_dev,
                     obj->msiirq_extra.pci_fun, obj->msiirq_extra.handle, irq);
-    } else {
 #endif
+    default:
         error = seL4_IRQControl_Get(seL4_CapIRQControl, irq, root, index, depth);
-#if defined(CONFIG_ARCH_X86)
     }
-#endif
-    ZF_LOGF_IFERR(error, "");
-
+    ZF_LOGF_IFERR(error, "Failed to create irq cap");
     add_sel4_cap(irq, IRQ, index);
 }
 
