@@ -639,6 +639,10 @@ create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_BootInfo *inf
         obj_type = CDL_Untyped;
         obj_size = seL4_ASIDPoolBits;
         break;
+    case CDL_SchedContext:
+        obj_size = seL4_MinSchedContextBits;
+        obj_type = (seL4_ArchObjectType) CDL_Obj_Type(obj);
+        break;
     default:
         obj_type = (seL4_ArchObjectType) CDL_Obj_Type(obj);
     }
