@@ -1324,6 +1324,7 @@ init_pt(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pt_base, CDL_ObjID pt)
         map_page(spec, frame_cap, pml4, frame_rights, base);
     }
 }
+
 static void
 init_pd(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pd_base, CDL_ObjID pd)
 {
@@ -1344,6 +1345,7 @@ init_pd(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pd_base, CDL_ObjID pd)
         }
     }
 }
+
 static void
 init_pdpt(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pdpt_base, CDL_ObjID pdpt)
 {
@@ -1364,6 +1366,7 @@ init_pdpt(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pdpt_base, CDL_ObjID pdpt)
         }
     }
 }
+
 static void
 init_pml4(CDL_Model *spec, CDL_ObjID pml4)
 {
