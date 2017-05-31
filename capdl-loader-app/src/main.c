@@ -92,8 +92,7 @@ static void
 next_free_slot(void)
 {
     free_slot_start++;
-    if (free_slot_start >= free_slot_end) {
-        ZF_LOGF("Ran out of free slots!");
+    ZF_LOGF_IF(free_slot_start >= free_slot_end, "Ran out of free slots!");
 }
 
 typedef enum {MOVE, COPY} init_cnode_mode;
