@@ -96,7 +96,7 @@ typedef struct {
     union {
         struct {
             seL4_Word guard_bits: 18; /* guards have an 18-bit value */
-            seL4_Word guard_size: sizeof(seL4_Word) * CHAR_BIT - 18;
+            seL4_Word guard_size: seL4_WordBits - 18;
         };
         seL4_Word badge;
         seL4_Word data;
@@ -204,7 +204,7 @@ typedef struct {
     seL4_Word init_sz;
     seL4_CPtr fault_ep;
     /* The IPC buffer is at least 512-byte aligned, so we can drop the low 9 bits. */
-    seL4_Word ipcbuffer_addr_upper_bits: sizeof(seL4_Word) * CHAR_BIT - 9;
+    seL4_Word ipcbuffer_addr_upper_bits: seL4_WordBits - 9;
     uint8_t domain;
 } CDL_TCBExtraInfo;
 
