@@ -95,13 +95,13 @@ typedef enum {
 typedef struct {
     union {
         struct {
-            seL4_Word guard_bits:18; /* guards have an 18-bit value */
-            seL4_Word guard_size:sizeof(seL4_Word) * CHAR_BIT - 18;
+            seL4_Word guard_bits: 18; /* guards have an 18-bit value */
+            seL4_Word guard_size: sizeof(seL4_Word) * CHAR_BIT - 18;
         };
         seL4_Word badge;
         seL4_Word data;
     };
-    unsigned tag:2; /* One of CDL_CapData_* */
+    unsigned tag: 2; /* One of CDL_CapData_* */
 } PACKED CDL_CapData;
 
 typedef struct {
@@ -122,9 +122,9 @@ typedef struct {
      * requirements here and can instead reduce the in-memory size of specs by packing these fields
      * into fewer bits.
      */
-    /* seL4_ARCH_VMAttributes */ unsigned vm_attribs:3;
-    /* bool                   */ unsigned is_orig:1;
-    /* seL4_CapRights         */ unsigned rights:3;
+    /* seL4_ARCH_VMAttributes */ unsigned vm_attribs: 3;
+    /* bool                   */ unsigned is_orig: 1;
+    /* seL4_CapRights         */ unsigned rights: 3;
 } PACKED CDL_Cap;
 
 /* CapMap: is just an array of cap slots, position of the slot and cap */
@@ -204,7 +204,7 @@ typedef struct {
     seL4_Word init_sz;
     seL4_CPtr fault_ep;
     /* The IPC buffer is at least 512-byte aligned, so we can drop the low 9 bits. */
-    seL4_Word ipcbuffer_addr_upper_bits:sizeof(seL4_Word) * CHAR_BIT - 9;
+    seL4_Word ipcbuffer_addr_upper_bits: sizeof(seL4_Word) * CHAR_BIT - 9;
     uint8_t domain;
 } CDL_TCBExtraInfo;
 
@@ -219,14 +219,14 @@ typedef struct {
     int ioapic_pin;
     int level;
     int polarity;
-}CDL_IOAPICIRQExtraInfo;
+} CDL_IOAPICIRQExtraInfo;
 
 typedef struct {
     int handle;
     int pci_bus;
     int pci_dev;
     int pci_fun;
-}CDL_MSIIRQExtraInfo;
+} CDL_MSIIRQExtraInfo;
 
 typedef struct {
 #ifdef CONFIG_CAPDL_LOADER_PRINTF
@@ -283,29 +283,64 @@ typedef struct {
 #define CDL_CapData_MakeGuard(x, y) \
 { .tag = seL4_CapData_Guard, .guard_bits = (y), .guard_size = (x) }
 
-static inline CDL_CapType    CDL_Cap_Type(CDL_Cap *cap)                   { return cap->type; }
-static inline CDL_CapData    CDL_Cap_Data(CDL_Cap *cap)                   { return cap->data; }
-static inline seL4_ARCH_VMAttributes CDL_Cap_VMAttributes(CDL_Cap *cap)   { return cap->vm_attribs; }
-static inline CDL_ObjID      CDL_Cap_ObjID(CDL_Cap *cap)                  { return cap->obj_id; }
-static inline CDL_CapRights  CDL_Cap_Rights(CDL_Cap *cap)                 { return cap->rights; }
-static inline CDL_IRQ        CDL_Cap_IRQ(CDL_Cap *cap)                    { return cap->irq; }
-static inline bool           CDL_Cap_IsOrig(CDL_Cap *cap)                 { return cap->is_orig; }
+static inline CDL_CapType    CDL_Cap_Type(CDL_Cap *cap)
+{
+    return cap->type;
+}
+static inline CDL_CapData    CDL_Cap_Data(CDL_Cap *cap)
+{
+    return cap->data;
+}
+static inline seL4_ARCH_VMAttributes CDL_Cap_VMAttributes(CDL_Cap *cap)
+{
+    return cap->vm_attribs;
+}
+static inline CDL_ObjID      CDL_Cap_ObjID(CDL_Cap *cap)
+{
+    return cap->obj_id;
+}
+static inline CDL_CapRights  CDL_Cap_Rights(CDL_Cap *cap)
+{
+    return cap->rights;
+}
+static inline CDL_IRQ        CDL_Cap_IRQ(CDL_Cap *cap)
+{
+    return cap->irq;
+}
+static inline bool           CDL_Cap_IsOrig(CDL_Cap *cap)
+{
+    return cap->is_orig;
+}
 
 
-static inline seL4_Word      CDL_CapSlot_Slot(CDL_CapSlot *cap_slot)      { return cap_slot->slot; }
-static inline CDL_Cap *      CDL_CapSlot_Cap(CDL_CapSlot *cap_slot)       { return &cap_slot->cap; }
+static inline seL4_Word      CDL_CapSlot_Slot(CDL_CapSlot *cap_slot)
+{
+    return cap_slot->slot;
+}
+static inline CDL_Cap *      CDL_CapSlot_Cap(CDL_CapSlot *cap_slot)
+{
+    return &cap_slot->cap;
+}
 
-static inline seL4_Word      CDL_ObjSlot_Slot(CDL_ObjSlot *obj_slot)      { return obj_slot->slot; }
-static inline CDL_ObjID      CDL_ObjSlot_ObjID(CDL_ObjSlot *obj_slot)     { return obj_slot->id; }
+static inline seL4_Word      CDL_ObjSlot_Slot(CDL_ObjSlot *obj_slot)
+{
+    return obj_slot->slot;
+}
+static inline CDL_ObjID      CDL_ObjSlot_ObjID(CDL_ObjSlot *obj_slot)
+{
+    return obj_slot->id;
+}
 
 /* Returns the sel4utils representation of a CDL_Cap's rights */
-static inline seL4_CapRights_t CDL_seL4_Cap_Rights(CDL_Cap *cap) {
+static inline seL4_CapRights_t CDL_seL4_Cap_Rights(CDL_Cap *cap)
+{
     return seL4_CapRights_new(!!(cap->rights & CDL_CanGrant),
                               !!(cap->rights & CDL_CanRead),
                               !!(cap->rights & CDL_CanWrite));
 }
 
-static inline const char *CDL_Obj_Name(CDL_Object *obj) {
+static inline const char *CDL_Obj_Name(CDL_Object *obj)
+{
 #ifdef CONFIG_CAPDL_LOADER_PRINTF
     if (obj->name == NULL) {
         return "<unnamed>";
@@ -317,51 +352,105 @@ static inline const char *CDL_Obj_Name(CDL_Object *obj) {
 #endif
 }
 
-static inline CDL_ObjectType CDL_Obj_Type(CDL_Object *obj)                { return obj->type; }
-static inline seL4_Word      CDL_Obj_SizeBits(CDL_Object *obj)            { return obj->size_bits; }
-static inline seL4_Word      CDL_Obj_NumSlots(CDL_Object *obj)            { return obj->slots.num; }
+static inline CDL_ObjectType CDL_Obj_Type(CDL_Object *obj)
+{
+    return obj->type;
+}
+static inline seL4_Word      CDL_Obj_SizeBits(CDL_Object *obj)
+{
+    return obj->size_bits;
+}
+static inline seL4_Word      CDL_Obj_NumSlots(CDL_Object *obj)
+{
+    return obj->slots.num;
+}
 static inline CDL_CapSlot *
-CDL_Obj_GetSlot(CDL_Object *obj, seL4_Word i)      { return &obj->slots.slot[i]; }
+CDL_Obj_GetSlot(CDL_Object *obj, seL4_Word i)
+{
+    return &obj->slots.slot[i];
+}
 
 static inline seL4_Word
-CDL_TCB_IPCBuffer_Addr(CDL_Object *obj)      { return ((seL4_Word)obj->tcb_extra.ipcbuffer_addr_upper_bits) << 9; }
+CDL_TCB_IPCBuffer_Addr(CDL_Object *obj)
+{
+    return ((seL4_Word)obj->tcb_extra.ipcbuffer_addr_upper_bits) << 9;
+}
 
 static inline uint8_t
-CDL_TCB_Priority(CDL_Object *obj)            { return obj->tcb_extra.priority; }
+CDL_TCB_Priority(CDL_Object *obj)
+{
+    return obj->tcb_extra.priority;
+}
 
 static inline uint8_t
-CDL_TCB_MaxPriority(CDL_Object *obj)         { return obj->tcb_extra.max_priority; }
+CDL_TCB_MaxPriority(CDL_Object *obj)
+{
+    return obj->tcb_extra.max_priority;
+}
 
 static inline uint8_t
-CDL_TCB_Criticality(CDL_Object *obj)         { return obj->tcb_extra.criticality; }
+CDL_TCB_Criticality(CDL_Object *obj)
+{
+    return obj->tcb_extra.criticality;
+}
 
 static inline uint8_t
-CDL_TCB_MaxCriticality(CDL_Object *obj)      { return obj->tcb_extra.max_criticality; }
+CDL_TCB_MaxCriticality(CDL_Object *obj)
+{
+    return obj->tcb_extra.max_criticality;
+}
 
 static inline uint8_t
-CDL_TCB_Affinity(CDL_Object *obj)            { return obj->tcb_extra.affinity; }
+CDL_TCB_Affinity(CDL_Object *obj)
+{
+    return obj->tcb_extra.affinity;
+}
 
 static inline uint32_t
-CDL_TCB_Domain(CDL_Object *obj)             { return obj->tcb_extra.domain; }
+CDL_TCB_Domain(CDL_Object *obj)
+{
+    return obj->tcb_extra.domain;
+}
 
 static inline seL4_Word
-CDL_TCB_PC(CDL_Object *obj)                  { return obj->tcb_extra.pc; }
+CDL_TCB_PC(CDL_Object *obj)
+{
+    return obj->tcb_extra.pc;
+}
 
 static inline seL4_Word
-CDL_TCB_SP(CDL_Object *obj)                  { return obj->tcb_extra.sp; }
+CDL_TCB_SP(CDL_Object *obj)
+{
+    return obj->tcb_extra.sp;
+}
 
 static inline const char *
-CDL_TCB_ElfName(CDL_Object *obj)             { return obj->tcb_extra.elf_name; }
+CDL_TCB_ElfName(CDL_Object *obj)
+{
+    return obj->tcb_extra.elf_name;
+}
 
 static inline uint64_t
-CDL_SC_Period(CDL_Object *obj)               { return obj->sc_extra.period; }
+CDL_SC_Period(CDL_Object *obj)
+{
+    return obj->sc_extra.period;
+}
 
 static inline uint64_t
-CDL_SC_Budget(CDL_Object *obj)               { return obj->sc_extra.budget; }
+CDL_SC_Budget(CDL_Object *obj)
+{
+    return obj->sc_extra.budget;
+}
 
 static inline seL4_Word
-CDL_SC_Data(CDL_Object *obj)               { return obj->sc_extra.data; }
+CDL_SC_Data(CDL_Object *obj)
+{
+    return obj->sc_extra.data;
+}
 
 static inline CDL_Core
-CDL_SchedControl_Core(CDL_Object *obj)    { return obj->core; }
+CDL_SchedControl_Core(CDL_Object *obj)
+{
+    return obj->core;
+}
 #endif
