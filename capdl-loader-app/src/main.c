@@ -1804,7 +1804,7 @@ main(void)
 
     ZF_LOGD("We used %d CSlots (%.2LF%% of our CNode)\n", get_free_slot(),
             (long double)get_free_slot() /
-            (long double)(BIT(CONFIG_ROOT_CNODE_SIZE_BITS) * 100);
+            (long double)(BIT(CONFIG_ROOT_CNODE_SIZE_BITS) * 100));
     ZF_LOGD(A_RESET A_FG_G "Done; suspending..." A_RESET "\n");
     seL4_TCB_Suspend(seL4_CapInitThreadTCB);
 }
