@@ -778,10 +778,12 @@ create_irq_cap(CDL_IRQ irq, CDL_Object *obj, seL4_CPtr free_slot)
                                           obj->ioapicirq_extra.ioapic, obj->ioapicirq_extra.ioapic_pin,
                                           obj->ioapicirq_extra.level, obj->ioapicirq_extra.polarity,
                                           irq);
+    break;
     case CDL_MSIInterrupt:
         error = seL4_IRQControl_GetMSI(seL4_CapIRQControl, root, index, depth,
                                        obj->msiirq_extra.pci_bus, obj->msiirq_extra.pci_dev,
                                        obj->msiirq_extra.pci_fun, obj->msiirq_extra.handle, irq);
+    break;
 #endif
     default:
         error = seL4_IRQControl_Get(seL4_CapIRQControl, irq, root, index, depth);
