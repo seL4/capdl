@@ -918,7 +918,7 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     /* Fault ep cptrs are in the configured thread's cspace */
     sel4_fault_ep = cdl_tcb->tcb_extra.fault_ep;
 
-    seL4_CapData_t sel4_cspace_root_data = {0};
+    seL4_CapData_t sel4_cspace_root_data = seL4_NilData;
     if (cdl_cspace_root != NULL) {
         sel4_cspace_root_data = get_capData(CDL_Cap_Data(cdl_cspace_root));
     }
@@ -1580,9 +1580,7 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
 #if defined(CONFIG_ARCH_ARM)
     case CDL_ARMIOSpaceCap:
         src_index = first_arm_iospace + target_cap_data.words[0];
-        target_cap_data = (seL4_CapData_t) {
-            0
-        };
+        target_cap_data = seL4_NilData;
         break;
 #endif
     case CDL_IRQHandlerCap:
