@@ -656,7 +656,7 @@ create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_BootInfo *inf
         break;
 #ifdef CONFIG_KERNEL_RT
     case CDL_SchedContext:
-        obj_size = seL4_MinSchedContextBits;
+        obj_size = kobject_get_size(KOBJECT_SCHED_CONTEXT, obj_size);
         obj_type = (seL4_ArchObjectType) CDL_Obj_Type(obj);
         break;
 #endif
