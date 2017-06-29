@@ -569,25 +569,21 @@ static int find_device_object(void *paddr, seL4_Word type, int size_bits, seL4_C
             while (1) {
                 error = seL4_Untyped_Retype(bootinfo->untyped.start + i, type, size_bits,
                                             seL4_CapInitThreadCNode, 0, 0, free_slot, 1);
-                if (error) {
-                    return -1;
-                }
-                seL4_ARCH_Page_GetAddress_t addr UNUSED = seL4_ARCH_Page_GetAddress(free_slot);
-                if (addr.error) {
-                    /* if this fails assume it's an untyped and create a temporary frame in it
+                ZF_LOGF_IFERR(error, "");
+                seL4_ARCH_Page_GetAddress_t addr;
+                if (type == seL4_UntypedObject) {
+                    /* if it's an untyped, create a temporary frame in it
                      * to get the address from */
                     error = seL4_Untyped_Retype(free_slot, arch_kobject_get_type(KOBJECT_FRAME, seL4_PageBits), seL4_PageBits,
                                                 seL4_CapInitThreadCNode, 0, 0, free_slot + 2, 1);
-                    if (error) {
-                        return -1;
-                    }
+                    ZF_LOGF_IFERR(error, "");
                     addr = seL4_ARCH_Page_GetAddress(free_slot + 2);
                     error = seL4_CNode_Delete(seL4_CapInitThreadCNode, free_slot + 2, CONFIG_WORD_SIZE);
                     ZF_LOGF_IFERR(error, "");
-                    if (addr.error) {
-                        return -1;
-                    }
+                } else {
+                    addr = seL4_ARCH_Page_GetAddress(free_slot);
                 }
+                ZF_LOGF_IFERR(addr.error, "Could not get address for untyped cap.");
                 if (addr.paddr == (uintptr_t)paddr) {
                     /* nailed it */
                     /* delete any holding cap */
@@ -597,10 +593,8 @@ static int find_device_object(void *paddr, seL4_Word type, int size_bits, seL4_C
                     }
                     return 0;
                 }
-                if (addr.paddr > (uintptr_t)paddr) {
-                    /* device frames probably not ordered by physical address */
-                    return -1;
-                }
+                ZF_LOGF_IF(addr.paddr > (uintptr_t)paddr, "device frames probably not ordered by physical address");
+
                 /* if we are currently using a hold slot we can just delete the cap, otherwise start the hold */
                 if (hold_slot) {
                     error = seL4_CNode_Delete(seL4_CapInitThreadCNode, free_slot, CONFIG_WORD_SIZE);
