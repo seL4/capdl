@@ -239,7 +239,6 @@ class TCB(ContainerObject):
                 fault_ep += " (badge: %d)" % badge
             self.__setitem__("fault_ep_slot", fault_ep)
 
-
 class Untyped(Object):
     def __init__(self, name, size_bits=12, paddr=None):
         super(Untyped, self).__init__(name)
@@ -357,7 +356,6 @@ class SchedControl(Object):
         # no object representation for a sched control
         s = ""
         return s
-
 
 class RTReply(Object):
     def __init__(self, name):

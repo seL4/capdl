@@ -20,7 +20,6 @@ For usage instructions run 'make' and then './parse-capDL'.
 For details of the Capability Distribution Language, see the specification in
 the 'doc/' directory. Run 'make' in that directory to generate 'capDL.pdf'.
 
-
 Repository overview
 -------------------
 
@@ -28,7 +27,6 @@ Repository overview
   * '*.cdl': Toy examples used as test files
   * '*.right': Canonical representations of the examples used in testing
   * 'doc': Latex source of the capDL Specification
-
 
 Dependencies
 -------------
@@ -55,11 +53,10 @@ To place the capdl binary in the top level directory of this project, run
 
     make install
 
-
 Related papers
 --------------
 
-The Capability Distribution Language is also documented in 
+The Capability Distribution Language is also documented in
 
   Ihor Kuz, Gerwin Klein, Corey Lewis and Adam Christopher Walker
   [_"capDL: A language for describing capability-based systems"_][CapDL]
@@ -67,7 +64,6 @@ The Capability Distribution Language is also documented in
   New Delhi, India, August, 2010
 
   [CapDL]: http://www.ssrg.nicta.com.au/publications/papers/Kuz_KLW_10.pdf
-
 
 License
 ========

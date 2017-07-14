@@ -20,33 +20,33 @@ irqtable = cnode (8 bits)
 
 rm_ut = ut {
   rm_tcb = tcb
-  name2 = ut { 
-    rm_cn = cnode (10 bits) 
+  name2 = ut {
+    rm_cn = cnode (10 bits)
   }
   rm_pd = page_directory [ 10 -> frame_name_x, .. ]
   rm_ap = asid_pool
 
   linux_pd = page_directory
-  
-  rm_ut_small[50] = untyped (12 bits) 
+
+  rm_ut_small[50] = untyped (12 bits)
   rm_ut_big[101] = untyped (20 bits)
-    
-  frame_nic1[64] = frame (4k)  
+
+  frame_nic1[64] = frame (4k)
   -- io space??
-  
-  frame_nic2[64] = frame (4k)  
+
+  frame_nic2[64] = frame (4k)
   -- io space??
 
   frame_nic3[4] = frame (4k)
   -- io space??
-  
+
   timer = notification
   control = ep
 }
 
 name: ut { x, y, z }
 
-name: ut 
+name: ut
 name/name2/name3/x = tcb ..
 name/y =
 name/z =
@@ -67,23 +67,23 @@ rm_cn {
   00c: rm_ut_small[3..7];
   00x: rm_ut_small[7..200, 232, 237..];
   03e: rm_ut_big[];
-  
+
   0a3: IRQHandler nic1;
   0a4: name = frame_nic1[];
   0e4: iospace;
-  
+
   0e5: IRQHandler nic2
   0e6: frame_nic2[]
   126: iospace
-  
+
   127: IRQHandler nic3
-  128: frame_nic3[]  
+  128: frame_nic3[]
   12c: iospace
-  
+
   12d: timer
   12e: control
   12f: name2 = name (masked: R)
-} 
+}
 
 rm_tcb {
   vspace: rm_pd
@@ -102,4 +102,3 @@ cnode_booter {
 CDT: {
   rm_ut parent_of timer
 }
-

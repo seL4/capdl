@@ -329,4 +329,3 @@ getFrames'' objects visited objID
       _ -> []
   where
     e = error "could not find objID in objects map in getFrames''"
-

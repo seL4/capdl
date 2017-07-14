@@ -41,9 +41,9 @@ objects {
     1: rm_ut
     2: sched_control (core: 0)
   }
-  
+
   rm_ap {1: rm_pd}
-  
+
   rm_cn {
     1: rm_tcb
     2: rm_cn
@@ -67,38 +67,38 @@ objects {
     513: rm_cn
     514: frame_nic1[0..63]
   }
-  
+
   rm_tcb {
     0: rm_cn
     1: rm_pd
   }
-  
+
   test[0] {1: rm_cn}
-  
+
   test[1] {
     1: name_b
     2: g (reply)
     512: rm_cn
   }
-  
+
   test[2..4] {
     1: name_b
     512: rm_cn
   }
-  
+
 } cdt {
 
   (cnode_booter, 1) {(rm_cn, 301)}
-  
+
   (test[1], 512) {(rm_cn, 302)}
-  
+
   (rm_cn, 303) {
     (rm_cn, 512)
     (rm_cn, 513)
   }
-  
+
 } irq maps {
 
   0: irq_handler[0..2]
-  
+
 }

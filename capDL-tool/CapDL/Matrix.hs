@@ -23,7 +23,6 @@ module CapDL.Matrix(
                    ,disconnect
                    ) where
 
-
 import Data.Array.IO
 
 import Prelude ()

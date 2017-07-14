@@ -128,7 +128,6 @@ prettyExtraInfo (Just (TCBExtraInfo addr ip sp elf prio max_prio crit max_crit a
     hsep $ punctuate comma $ filter (not . isEmpty)
                    [prettyAddr addr, prettyIP ip, prettySP sp, prettyElf elf, prettyPrio prio, prettyMaxPrio max_prio, prettyCrit crit, prettyMaxCrit max_crit, prettyAffinity affinity]
 
-
 prettyInitArguments :: [Word] -> Doc
 prettyInitArguments [] = empty
 prettyInitArguments init =

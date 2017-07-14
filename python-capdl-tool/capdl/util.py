@@ -17,7 +17,6 @@ Various internal utility functions. Pay no mind to this file.
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-
 from six.moves import range
 
 from .Object import seL4_IA32_4M, seL4_IA32_4K, seL4_ARM_SectionObject, \

@@ -161,7 +161,6 @@ data CapParam
         slotIndex :: Word }
     deriving (Show, Eq, Ord, Typeable, Data)
 
-
 data CapMapping
     = CapMapping {
         slot :: Maybe Word,
@@ -211,9 +210,7 @@ data Decl
         children :: [Either Decl SlotRef] }
     deriving Show
 
-
 data Module = Module {
   theArch :: Arch,
   decls :: [Decl]
 } deriving Show
-

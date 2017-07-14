@@ -181,7 +181,6 @@ addUntyped objs _ = objs
 addUntypeds :: ObjMap Word -> [Decl] -> ObjMap Word
 addUntypeds = foldl' addUntyped
 
-
 getTCBAddr :: [ObjParam] -> Maybe Word
 getTCBAddr [] = Nothing
 getTCBAddr (TCBExtraParam (Addr addr) : _) = Just addr
@@ -401,7 +400,7 @@ removeConstr x xs = filter (\y -> toConstr x /= toConstr y) xs
 
 validObjPars :: KO -> Bool
 validObjPars (Obj TCB_T ps []) =
-  subsetConstrs ps (replicate (numConstrs (Addr undefined)) (TCBExtraParam undefined) 
+  subsetConstrs ps (replicate (numConstrs (Addr undefined)) (TCBExtraParam undefined)
                     ++ [InitArguments undefined, Dom undefined, FaultEP undefined])
 validObjPars (Obj CNode_T ps []) = subsetConstrs ps [BitSize undefined]
 validObjPars (Obj Untyped_T ps _) = subsetConstrs ps [BitSize undefined, Paddr undefined]
@@ -789,7 +788,6 @@ addCapIdent _ i _ = i
 
 capIdents :: ObjMap Word -> [Decl] -> Idents CapName
 capIdents m = foldl' (addCapIdent m) emptyIdents
-
 
 -- FIXME: inefficient, use a proper data structure for this
 type CapRefMappings = CapRef -> Maybe CapRef

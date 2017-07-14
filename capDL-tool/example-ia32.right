@@ -45,13 +45,13 @@ objects {
 } caps {
 
   cnode_booter {1: rm_ut}
-  
+
   io_pt1 {0: io_pt2}
-  
+
   io_pt2 {0: io_pt3}
-  
+
   io_pt3 {0: frame_nic3[0]}
-  
+
   linux_pd {
     10: frame_name
     255: some_pt
@@ -60,9 +60,9 @@ objects {
     352: frame_nic2[10]
     384: frame_nic2[11..17, 0..2, 10, 10..63]
   }
-  
+
   nic1 {0: io_pt1}
-  
+
   rm_cn {
     1: rm_tcb
     2: rm_cn
@@ -88,18 +88,18 @@ objects {
     328: io_ports (ports: [0..65535])
     528: x
   }
-  
+
   rm_tcb {
     0: rm_cn
     1: rm_pd
   }
-  
+
   some_pt {37: frame_nic3[0..2]}
-  
+
 } cdt {
 
 } irq maps {
 
   0: irq_handler[0..2]
-  
+
 }

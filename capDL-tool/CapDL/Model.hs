@@ -46,7 +46,6 @@ allRights = Data.Set.fromList [Read, Write, Grant]
 --
 type ObjID = (String, Maybe Word)
 
-
 type Asid = (Word, Word)
 
 --
@@ -122,8 +121,6 @@ data Cap
         | VCPUCap { capObj :: ObjID }
 
         deriving (Eq, Ord, Show)
-
-
 
 -- Kernel Objects
 
@@ -215,7 +212,6 @@ data KernelObject a
         fun :: Word }
     deriving (Eq, Show)
 
-
 data KOType
     = Endpoint_T
     | Notification_T
@@ -289,7 +285,6 @@ data Model a
     cdt :: CDT,
     untypedCovers :: CoverMap }
   deriving Show
-
 
 data Idents cap_id = Idents {
     cap_ids :: Map cap_id CapRef
@@ -388,4 +383,3 @@ hasSlots (IOPT {})      = True
 hasSlots (IOAPICIrq {}) = True
 hasSlots (MSIIrq {})    = True
 hasSlots _              = False
-

@@ -405,7 +405,6 @@ fill_param = do
     where
         notFillEnd = satisfy (\x -> not (isSpace x || x == '}'))
 
-
 frame_extra_param :: MapParser ObjParam
 frame_extra_param = do
     param <- fill_param

@@ -235,4 +235,3 @@ printXml _ (Model arch ms _ cdt untypedCovers) =
     text xml_header
         $+$ (xmlSurround "model" [("arch", show arch)] $ printObjects ms $+$ printUntypedCovers untypedCovers $+$ printCDT cdt)
         $+$ text "\n"
-

@@ -262,14 +262,12 @@ printObj' _ _ (Frame vmSz _ _) = text "Frame" <+>
 printObj' _ _ _ = error "Untyped and IO objs unsupported"
 
 printLemmaObjectSlots :: ObjID -> Doc
-printLemmaObjectSlots id = 
-  lemma (objName++"_object_slots") 
+printLemmaObjectSlots id =
+  lemma (objName++"_object_slots")
         ("object_slots "++objName++" = "++slots)
         ("by (simp add: "++objName++"_def object_slots_def)")
   where objName = showID id
         slots = capsName id
-  
-
 
 printObj :: ObjMap Word -> IRQMap -> CoverMap -> (ObjID, KernelObject Word) -> Doc
 printObj ms irqNode covers (id, obj) = printCaps ms id irqNode covers obj $+$

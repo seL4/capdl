@@ -151,4 +151,3 @@ main = do
      else do
             putStr $ show log
             error("Failed to check model")
-

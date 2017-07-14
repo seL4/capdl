@@ -424,7 +424,6 @@ memberIRQs objs irqNode _ =
         _ -> -1) [0..(CONFIG_CAPDL_LOADER_MAX_IRQS - 1)]) +++
     "},"
 
-
 showFrameInfo :: Map ObjID Int -> (ObjID, KernelObject Word) -> Maybe String
 showFrameInfo objs (obj_id, Frame _ _ (Just (info_type:offset:extra))) = Just (
     "{" +++

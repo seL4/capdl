@@ -200,7 +200,6 @@ flatten :: Model Word -> Model [Word]
 flatten m@(Model arch objs irqNode cdt untypedCovers) =
     Model arch (foldl (flatten' m) Map.empty (Map.toList objs)) irqNode cdt untypedCovers
 
-
 -- slots of one object
 getSlots :: ObjID -> Kernel (CapMap Word)
 getSlots ref = gets $ slotsOf ref
@@ -651,7 +650,7 @@ getSlotsFromKernelObject (ARMIODevice slots _) = Just slots
 getSlotsFromKernelObject (IOPT slots _) = Just slots
 getSlotsFromKernelObject _ = Nothing
 
--- Checks that an object contains no frame caps with a specified mapping 
+-- Checks that an object contains no frame caps with a specified mapping
 checkObjectContainsNoMappedFrameCap :: (ObjID, KernelObject Word) -> Logger Bool
 checkObjectContainsNoMappedFrameCap (id, obj) =
     let maybe_slots = getSlotsFromKernelObject obj

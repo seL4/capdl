@@ -84,7 +84,7 @@ objects {
 } caps {
 
   asid_pool@0xf0306000 {1: pd@0xf7fec000}
-  
+
   cnode@0xf7ff0000 {
     1: tcb@0xf0031700
     2: cnode@0xf7ff0000 (guard_size: 20)
@@ -166,29 +166,29 @@ objects {
     207: frame@0x26000000 (RW)
     208: frame@0x30000000[0..31] (RW)
   }
-  
+
   pd@0xf7fec000 {0: pt@0xf0031000}
-  
+
   pt@0xf0031000 {
     7: frame@0xf0307000[0..15] (RW)
     23: frame@0xf002f000[0..1] (RW)
   }
-  
+
   tcb@0xf0031700 {
     0: cnode@0xf7ff0000 (guard_size: 20)
     1: pd@0xf7fec000 (asid: (0, 1))
     2: tcb@0xf0031700 (master_reply)
     4: frame@0xf002f000[0] (RW, asid: (0, 1))
   }
-  
+
 } cdt {
 
   (cnode@0xf7ff0000, 2) {(tcb@0xf0031700, 0)}
-  
+
   (cnode@0xf7ff0000, 3) {(tcb@0xf0031700, 1)}
-  
+
   (cnode@0xf7ff0000, 10) {(tcb@0xf0031700, 4)}
-  
+
 } irq maps {
 
 }

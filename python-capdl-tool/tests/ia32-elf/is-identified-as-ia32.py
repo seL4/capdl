@@ -20,4 +20,3 @@ elf = ELF('hello.bin')
 assert elf.get_arch() == 'x86'
 
 elf.get_spec()
-

@@ -281,7 +281,6 @@ typedef struct {
 #define CDL_TCB_IPCBuffer_Slot      4
 #define CDL_TCB_SC_Slot             5
 
-
 #define CDL_CapData_MakeGuard(x, y) \
 { .tag = seL4_CapData_Guard, .guard_bits = (y), .guard_size = (x) }
 
@@ -313,7 +312,6 @@ static inline bool           CDL_Cap_IsOrig(CDL_Cap *cap)
 {
     return cap->is_orig;
 }
-
 
 static inline seL4_Word      CDL_CapSlot_Slot(CDL_CapSlot *cap_slot)
 {

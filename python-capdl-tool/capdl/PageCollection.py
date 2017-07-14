@@ -121,7 +121,6 @@ class PageCollection(object):
         assert self._spec is None
         self._spec = spec
 
-
         return spec
 
 def create_address_space(regions, name='', arch='arm11'):

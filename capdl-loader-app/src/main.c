@@ -48,7 +48,6 @@ static seL4_CPtr capdl_to_sched_ctrl[CONFIG_MAX_NUM_NODES];
 // List of untyped cptrs, sorted from largest to smallest.
 static seL4_CPtr untyped_cptrs[CONFIG_MAX_NUM_BOOTINFO_UNTYPED_CAPS];
 
-
 static seL4_CPtr free_slot_start, free_slot_end;
 
 static seL4_CPtr first_arm_iospace;
@@ -80,7 +79,6 @@ extern char _end[];
 static char copy_addr_with_pt[PAGE_SIZE_4K] __attribute__((aligned(PAGE_SIZE_4K)));
 
 /* helper functions ---------------------------------------------------------------------------- */
-
 
 static seL4_CPtr
 get_free_slot(void)
@@ -868,7 +866,6 @@ init_sc(CDL_Model *spec, CDL_ObjID sc, CDL_Core affinity)
     ZF_LOGF_IFERR(error, "");
 #endif
 }
-
 
 /* Initialise TCBs */
 static void

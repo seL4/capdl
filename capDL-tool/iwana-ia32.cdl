@@ -21,8 +21,8 @@ irq_table = cnode (8 bits)
 --
 
 -- initial cspace for root task setup by kernel
-boot_L1_cn = cnode (18 bits) 
-boot_L2_cn = cnode (8 bits) 
+boot_L1_cn = cnode (18 bits)
+boot_L2_cn = cnode (8 bits)
 
 -- initial frames for root task's vspace. setup by kernel
 init_frames_1[2] = frame (4k) -- for 8K space
@@ -105,19 +105,19 @@ bootstrap_tcb = tcb
 
 -- untyped caps created as a side effect of allocating objects?
 -- TODO: check this reasoning
-ut7[2] = ut (7 bits) 
+ut7[2] = ut (7 bits)
 ut6[2] = ut (6 bits)
 ut5[2] = ut (5 bits)
 ut4[2] = ut (4 bits)
 
 -- end point for faults
-fault_ep = ep 
+fault_ep = ep
 
 -- frame for IPC buffer
-ipc_buffer_frame = frame (4k) 
+ipc_buffer_frame = frame (4k)
 
 -- page table in which to map IPC buffer
-ipc_pt = pt 
+ipc_pt = pt
 
 -- a bunch of untyped caps of different sizes
 -- these are side effects of creating 4K and 1M caps for iwana?
@@ -134,13 +134,11 @@ ut15_2[2] = ut (0x15 bits)
 ut4k[79] = ut (0xc bits)
 ut1M[113] = ut (0x14 bits)
 
-
--- 
+--
 -- objects created by the second stage
 --
 
 -- none yet
-
 
 caps
 
@@ -158,10 +156,9 @@ boot_L1_cn {
 --  255: <BL2_allocator_cn> (guard_size: 0, guard: 0, mask: RWG) -- (derived from boot_L2_cn:111) is this notation supported? TODO
   255: allocator_cn (guard_size: 0, guard: 0, mask: RWG) -- (derived from boot_L2_cn:111) is this notation supported? TODO
 
- 2559: BL1_init_frames_2 = init_frames_2[] 
+ 2559: BL1_init_frames_2 = init_frames_2[]
 
 }
-
 
 boot_L2_cn {
 
@@ -173,7 +170,7 @@ boot_L2_cn {
 -- have an object. You can have an irq_control cap in capDL, it gives you
 -- authority to mint irq_handler caps from it.
 
-    4: irq_control_cap = irq_table 
+    4: irq_control_cap = irq_table
 
 --  5: unknown -- TODO
 --  6: unknown -- TODO
@@ -237,9 +234,9 @@ boot_L2_cn {
 -- a large frame is 22 bits, size 0x400000 or 4M
 -- a pd has 0x400 (1024) entries (is size 0x1000)
 -- a pt has 0x400 (1024) entries (is size 0x1000)
--- each pt entry is 0 - 0xfff: a small frame 
+-- each pt entry is 0 - 0xfff: a small frame
 -- each pt covers addresses 0 - 0x3fffff (0x400 small frames)
--- each pd entry covers 0 - 0x3fffff: either a pt or a large frame 
+-- each pd entry covers 0 - 0x3fffff: either a pt or a large frame
 
 boot_pd {
 --  0: <BL2_boot_pt_caps[0]> -- 0 - 0x3fffff -- TODO: is this notation supported?
@@ -266,8 +263,6 @@ boot_pd {
 -- are the device frames mapped anywhere?
 -- TODO: what to do with the device caps
 
-
-
 allocator_cn {
 
     0: L1_cn_cap = L1_cn (guard_size: 0, guard: 0, mask: RWG)
@@ -281,10 +276,9 @@ allocator_cn {
     8: ut5[]
    10: ut4[]
 
-   12: fault_ep_cap = fault_ep 
-   13: ipc_buffer_frame_cap = ipc_buffer_frame 
+   12: fault_ep_cap = fault_ep
+   13: ipc_buffer_frame_cap = ipc_buffer_frame
    14: ipc_pt_cap = ipc_pt
-
 
 --   15: lots of uts
 -- TODO fill in the uts
@@ -329,9 +323,8 @@ L2_0_cn {
    20: ut4k[]
   100: ut1M[]
 
-
--- lsf: irq handlers currently are caps to the irq_table with 
--- argument (irq: x). 
+-- lsf: irq handlers currently are caps to the irq_table with
+-- argument (irq: x).
 
   700: irq_handler_0 = irq_table (irq: 0)
   701: irq_table (irq: 1)
@@ -365,22 +358,19 @@ L2_0_cn {
   729: irq_table (irq: 0x1d)
 }
 
-
 L2_1_cn {
     -- empty
 }
 
-
-
 -- irq handlers. not sure where or when these are created. or if capdl supports this
 
--- lsf: irq handlers currently are caps to the irq_table with 
+-- lsf: irq handlers currently are caps to the irq_table with
 -- argument (irq: x). The below would make sense as cap name abbreviations
 -- in the cap section, but that is currently not supported. I'm leaving these
 -- here so we can discuss them, but I'll insert the currently correct syntax
 -- in the cap tables.
 
--- TODO: 
+-- TODO:
 -- irq_handler_0 = irq_handler (irq: 0x0)
 -- irq_handler_1 = irq_handler (irq: 0x1)
 -- irq_handler_2 = irq_handler (irq: 0x2)

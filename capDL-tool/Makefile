@@ -51,5 +51,5 @@ clean:
 	rm -f $(TARGET)
 
 .PHONY: testclean
-testclean: 
+testclean:
 	rm -f *.parse *.parse.x *.dot *.xml *.thy *.png *.out

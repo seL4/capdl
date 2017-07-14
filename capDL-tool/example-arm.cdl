@@ -16,26 +16,26 @@ objects {
 
 rm_ut = ut {
   rm_tcb = tcb (init: [10], dom: 5, fault_ep: 0xF)
-  something = ut (8 bits) { 
-    rm_cn = cnode (10 bits) 
+  something = ut (8 bits) {
+    rm_cn = cnode (10 bits)
   }
-  rm_pd = pd 
+  rm_pd = pd
   rm_ap = asid_pool
 
-  linux_pd = pd 
-  
-  rm_ut_small[50] = ut (12 bits) 
+  linux_pd = pd
+
+  rm_ut_small[50] = ut (12 bits)
   rm_ut_big[100] = ut (20 bits)
-    
-  frame_nic1[64] = frame (4k)  
+
+  frame_nic1[64] = frame (4k)
   -- io space??
-  
+
   frame_nic2[64] = frame (4k)
   -- io space??
 
   frame_nic3[4] = frame (4k)
   -- io space??
-  
+
   timer = notification
   control = ep
   test[5] = cnode (8 bits)
@@ -53,7 +53,7 @@ cnode_booter = cnode (8 bits)
 name_b/name = ut (8 bits) { y[..2], z, a, b }
 
 name_b = ut (10 bits)
-name/name2/name3/x = tcb 
+name/name2/name3/x = tcb
 name/a = tcb
 name/b = tcb
 y[5] = ep
@@ -73,15 +73,15 @@ rm_cn {
 
 0x0a3: irq_handler[0];
 0x0a4: name[] = frame_nic1[];
-  
+
 0x0e5: irq_handler[1];
 0x0e6: frame_nic2[] (RW, asid: (1, 1));
 --  126: iospace
-  
+
 0x127: irq_handler[2];
-0x128: frame_nic3[]; 
+0x128: frame_nic3[];
 --  12c: iospace
-  
+
 0x12d: timer (G)
 0x12e: control (badge: 10)
 
@@ -93,7 +93,7 @@ rm_cn {
 0x200: <name2> - child_of name2
 0x201: <name2> - child_of (rm_cn, 0x12f)
 0x202: <name[]>
-} 
+}
 
 rm_tcb {
     vspace: rm_pd
@@ -122,7 +122,7 @@ test[1] {
 cap_test = (test[1],0x200)
 
 test[0] {
-  1: <cap_test> 
+  1: <cap_test>
 }
 
 rm_ap {
