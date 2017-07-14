@@ -30,6 +30,7 @@ import Text.ParserCombinators.Parsec
 import Control.Monad
 import Control.Monad.Writer
 import System.Console.GetOpt
+import Data.String.Utils
 
 data Options = Options {
     optOutputIsabelle :: Maybe String,
@@ -104,7 +105,7 @@ isDump fname = do
     input <- openFile fname ReadMode
     first <- hGetLine input
     hClose input
-    if first == "-- Dump "
+    if strip first == "-- Dump"
      then return True
      else return False
 

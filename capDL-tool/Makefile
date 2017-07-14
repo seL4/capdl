@@ -29,7 +29,7 @@ endif
 %.parse: %.cdl %.right $(TARGET)
 	stack exec $(TARGET) -- -t $*.parse -x $*.xml -d $*.dot $< || rm -f $*.parse $*.dot $*.xml
 	dot -Tpng $*.dot -o $*.png
-	@diff $*.parse $*.right
+	@diff -b $*.parse $*.right
 	@stack exec $(TARGET) -- -t $*.parse.x $*.parse > /dev/null
 	@diff $*.parse $*.parse.x  || (echo "Self parse failed"; exit 1)
 	which xmllint && xmllint --noout --dtdvalid ./capdl.dtd $*.xml
