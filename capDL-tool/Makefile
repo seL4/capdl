@@ -27,10 +27,10 @@ ifndef CONFIG_CAPDL_LOADER_MAX_IRQS
 endif
 
 %.parse: %.cdl %.right $(TARGET)
-	./$(TARGET) -t $*.parse -x $*.xml -d $*.dot $< || rm -f $*.parse $*.dot $*.xml
+	stack exec $(TARGET) -- -t $*.parse -x $*.xml -d $*.dot $< || rm -f $*.parse $*.dot $*.xml
 	dot -Tpng $*.dot -o $*.png
 	@diff $*.parse $*.right
-	@./$(TARGET) -t $*.parse.x $*.parse > /dev/null
+	@stack exec $(TARGET) -- -t $*.parse.x $*.parse > /dev/null
 	@diff $*.parse $*.parse.x  || (echo "Self parse failed"; exit 1)
 	which xmllint && xmllint --noout --dtdvalid ./capdl.dtd $*.xml
 
