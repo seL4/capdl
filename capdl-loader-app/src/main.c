@@ -800,6 +800,27 @@ create_irq_caps(CDL_Model *spec)
     }
 }
 
+/* Mint a cap that will not be given to the user */
+/* Used for badging fault eps in the RT kernel */
+static void
+mint_cap(CDL_ObjID object_id, int free_slot, seL4_CapData_t badge)
+{
+    seL4_CapRights_t rights = seL4_AllRights;
+
+    seL4_CPtr dest_root = seL4_CapInitThreadCNode;
+    int dest_index = free_slot;
+    int dest_depth = CONFIG_WORD_SIZE;
+
+    seL4_CPtr src_root = seL4_CapInitThreadCNode;
+    int src_index = orig_caps(object_id);
+    int src_depth = CONFIG_WORD_SIZE;
+
+    int error = seL4_CNode_Mint(dest_root, dest_index, dest_depth,
+                                src_root, src_index, src_depth, rights,
+                                badge);
+    ZF_LOGF_IF(error, "Failed to mint cap");
+}
+
 /* Duplicate capabilities */
 static void
 duplicate_cap(CDL_ObjID object_id, int free_slot)
@@ -862,7 +883,7 @@ init_sc(CDL_Model *spec, CDL_ObjID sc, CDL_Core affinity)
 #ifdef CONFIG_KERNEL_RT
     /* Assign the sched context to run on the CPU that the root task runs on. */
     int error = seL4_SchedControl_Configure(sched_control,
-                                            seL4_sc, budget, period, 0);
+                                            seL4_sc, budget, period, 0, data);
     ZF_LOGF_IFERR(error, "");
 #endif
 }
@@ -905,9 +926,40 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     seL4_CPtr UNUSED sel4_sc   = cdl_sc ? orig_caps(CDL_Cap_ObjID(cdl_sc)) : 0;
 
     seL4_CPtr sel4_fault_ep;
+    seL4_CPtr UNUSED sel4_tempfault_ep;
+    seL4_CPtr badged_sel4_fault_ep;
 
-    /* Fault ep cptrs are in the configured thread's cspace */
-    sel4_fault_ep = cdl_tcb->tcb_extra.fault_ep;
+    if (config_set(CONFIG_KERNEL_RT)) {
+        /* Fault ep cptrs are in the caller's cspace */
+
+        CDL_Cap *cdl_fault_ep   = get_cap_at(cdl_tcb, CDL_TCB_FaultEP_Slot);
+        if (cdl_fault_ep == NULL) {
+            ZF_LOGW("  Warning: TCB has no fault endpoint\n");
+        }
+
+        CDL_Cap *cdl_tempfault_ep   = get_cap_at(cdl_tcb, CDL_TCB_TemporalFaultEP_Slot);
+        if (cdl_tempfault_ep == NULL) {
+            ZF_LOGW("  Warning: TCB has no temporal fault endpoint\n");
+        }
+
+        sel4_fault_ep = cdl_fault_ep ? orig_caps(CDL_Cap_ObjID(cdl_fault_ep)) : 0;
+        sel4_tempfault_ep = cdl_tempfault_ep ? orig_caps(CDL_Cap_ObjID(cdl_tempfault_ep)) : 0;
+
+        if (sel4_fault_ep != 0) {
+            seL4_CapData_t fault_ep_badge = get_capData(CDL_Cap_Data(cdl_fault_ep));
+            if (fault_ep_badge.words[0] != 0) {
+                badged_sel4_fault_ep = (seL4_CPtr) get_free_slot();
+                mint_cap(CDL_Cap_ObjID(cdl_fault_ep), badged_sel4_fault_ep,
+                                       fault_ep_badge);
+                next_free_slot();
+                sel4_fault_ep = badged_sel4_fault_ep;
+
+            }
+        }
+    } else {
+        /* Fault ep cptrs are in the configured thread's cspace */
+        sel4_fault_ep = cdl_tcb->tcb_extra.fault_ep;
+    }
 
     seL4_CapData_t sel4_cspace_root_data = seL4_NilData;
     if (cdl_cspace_root != NULL) {
@@ -931,7 +983,7 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
         init_sc(spec, CDL_Cap_ObjID(cdl_sc), affinity);
     }
 
-    error = seL4_TCB_Configure(sel4_tcb, sel4_fault_ep,
+    error = seL4_TCB_Configure(sel4_tcb, sel4_fault_ep, sel4_tempfault_ep,
                                prio, sel4_sc,
                                sel4_cspace_root, sel4_cspace_root_data,
                                sel4_vspace_root, sel4_vspace_root_data,

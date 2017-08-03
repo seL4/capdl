@@ -279,7 +279,9 @@ typedef struct {
 #define CDL_TCB_Reply_Slot          2
 #define CDL_TCB_Caller_Slot         3
 #define CDL_TCB_IPCBuffer_Slot      4
-#define CDL_TCB_SC_Slot             5
+#define CDL_TCB_FaultEP_Slot        5
+#define CDL_TCB_SC_Slot             6
+#define CDL_TCB_TemporalFaultEP_Slot   7
 
 #define CDL_CapData_MakeGuard(x, y) \
 { .tag = seL4_CapData_Guard, .guard_bits = (y), .guard_size = (x) }

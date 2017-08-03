@@ -441,7 +441,9 @@ symbolic_slot =
     <|> keyw "reply_slot"  tcbReplySlot
     <|> keyw "caller_slot" tcbCallerSlot
     <|> keyw "ipc_buffer_slot" tcbIPCBufferSlot
+    <|> keyw "fault_ep_slot" tcbFaultEPSlot
     <|> keyw "sc_slot" tcbSCSlot
+    <|> keyw "temp_fault_ep_slot" tcbTempFaultEPSlot
 
 parse_slot :: MapParser Word
 parse_slot = number <|> symbolic_slot

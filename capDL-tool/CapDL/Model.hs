@@ -312,8 +312,14 @@ tcbCallerSlot = 3
 tcbIPCBufferSlot :: Word
 tcbIPCBufferSlot = 4
 
+tcbFaultEPSlot :: Word
+tcbFaultEPSlot = 5
+
 tcbSCSlot :: Word
-tcbSCSlot = 5
+tcbSCSlot = 6
+
+tcbTempFaultEPSlot :: Word
+tcbTempFaultEPSlot = 7
 
 --
 -- The string used when defining an IOSpaceMasterCap, an ASIDControlCap,
