@@ -1,0 +1,9 @@
+capDL-tool/.stack-work/*
+.git*
+*LICENSE_*.txt
+.licenseignore
+*.pyc
+*.gitignore
+*.bin
+capDL-tool/parse-capDL
+capDL-tool/*.right
