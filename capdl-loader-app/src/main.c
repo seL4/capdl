@@ -1295,7 +1295,7 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
     // TODO: We should not be using the original cap here
     seL4_CPtr sel4_page = orig_caps(page);
     seL4_CPtr sel4_pd = orig_caps(pd_id);
-#ifdef CONFIG_CAMKES_SW_BREAKPOINTS
+#ifdef CONFIG_CAPDL_LOADER_WRITEABLE_PAGES
     /* Make instruction pages writeable to support software breakpoints */
     if (seL4_CapRights_get_capAllowGrant(rights)) {
         rights = seL4_CapRights_set_capAllowWrite(rights, true);

@@ -60,6 +60,14 @@ config CAPDL_LOADER_ALLOW_NO_CSPACE
         configured as such by the initialiser. Note that this requires a kernel
         that supports threads without CSpaces.
 
+config CAPDL_LOADER_WRITEABLE_PAGES
+    bool "Map all pages with grant permission as writeable"
+    default n
+    depends on MODULE_CAPDL_LOADER
+    help
+        CapDL Loader will map all pages as writeable if the cap has grant permissions.
+        This is currently used to enable instruction and data rewriting by an external debugger such as GDB.
+
 config CAPDL_LOADER_PRINT_DEVICE_INFO
     bool "Print device frame info on startup"
     default n
