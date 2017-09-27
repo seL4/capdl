@@ -554,7 +554,7 @@ static int find_device_object(void *paddr, seL4_Word type, int size_bits, seL4_C
     /* Assume we are allocating from a device untyped. Do a linear search for it */
     for (unsigned int i = 0; i < bootinfo->untyped.end - bootinfo->untyped.start; i++) {
         if (bootinfo->untypedList[i].paddr <= (uintptr_t)paddr &&
-                bootinfo->untypedList[i].paddr + BIT(bootinfo->untypedList[i].sizeBits) >= (uintptr_t)paddr + BIT(size_bits)) {
+                bootinfo->untypedList[i].paddr + BIT(bootinfo->untypedList[i].sizeBits) - 1 >= (uintptr_t)paddr + BIT(size_bits) - 1) {
             /* just allocate objects until we get the one we want. To do this
              * correctly we cannot just destroy the cap we allocate, since
              * if it's the only frame from the untyped this will reset the
