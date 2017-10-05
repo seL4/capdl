@@ -284,7 +284,7 @@ typedef struct {
 #define CDL_TCB_TemporalFaultEP_Slot   7
 
 #define CDL_CapData_MakeGuard(x, y) \
-{ .tag = seL4_CapData_Guard, .guard_bits = (y), .guard_size = (x) }
+{ .tag = CDL_CapData_Guard, .guard_bits = (y), .guard_size = (x) }
 
 static inline CDL_CapType    CDL_Cap_Type(CDL_Cap *cap)
 {
