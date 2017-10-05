@@ -144,27 +144,19 @@ static CDL_Object
     return &spec->objects[object_id];
 }
 
-static seL4_CapData_t
+static seL4_Word
 get_capData(CDL_CapData d)
 {
     switch (d.tag) {
     case CDL_CapData_Badge:
-        return seL4_CapData_Badge_new(d.badge);
+        return d.badge;
     case CDL_CapData_Guard:
-        return seL4_CapData_Guard_new(d.guard_bits, d.guard_size);
+        return seL4_CNode_CapData_new(d.guard_bits, d.guard_size).words[0];
     case CDL_CapData_Raw:
-        return (seL4_CapData_t) {
-            {
-                d.data
-            }
-        };
+        return d.data;
     default:
         ZF_LOGF("invalid cap data");
-        return (seL4_CapData_t) {
-            {
-                0
-            }
-        };
+        return seL4_NilData;
     }
 }
 
@@ -803,7 +795,7 @@ create_irq_caps(CDL_Model *spec)
 /* Mint a cap that will not be given to the user */
 /* Used for badging fault eps in the RT kernel */
 static void
-mint_cap(CDL_ObjID object_id, int free_slot, seL4_CapData_t badge)
+mint_cap(CDL_ObjID object_id, int free_slot, seL4_Word badge)
 {
     seL4_CapRights_t rights = seL4_AllRights;
 
@@ -946,8 +938,8 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
         sel4_tempfault_ep = cdl_tempfault_ep ? orig_caps(CDL_Cap_ObjID(cdl_tempfault_ep)) : 0;
 
         if (sel4_fault_ep != 0) {
-            seL4_CapData_t fault_ep_badge = get_capData(CDL_Cap_Data(cdl_fault_ep));
-            if (fault_ep_badge.words[0] != 0) {
+            seL4_Word fault_ep_badge = get_capData(CDL_Cap_Data(cdl_fault_ep));
+            if (fault_ep_badge != 0) {
                 badged_sel4_fault_ep = (seL4_CPtr) get_free_slot();
                 mint_cap(CDL_Cap_ObjID(cdl_fault_ep), badged_sel4_fault_ep,
                                        fault_ep_badge);
@@ -961,11 +953,11 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
         sel4_fault_ep = cdl_tcb->tcb_extra.fault_ep;
     }
 
-    seL4_CapData_t sel4_cspace_root_data = seL4_NilData;
+    seL4_Word sel4_cspace_root_data = seL4_NilData;
     if (cdl_cspace_root != NULL) {
         sel4_cspace_root_data = get_capData(CDL_Cap_Data(cdl_cspace_root));
     }
-    seL4_CapData_t sel4_vspace_root_data = get_capData(CDL_Cap_Data(cdl_vspace_root));
+    seL4_Word sel4_vspace_root_data = get_capData(CDL_Cap_Data(cdl_vspace_root));
 
     int error;
 #ifdef CONFIG_KERNEL_RT
@@ -1589,7 +1581,7 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
     seL4_CapRights_t target_cap_rights = CDL_seL4_Cap_Rights(target_cap);
 
     // For endpoint this is the badge, for cnodes, this is the (encoded) guard.
-    seL4_CapData_t target_cap_data = get_capData(CDL_Cap_Data(target_cap));
+    seL4_Word target_cap_data = get_capData(CDL_Cap_Data(target_cap));
 
     /* To support moving original caps, we need a spec with a CDT (most don't).
      * This shoud probably become a separate configuration option for when to
@@ -1622,7 +1614,7 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
 #endif
 #if defined(CONFIG_ARCH_ARM)
     case CDL_ARMIOSpaceCap:
-        src_index = first_arm_iospace + target_cap_data.words[0];
+        src_index = first_arm_iospace + target_cap_data;
         target_cap_data = seL4_NilData;
         break;
 #endif
@@ -1646,7 +1638,7 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
                                         src_root, src_index, src_depth);
             ZF_LOGF_IFERR(error, "");
         } else {
-            ZF_LOGD("mutating (with badge/guard %p)...\n", (void*)target_cap_data.words[0]);
+            ZF_LOGD("mutating (with badge/guard %p)...\n", (void*)target_cap_data);
             int error = seL4_CNode_Mutate(dest_root, dest_index, dest_depth,
                                           src_root, src_index, src_depth, target_cap_data);
             ZF_LOGF_IFERR(error, "");
@@ -1677,7 +1669,7 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
                                         src_root, mapped_frame_cap, src_depth);
             ZF_LOGF_IFERR(error, "");
         } else {
-            ZF_LOGD("minting (with badge/guard %p)...\n", (void*)target_cap_data.words[0]);
+            ZF_LOGD("minting (with badge/guard %p)...\n", (void*)target_cap_data);
             int error = seL4_CNode_Mint(dest_root, dest_index, dest_depth,
                                         src_root, src_index, src_depth, target_cap_rights, target_cap_data);
             ZF_LOGF_IFERR(error, "");
