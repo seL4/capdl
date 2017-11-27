@@ -1343,14 +1343,14 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
             /* Try and retrieve some useful information to help the user
              * diagnose the error.
              */
-            ZF_LOGD("Failed to map frame ");
+            ZF_LOGE("Failed to map frame ");
             seL4_ARCH_Page_GetAddress_t addr UNUSED = seL4_ARCH_Page_GetAddress(sel4_page);
             if (addr.error) {
-                ZF_LOGD("<unknown physical address (error = %d)>", addr.error);
+                ZF_LOGE("<unknown physical address (error = %d)>", addr.error);
             } else {
-                ZF_LOGD("%p", (void*)addr.paddr);
+                ZF_LOGE("%p", (void*)addr.paddr);
             }
-            ZF_LOGD(" -> %p (error = %d)\n", (void*)vaddr, error);
+            ZF_LOGE(" -> %p (error = %d)\n", (void*)vaddr, error);
             ZF_LOGF_IFERR(error, "");
         }
 #ifdef CONFIG_ARCH_ARM
