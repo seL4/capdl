@@ -1763,6 +1763,8 @@ init_fill_frames(CDL_Model *spec, simple_t * simple)
             int id;
             if (strcmp(spec->frame_fill[i].extra_information, "SEL4_BOOTINFO_HEADER_X86_VBE") == 0) {
                 id = SEL4_BOOTINFO_HEADER_X86_VBE;
+            } else if (strcmp(spec->frame_fill[i].extra_information, "SEL4_BOOTINFO_HEADER_X86_TSC_FREQ") == 0) {
+                id = SEL4_BOOTINFO_HEADER_X86_TSC_FREQ;
             } else {
                 ZF_LOGF("Unable to parse extra information for \"bootinfo\", given \"%s\"", spec->frame_fill[i].extra_information);
             }
