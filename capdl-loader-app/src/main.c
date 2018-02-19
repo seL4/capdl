@@ -1775,9 +1775,6 @@ init_fill_frames(CDL_Model *spec, simple_t * simple)
                 };
                 memcpy((void*)dest, &empty, MIN(max, sizeof(empty)));
             }
-        } else if (strcmp(spec->frame_fill[i].type, "bootinfo_arch_info_word") == 0) {
-            seL4_Word arch_info = simple_get_arch_info(simple);
-            memcpy((void*)dest, &arch_info, MIN(max, sizeof(arch_info)));
         } else {
             ZF_LOGF("Unsupported frame fill type %s", spec->frame_fill[i].type);
         }
