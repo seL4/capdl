@@ -961,13 +961,6 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
 
     int error;
 #ifdef CONFIG_KERNEL_RT
-    /* There was originally a notion of criticality in the RT API;
-     *
-     * During some design iterations, it was removed from exposure to userspace,
-     * and had to be hidden. Eventually it will be re-added. When that happens,
-     * just add it back here (or wherever else would go best, assuming the
-     * re-added criticality concept isn't the same).
-     */
     if (sel4_sc) {
         init_sc(spec, CDL_Cap_ObjID(cdl_sc), affinity);
     }
