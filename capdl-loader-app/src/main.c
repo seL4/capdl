@@ -968,30 +968,30 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
      * just add it back here (or wherever else would go best, assuming the
      * re-added criticality concept isn't the same).
      */
-    seL4_PrioProps_t prio;
-    seL4_PrioProps_ptr_new(&prio, (seL4_Uint32) max_priority, (seL4_Uint32) priority);
-
     if (sel4_sc) {
         init_sc(spec, CDL_Cap_ObjID(cdl_sc), affinity);
     }
 
     error = seL4_TCB_Configure(sel4_tcb, sel4_fault_ep, sel4_tempfault_ep,
-                               prio, sel4_sc,
+                               sel4_sc,
                                sel4_cspace_root, sel4_cspace_root_data,
                                sel4_vspace_root, sel4_vspace_root_data,
                                ipcbuffer_addr, sel4_ipcbuffer);
 #else
-    error = seL4_TCB_Configure(sel4_tcb, sel4_fault_ep, seL4_PrioProps_new(priority, priority),
+    error = seL4_TCB_Configure(sel4_tcb, sel4_fault_ep,
                                sel4_cspace_root, sel4_cspace_root_data,
                                sel4_vspace_root, sel4_vspace_root_data,
                                ipcbuffer_addr, sel4_ipcbuffer);
     ZF_LOGF_IFERR(error, "");
 
+    error = seL4_TCB_SetSchedParams(sel4_tcb, sel4_tcb, max_priority, priority);
+    ZF_LOGF_IFERR(error, "");
+#endif
+
 #if CONFIG_MAX_NUM_NODES > 1
     error = seL4_TCB_SetAffinity(sel4_tcb, affinity);
 #endif
 
-#endif
     ZF_LOGF_IFERR(error, "");
 
 #ifdef SEL4_DEBUG_KERNEL
