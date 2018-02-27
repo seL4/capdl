@@ -977,9 +977,10 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
                                ipcbuffer_addr, sel4_ipcbuffer);
     ZF_LOGF_IFERR(error, "");
 
+#endif
+
     error = seL4_TCB_SetSchedParams(sel4_tcb, sel4_tcb, max_priority, priority);
     ZF_LOGF_IFERR(error, "");
-#endif
 
 #if CONFIG_MAX_NUM_NODES > 1
     error = seL4_TCB_SetAffinity(sel4_tcb, affinity);
