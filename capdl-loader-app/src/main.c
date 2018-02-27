@@ -979,7 +979,7 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
 
 #endif
 
-    error = seL4_TCB_SetSchedParams(sel4_tcb, sel4_tcb, max_priority, priority);
+    error = seL4_TCB_SetSchedParams(sel4_tcb, seL4_CapInitThreadTCB, max_priority, priority);
     ZF_LOGF_IFERR(error, "");
 
 #if CONFIG_MAX_NUM_NODES > 1
