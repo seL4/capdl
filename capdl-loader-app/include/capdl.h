@@ -243,6 +243,10 @@ typedef struct {
         CDL_MSIIRQExtraInfo msiirq_extra;
         void *paddr; /* Physical address; only relevant for frames and untyped objects. */
         CDL_Core core; /* core for sched control */
+        struct {
+            seL4_Word start;
+            seL4_Word end;
+        };
     };
     /* The following member has a more specific type, CDL_ObjectType, but by forcing it into a
      * uint8_t we can reduce the size of this struct.

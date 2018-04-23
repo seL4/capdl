@@ -352,11 +352,6 @@ getLevel n [] = error ("Needs level parameter: " ++ n)
 getLevel _ (IOPTLevel l : _) = l
 getLevel n (_ : xs) = getLevel n xs
 
-getPortsSize :: [ObjParam] -> Word
-getPortsSize [] = 64 * (2^10)
-getPortsSize (PortsSize x : _) = x
-getPortsSize (_ : xs) = getPortsSize xs
-
 getDomainID :: Name -> [ObjParam] -> Word
 getDomainID n [] = error ("Needs domainID parameter: " ++ n)
 getDomainID _ (DomainID x : _) = x
@@ -371,6 +366,11 @@ getARMIODevice :: Name -> [ObjParam] -> Word
 getARMIODevice n [] = error ("Needs iospace parameter: " ++ n)
 getARMIODevice _ (ARMIOSpace x : _) = x
 getARMIODevice n (_ : xs) = getARMIODevice n xs
+
+getPorts :: Name -> [ObjParam] -> (Word, Word)
+getPorts n [] = error ("Needs ports parameter: " ++ n)
+getPorts _ (Ports x : _) = x
+getPorts n (_ : xs) = getPorts n xs
 
 orderedSubset :: Eq a => [a] -> [a] -> Bool
 orderedSubset [] _ = True
@@ -408,7 +408,7 @@ validObjPars (Obj Frame_T ps []) =
   subsetConstrs ps [VMSize undefined, Paddr undefined, FrameExtraParam undefined] &&
   (not (containsConstr (Paddr undefined) ps) || containsConstr (VMSize undefined) ps)
 validObjPars (Obj IOPT_T ps []) = subsetConstrs ps [IOPTLevel undefined]
-validObjPars (Obj IOPorts_T ps []) = subsetConstrs ps [PortsSize undefined]
+validObjPars (Obj IOPorts_T ps []) = subsetConstrs ps [Ports undefined]
 validObjPars (Obj IODevice_T ps []) = subsetConstrs ps [DomainID undefined, PCIDevice undefined]
 validObjPars (Obj ARMIODevice_T ps []) = subsetConstrs ps [ARMIOSpace undefined]
 validObjPars (Obj SC_T ps []) =
@@ -436,7 +436,7 @@ objectOf n obj =
         Obj PDPT_T _ [] -> PDPT Map.empty
         Obj Frame_T ps [] -> Frame (getVMSize n ps) (getMaybePaddr ps) (getMaybeFill ps)
         Obj IOPT_T ps [] -> IOPT Map.empty (getLevel n ps)
-        Obj IOPorts_T ps [] -> IOPorts (getPortsSize ps)
+        Obj IOPorts_T ps [] -> IOPorts (getPorts n ps)
         Obj IODevice_T ps [] -> IODevice Map.empty (getDomainID n ps) (getPCIDevice n ps)
         Obj ARMIODevice_T ps [] -> ARMIODevice Map.empty (getARMIODevice n ps)
         Obj IrqSlot_T [] [] -> CNode Map.empty 0
@@ -543,27 +543,11 @@ getGuardSize [] = 0
 getGuardSize (GuardSize n : _) = n
 getGuardSize (_ : ps) = getGuardSize ps
 
-getPorts :: ObjID -> [CapParam] -> Word -> Set.Set Word
-getPorts containerName [] _ =
-    error ("io_ports cap in " ++ printID containerName ++ " needs a range")
-getPorts containerName (Range r:_) size =
-    if maximum list >= size || minimum list < 0
-    then error ("A cap in " ++ printID containerName ++
-                " refers to a non-existent IO port")
-    else Set.fromList list
-    where list = concatMap (catMaybes . unrange size) r
-getPorts containerName (_:ps) size = getPorts containerName ps size
-
 getReplys :: [CapParam] -> [CapParam]
 getReplys [] = []
 getReplys (Reply : ps) = Reply : getReplys ps
 getReplys (MasterReply : ps) = MasterReply : getReplys ps
 getReplys (_ : ps) = getReplys ps
-
-hasPorts :: [CapParam] -> Bool
-hasPorts [] = False
-hasPorts (Range _ : _) = True
-hasPorts (_ : ps) = hasPorts ps
 
 getMaybeAsid :: [CapParam] -> Maybe Asid
 getMaybeAsid [] = Nothing
@@ -602,7 +586,6 @@ validCapPars (Frame {}) ps =
 validCapPars (PD {}) ps = subsetConstrs ps [Asid undefined]
 validCapPars (PT {}) ps = subsetConstrs ps [Asid undefined]
 validCapPars (ASIDPool {}) ps = subsetConstrs ps [Asid undefined]
-validCapPars (IOPorts {}) ps = subsetConstrs ps [Range undefined]
 validCapPars _ ps = null ps
 
 objCapOf :: ObjID -> KernelObject Word -> ObjID -> [CapParam] -> Cap
@@ -629,7 +612,7 @@ objCapOf containerName obj objRef params =
         PT {} -> PTCap objRef (getMaybeAsid params)
         ASIDPool {} -> ASIDPoolCap objRef (getAsid containerName objRef params)
         IOPT {} -> IOPTCap objRef
-        IOPorts size -> IOPortsCap objRef (getPorts containerName params size)
+        IOPorts {} -> IOPortsCap objRef
         IODevice {} -> IOSpaceCap objRef
         ARMIODevice  {} -> ARMIOSpaceCap objRef
         VCPU {} -> VCPUCap objRef

@@ -69,13 +69,6 @@ showRights rights =
         w = if Write ∈ rights then ["CDL_CanWrite"] else []
         g = if Grant ∈ rights then ["CDL_CanGrant"] else []
 
-showPorts :: Set Word -> String
-showPorts ports =
-    show ((.|.) (shift start 16) end)
-    where
-        start = Set.findMin ports
-        end = Set.findMax ports
-
 showPCI :: Word -> (Word, Word, Word) -> String
 showPCI domainID (pciBus, pciDev, pciFun) =
     hex $ shift domainID 16 .|. shift pciBus 8 .|. shift pciDev 3 .|. pciFun
@@ -160,10 +153,9 @@ showCap _ ASIDControlCap _ _ _ =
     "{.type = CDL_ASIDControlCap}"
 showCap objs (ASIDPoolCap id _) _ _ _ =
     "{.type = CDL_ASIDPoolCap, .obj_id = " ++ showObjID objs id ++ "}"
-showCap objs (IOPortsCap id ports) _ is_orig _ =
+showCap objs (IOPortsCap id) _ is_orig _ =
     "{.type = CDL_IOPortsCap, .obj_id = " ++ showObjID objs id ++
-    ", .is_orig = " ++ is_orig ++
-    ", .data = { .tag = CDL_CapData_Raw, .data = " ++ showPorts ports ++ "}}"
+    ", .is_orig = " ++ is_orig ++ "}"
 showCap objs (IOSpaceCap id) _ is_orig ms =
     "{.type = CDL_IOSpaceCap, .obj_id = " ++ showObjID objs id ++
     ", .is_orig = " ++ is_orig ++
@@ -296,9 +288,10 @@ showObjectFields _ _ (Frame size paddr _) _ _ _ =
     ".type = CDL_Frame," +++
     ".size_bits = " ++ show (logBase 2 $ fromIntegral size) ++ "," +++
     ".paddr = (void*)" ++ hex (fromMaybe 0 paddr) ++ ","
-showObjectFields _ _ (IOPorts size) _ _ _ =
+showObjectFields _ _ (IOPorts (start, end)) _ _ _ =
     ".type = CDL_IOPorts," +++
-    ".size_bits = " ++ show size ++ "," -- FIXME: This doesn't seem right.
+    ".start = " ++ show start ++ "," ++
+    ".end = " ++ show end ++ ","
 showObjectFields objs obj_id (ASIDPool slots) _ _ _ =
     ".type = CDL_ASIDPool," +++
     memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required

@@ -113,8 +113,7 @@ data Cap
 
         -- X86 specific caps
         | IOPortsCap {
-            capObj :: ObjID,
-            capPorts :: Set Word }
+            capObj :: ObjID}
         | IOSpaceMasterCap -- can mint to any IOSpaceCap
         | IOSpaceCap { capObj :: ObjID }
         | IOPTCap { capObj :: ObjID }
@@ -189,7 +188,7 @@ data KernelObject a
         armiospace :: Word}
 
 -- X86 specific objects
-    | IOPorts { size :: Word } -- only one in the system
+    | IOPorts { ports :: (Word, Word) }
     | IODevice {
         slots :: CapMap a,
         domainID :: Word,

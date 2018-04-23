@@ -55,10 +55,6 @@ class Cap(object):
         assert isinstance(self.referent, Object.Frame)
         self.cached = cached
 
-    def set_ports(self, ports):
-        assert isinstance(self.referent, Object.IOPorts)
-        self.ports = ports
-
     def set_mapping(self, container, slot):
         assert isinstance(self.referent, Object.Frame)
         self.mapping_container = container
@@ -89,10 +85,6 @@ class Cap(object):
         if isinstance(self.referent, Object.CNode):
             extra.append('guard: %s' % self.guard)
             extra.append('guard_size: %s' % self.guard_size)
-        if isinstance(self.referent, Object.IOPorts):
-            #TODO: Partially support ranges, see CapDL spec for complete ranges semantic.
-            assert self.ports
-            extra.append('ports: [%s..%s]' % (self.ports[0], self.ports[-1]))
 
         extra = [x for x in extra if x != '']
 

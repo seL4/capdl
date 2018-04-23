@@ -159,8 +159,6 @@ showExtraCapAttributes (EndpointCap _ capBadge _) = [("badge", show capBadge)]
 showExtraCapAttributes (NotificationCap _ capBadge _) = [("badge", show capBadge)]
 showExtraCapAttributes (CNodeCap _ guard guardSize) =
     [("guard", show guard), ("guardSize", show guardSize)]
-showExtraCapAttributes (IOPortsCap _ capPorts) =
-    [("ports", render $ prettyBrackets (map Just (Set.toList capPorts)))]
 showExtraCapAttributes (FrameCap _ _ _ False _) = [("cached", "False")]
 showExtraCapAttributes _ = []
 

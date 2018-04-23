@@ -96,10 +96,10 @@ class ObjectAllocator(object):
         elif type == seL4_IA32_IOPort:
             # There is only one IOPort object in the system, which describes the entire
             # port region.
-            for o in self:
-                if isinstance(o, IOPorts):
-                    return o
-            o = IOPorts(name)
+            if 'start_port' in kwargs and 'end_port' in kwargs:
+                o = IOPorts(name, start_port=kwargs['start_port'], end_port=kwargs['end_port'])
+            else:
+                raise ValueError
         elif type == seL4_IA32_IOSpace:
             o = IODevice(name, **kwargs)
         elif type == seL4_ARM_IOSpace:

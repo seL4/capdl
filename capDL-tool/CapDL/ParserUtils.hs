@@ -169,13 +169,6 @@ io_pt_level = do
     l <- number
     return $ IOPTLevel l
 
-obj_ports_size :: MapParser ObjParam
-obj_ports_size = do
-    n <- number
-    reserved "k"
-    reserved "ports"
-    return $ PortsSize (n * 2^10)
-
 tcb_addr :: MapParser TCBExtraParam
 tcb_addr = do
     reserved "addr"
@@ -410,10 +403,22 @@ frame_extra_param = do
     param <- fill_param
     return $ FrameExtraParam param
 
+ports_param :: MapParser ObjParam
+ports_param = do
+    reserved "ports"
+    colon
+    r <- brackets (parse_port_range)
+    return $ Ports r
+    where
+        parse_port_range = do
+            start <- number
+            symbol ".."
+            end <- number
+            return (start, end)
+
 object_param :: MapParser ObjParam
 object_param =
         try obj_bit_size
-    <|> try obj_ports_size
     <|> try obj_vm_size
     <|> io_pt_level
     <|> tcb_extra_param
@@ -428,6 +433,7 @@ object_param =
     <|> sc_extra_param
     <|> ioapic_irq_extra_param
     <|> msi_irq_extra_param
+    <|> ports_param
 
 object_params :: MapParser [ObjParam]
 object_params =
@@ -525,11 +531,6 @@ cap_param =
         colon
         n <- number
         return $ Badge n
-    <|> do
-        reserved "ports"
-        colon
-        r <- ranges
-        return $ Range r
     <|> do
         reserved "core"
         colon

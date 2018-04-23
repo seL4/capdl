@@ -10,7 +10,7 @@ objects {
   frame_nic1[64] = frame (4k)
   frame_nic2[64] = frame (4k)
   frame_nic3[4] = frame (4k)
-  io_ports = io_ports (64k ports)
+  io_ports = io_ports (ports: [4096..45894])
   io_pt1 = io_pt (level: 1)
   io_pt2 = io_pt (level: 2)
   io_pt3 = io_pt (level: 3)
@@ -68,7 +68,7 @@ objects {
     2: rm_cn
     3: rm_pd
     6: rm_ap (asid: (0, 0))
-    7: io_ports (ports: [0..4096, 45893])
+    7: io_ports
     11: linux_pd
     12: rm_ut_small[3..5, 7..20, 23, 27..49]
     62: rm_ut_big[0..99]
@@ -85,7 +85,7 @@ objects {
     320: io_space_master
     325: nic2
     327: io_pt1
-    328: io_ports (ports: [0..65535])
+    328: io_ports
     528: x
   }
 

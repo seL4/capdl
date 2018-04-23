@@ -77,9 +77,6 @@ prettyPaddr :: Maybe Word -> Doc
 prettyPaddr Nothing = empty
 prettyPaddr (Just p) = text "paddr:" <+> (text $ hex p)
 
-prettyPortsSize :: Word -> Doc
-prettyPortsSize size = num (size `div` (2^10)) <> text "k ports"
-
 prettyAddr :: Word -> Doc
 prettyAddr addr = text "addr:" <+> num addr
 
@@ -189,6 +186,10 @@ prettyFill :: Maybe [String] -> Doc
 prettyFill (Just fill) = text "fill:" <+> braces (text $ Data.List.Utils.join " " fill)
 prettyFill Nothing = empty
 
+prettyPorts :: (Word, Word) -> Doc
+prettyPorts (start, end) =
+    text "ports:" <+> brackets (num start <> text ".." <> num end)
+
 prettyObjParams obj = case obj of
     Endpoint -> text "ep"
     Notification -> text "notification"
@@ -206,7 +207,7 @@ prettyObjParams obj = case obj of
     Frame vmSz paddr fill -> text "frame" <+> maybeParensList [prettyVMSize vmSz, prettyPaddr paddr, prettyFill fill]
 
     IOPT _ level -> text "io_pt" <+> maybeParensList [prettyLevel level]
-    IOPorts size -> text "io_ports" <+> maybeParensList [prettyPortsSize size]
+    IOPorts ports -> text "io_ports" <+> maybeParensList [prettyPorts ports]
     IODevice _ dom pci -> text "io_device" <+> maybeParensList [prettyDomainID dom,
                                                                 prettyPCIDevice pci]
     ARMIODevice _ iospace -> text "io_device" <+> maybeParensList [prettyARMIODevice iospace]
@@ -280,9 +281,6 @@ maybeRights isFrame r = maybeRightsList isFrame (Set.toList r)
 maybeGuard = maybeNum "guard"
 maybeGSize = maybeNum "guard_size"
 
-portsRange ports =
-    [text "ports:" <+> prettyBrackets (map Just (Set.toList ports))]
-
 zombieNum n = [text "zombie" <> colon <+> num n]
 
 printAsid (high, low) = text "(" <> num high <> text ", " <> num low <> text ")"
@@ -315,7 +313,6 @@ maybeCapParams cap = case cap of
     PTCap _ asid -> capParams (maybeAsid asid)
     PDCap _ asid -> capParams (maybeAsid asid)
     ASIDPoolCap _ asid -> capParams (prettyAsid asid)
-    IOPortsCap _ ports -> capParams (portsRange ports)
     SchedControlCap core -> capParams (prettyCore core)
     _ -> empty
 

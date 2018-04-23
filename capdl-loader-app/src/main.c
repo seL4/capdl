@@ -653,6 +653,15 @@ create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_BootInfo *inf
     }
 
     seL4_Error err = seL4_NoError;
+
+#ifdef CONFIG_ARCH_X86
+    if (CDL_Obj_Type(obj) == CDL_IOPorts) {
+        err = seL4_X86_IOPortControl_Issue(seL4_CapIOPortControl, obj->start, obj->end, seL4_CapInitThreadCNode, free_slot, CONFIG_WORD_SIZE);
+        ZF_LOGF_IF(err != seL4_NoError, "Failed to allocate IOPort for range [%d,%d]", (int)obj->start, (int)obj->end);
+        return seL4_NoError;
+    }
+#endif
+
     if (isDeviceObject(obj)) {
         ZF_LOGD(" device frame/untyped, paddr = %p, size = %d bits\n", obj->paddr, obj_size);
 
@@ -690,17 +699,6 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
                 (long)untyped_cptr);
 
         switch (capdl_obj_type) {
-#ifdef CONFIG_ARCH_X86
-        case CDL_IOPorts: {
-            int err = seL4_CNode_Copy(seL4_CapInitThreadCNode, free_slot, CONFIG_WORD_SIZE,
-                                      seL4_CapInitThreadCNode, seL4_CapIOPort, CONFIG_WORD_SIZE,
-                                      seL4_AllRights);
-            ZF_LOGF_IFERR(err, "Failed to copy IO Port cap");
-            add_sel4_cap(obj_id, ORIG, free_slot);
-            free_slot_index++;
-            break;
-        }
-#endif
         case CDL_Interrupt:
 #ifdef CONFIG_ARCH_X86
         case CDL_IODevice:
@@ -1599,9 +1597,6 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
     int src_index;
     switch (target_cap_type) {
 #ifdef CONFIG_ARCH_X86
-    case CDL_IOPortsCap:
-        src_index = seL4_CapIOPort;
-        break;
     case CDL_IOSpaceCap:
         src_index = seL4_CapIOSpace;
         break;

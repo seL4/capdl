@@ -253,14 +253,18 @@ class Untyped(Object):
         }
 
 class IOPorts(Object):
-    def __init__(self, name, size=65536): # 64k size is the default in CapDL spec.
+    # In the implementation there is no such thing as an IO port object, but it is
+    # simpler to model it here as an actual object.
+    def __init__(self, name, start_port=None, end_port=None):
         super(IOPorts, self).__init__(name)
-        self.size = size
+        self.start_port = start_port
+        self.end_port = end_port
 
     def __repr__(self):
-        return '%(name)s = io_ports (%(size)sk ports)' % \
+        return '%(name)s = io_ports (ports:[%(start)s..%(end)s])' % \
             {'name':self.name,
-             'size':self.size // 1024}
+             'start':self.start_port,
+             'end':self.end_port - 1}
 
 class IODevice(Object):
     def __init__(self, name, domainID, bus, dev, fun):

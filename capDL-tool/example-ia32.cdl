@@ -47,7 +47,7 @@ rm_ut = ut {
 some_pt = pt
 frame_name = frame (4k)
 
-io_ports = io_ports (64k ports)
+io_ports = io_ports (ports:[0x1000..45894])
 
 irq_handler[3] = irq
 
@@ -74,7 +74,7 @@ rm_cn {
   002: rm_cn ( guard: 0, guard_size: 0)
   003: rm_pd
   006: rm_ap (asid: (0,0))
-  007: io_ports (ports: [..0x1000, 45893])
+  007: io_ports
 0x00b: linux_pd;
 0x00c: rm_ut_small[3..5];
 0x00f: rm_ut_small[7..20, 23, 27..];
@@ -101,7 +101,7 @@ rm_cn {
 
 0x147: io_pt1
 
-0x148: io_ports (ports: [])
+0x148: io_ports
 
 0x210: x
 

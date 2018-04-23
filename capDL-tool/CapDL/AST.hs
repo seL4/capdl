@@ -99,8 +99,6 @@ data ObjParam =
       level :: Word }
   | Paddr {
       paddr :: Word }
-  | PortsSize {
-      size :: Word }
   | TCBExtraParam {
       extraParam :: TCBExtraParam }
   | FrameExtraParam {
@@ -123,6 +121,8 @@ data ObjParam =
       dom :: Integer }
   | FaultEP {
       faulEP :: Word }
+  | Ports {
+      theRange :: (Word, Word) }
   deriving (Show, Eq, Ord, Typeable, Data)
 
 data KO = Obj {
@@ -146,8 +146,6 @@ data CapParam
     | IRQRef
     | Badge {
         theBadge :: Word }
-    | Range {
-        theRange :: [Range] }
     | Core {
         theCore :: Word }
     | Reply
