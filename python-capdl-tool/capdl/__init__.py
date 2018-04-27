@@ -17,7 +17,8 @@ from .Cap import Cap
 from .ELF import ELF
 from .Object import Frame, PageTable, PageDirectory, ASIDPool, CNode, Endpoint, \
                    Notification, TCB, Untyped, IOPorts, IODevice, IOPageTable, \
-                   IRQ, SC, RTReply, calculate_cnode_size
+                   IRQ, SC, RTReply, calculate_cnode_size, \
+                   Object, ContainerObject
 from .Spec import Spec
 from .Allocator import seL4_UntypedObject, seL4_TCBObject, seL4_EndpointObject, \
     seL4_NotificationObject, seL4_CapTableObject, seL4_ARM_SmallPageObject, \
