@@ -125,7 +125,7 @@ def reliable_hex(val) :
     return hex(val).rstrip('L')
 
 class Frame(Object):
-    def __init__(self, name, size=4096, paddr=0, fill='', **_):
+    def __init__(self, name, size=4096, paddr=None, fill='', **_):
         super(Frame, self).__init__(name)
         self.size = size
         self.paddr = paddr
@@ -144,7 +144,7 @@ class Frame(Object):
         return '%(name)s = frame (%(size)s%(maybepaddr)s%(maybefill)s)' % {
             'name':self.name,
             'size':size,
-            'maybepaddr':(', paddr: %s' % reliable_hex(self.paddr)) if self.paddr != 0 else '',
+            'maybepaddr':(', paddr: %s' % reliable_hex(self.paddr)) if self.paddr is not None else '',
             'maybefill':(', fill: {%s}' % self.fill) if self.fill != '' else '',
         }
 
@@ -249,7 +249,7 @@ class Untyped(Object):
         return '%(name)s = ut (%(size_bits)s bits%(maybepaddr)s)' % {
             'name': self.name,
             'size_bits': self.size_bits,
-            'maybepaddr':(', paddr: %s' % reliable_hex(self.paddr)) if self.paddr else '',
+            'maybepaddr':(', paddr: %s' % reliable_hex(self.paddr)) if self.paddr is not None else '',
         }
 
 class IOPorts(Object):
