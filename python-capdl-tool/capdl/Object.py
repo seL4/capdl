@@ -218,15 +218,23 @@ class TCB(ContainerObject):
         self.fault_ep_slot = fault_ep_slot
 
     def __repr__(self):
-        s = '%(name)s = tcb (addr: 0x%(addr)x, ip: 0x%(ip)x, sp: 0x%(sp)x, elf: %(elf)s, prio: %(prio)s, \
-               max_prio: %(max_prio)s, crit: %(crit)s, max_crit: %(max_crit)s, \
-               affinity: %(affinity)s, init: %(init)s' % self.__dict__
+        fields = [
+            'addr: 0x%(addr)x',
+            'ip: 0x%(ip)x',
+            'sp: 0x%(sp)x',
+            'elf: %(elf)s',
+            'prio: %(prio)s',
+            'max_prio: %(max_prio)s',
+            'crit: %(crit)s',
+            'max_crit: %(max_crit)s',
+            'affinity: %(affinity)s',
+            'init: %(init)s'
+        ]
         if self.fault_ep_slot is not None:
-            s += ', fault_ep: 0x%0.8x' % self.fault_ep_slot
+            fields += ['fault_ep: 0x%(fault_ep_slot)0.8x']
         if self.domain is not None:
-            s += ', dom: %d' % self.domain
-        s += ')'
-        return s
+            fields += ['dom: %(domain)d']
+        return ('%(name)s = tcb (' + ','.join(fields) + ')') % self.__dict__
 
     def set_affinity(self, affinity):
         self.affinity = affinity
