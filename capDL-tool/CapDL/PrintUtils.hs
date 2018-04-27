@@ -22,6 +22,8 @@ import Prelude.Compat
 import qualified Data.Set as Set
 import Data.Word
 import Numeric
+import Data.Maybe
+import Data.List
 import Data.List.Utils
 
 listSucc :: Enum a => [a] -> [a]
@@ -377,3 +379,70 @@ same (name1, obj1) (name2, obj2) =
 prettyArch ARM11 = text "arm11"
 prettyArch IA32  = text "ia32"
 prettyArch X86_64 = text "x86_64"
+
+-- Helpers for sorting function
+sizeOf :: Arch -> KernelObject Word -> Word
+sizeOf _ (Frame vmSz _ _) = vmSz
+sizeOf _ (Untyped (Just bSz) _) = 2 ^ bSz
+sizeOf IA32 (CNode _ bSz) = 16 * 2 ^ bSz
+sizeOf ARM11 (CNode _ bSz) = 16 * 2 ^ bSz
+sizeOf X86_64 (CNode _ bSz) = 32 * 2 ^ bSz
+sizeOf _ Endpoint = 16
+sizeOf IA32 Notification = 16
+sizeOf ARM11 Notification = 16
+sizeOf X86_64 Notification = 32
+sizeOf _ ASIDPool {} = 4 * 2^10
+sizeOf _ IOPT {} = 4 * 2^10
+sizeOf _ IODevice {} = 1
+sizeOf IA32 TCB {} = 2^10
+sizeOf IA32 PD {} = 4 * 2^10
+sizeOf IA32 PT {} = 4 * 2^10
+sizeOf IA32 SC {} = 60
+sizeOf ARM11 TCB {} = 512
+sizeOf ARM11 PD {} = 16 * 2^10
+sizeOf ARM11 PT {} = 2^10
+sizeOf ARM11 SC {} = 60
+sizeOf ARM11 ARMIODevice {} = 1
+sizeOf X86_64 TCB {} = 2^10
+sizeOf X86_64 PT {} = 4 * 2^10
+sizeOf X86_64 PD {} = 4 * 2^10
+sizeOf X86_64 PDPT {} = 4 * 2^10
+sizeOf X86_64 PML4 {} = 4 * 2^10
+sizeOf X86_64 SC {} = 60
+sizeOf _ _ = 0
+
+objPaddr :: KernelObject Word -> Maybe Word
+objPaddr (Frame _ paddr _) = paddr
+objPaddr (Untyped _ paddr) = paddr
+objPaddr _ = Nothing
+
+{- A custom sorting function for CapDL objects. Essentially, we sort by
+ - (physical address, descending size, name).
+ -
+ - We place objects that have physical addresses first. These are almost
+ - certainly being allocated from device untypeds and need to be allocated
+ - by the capDL loader in physical address order.
+ -
+ - Other objects will be allocated from normal untypeds and should be in
+ - descending order of size to reduce fragmentation. But we also want to give
+ - some finer control to the user producing the input specification. For this,
+ - we sort objects secondarily by their name. This means the spec creator can
+ - name their objects to induce a specific ordering for identically sized
+ - objects. This is primarily useful for getting physically contiguous frames.
+ -}
+sorter :: Arch -> (ObjID, KernelObject Word) -> (ObjID, KernelObject Word) -> Ordering
+sorter arch a b =
+    if has_paddr a || has_paddr b
+        then paddr a `compare` paddr b
+        else
+            if a_size == b_size
+                then fst a `compare` fst b
+                else b_size `compare` a_size -- Arguments reversed for largest to smallest
+    where
+        a_size = sizeOf arch $ snd a
+        b_size = sizeOf arch $ snd b
+        has_paddr kobj = isJust (objPaddr (snd kobj))
+        paddr kobj = fromMaybe 1 (objPaddr (snd kobj))
+
+sortObjects :: Arch -> [(ObjID, KernelObject Word)] -> [(ObjID, KernelObject Word)]
+sortObjects arch = sortBy (sorter arch)

@@ -18,11 +18,12 @@
 module CapDL.PrintC where
 
 import CapDL.Model
+import CapDL.PrintUtils (sortObjects)
 
 import Control.Exception (assert)
 import Data.List.Compat
 import Data.List.Utils
-import Data.Maybe (isJust, fromJust, fromMaybe, mapMaybe)
+import Data.Maybe (fromJust, fromMaybe, mapMaybe)
 import Prelude ()
 import Prelude.Compat
 import Data.Map as Map
@@ -338,67 +339,6 @@ showObjects objs counter (x:xs) irqNode cdt ms =
     "[" ++ show counter ++ "] = " ++ showObject objs x irqNode cdt ms ++ "," +++
     showObjects objs (counter + 1) xs irqNode cdt ms
 
-sizeOf :: Arch -> KernelObject Word -> Word
-sizeOf _ (Frame vmSz _ _) = vmSz
-sizeOf _ (Untyped (Just bSz) _) = 2 ^ bSz
-sizeOf IA32 (CNode _ bSz) = 16 * 2 ^ bSz
-sizeOf ARM11 (CNode _ bSz) = 16 * 2 ^ bSz
-sizeOf X86_64 (CNode _ bSz) = 32 * 2 ^ bSz
-sizeOf _ Endpoint = 16
-sizeOf IA32 Notification = 16
-sizeOf ARM11 Notification = 16
-sizeOf X86_64 Notification = 32
-sizeOf _ ASIDPool {} = 4 * 2^10
-sizeOf _ IOPT {} = 4 * 2^10
-sizeOf _ IODevice {} = 1
-sizeOf IA32 TCB {} = 2^10
-sizeOf IA32 PD {} = 4 * 2^10
-sizeOf IA32 PT {} = 4 * 2^10
-sizeOf IA32 SC {} = 60
-sizeOf ARM11 TCB {} = 512
-sizeOf ARM11 PD {} = 16 * 2^10
-sizeOf ARM11 PT {} = 2^10
-sizeOf ARM11 SC {} = 60
-sizeOf ARM11 ARMIODevice {} = 1
-sizeOf X86_64 TCB {} = 2^10
-sizeOf X86_64 PT {} = 4 * 2^10
-sizeOf X86_64 PD {} = 4 * 2^10
-sizeOf X86_64 PDPT {} = 4 * 2^10
-sizeOf X86_64 PML4 {} = 4 * 2^10
-sizeOf X86_64 SC {} = 60
-sizeOf _ _ = 0
-
-objPaddr :: KernelObject Word -> Maybe Word
-objPaddr (Frame _ paddr _) = paddr
-objPaddr (Untyped _ paddr) = paddr
-objPaddr _ = Nothing
-
-{- A custom sorting function for CapDL objects. We essentially want to treat
- - this is two different list of objects, that have different requirements
- - on their ordering. Objects that have a physical address are almost certainly
- - being allocated from device untypeds and need to be allocated by the capDL
- - loader in physical address order. Any other object will be allocated from
- - regular untypeds and should be in descending order of size for optimal
- - runtime allocation. But we also want to give some rudimentary finer control
- - to the user producing the input specification. For this, we sort objects
- - secondarily by their name. This means the spec creator can name their objects
- - to induce a specific ordering for identically sized objects. This is primarily
- - useful for getting physically contiguous frames.
- -}
-sorter :: Arch -> (ObjID, KernelObject Word) -> (ObjID, KernelObject Word) -> Ordering
-sorter arch a b =
-    if has_paddr a || has_paddr b
-        then paddr a `compare` paddr b
-        else
-            if a_size == b_size
-                then fst a `compare` fst b
-                else b_size `compare` a_size -- Arguments reversed for largest to smallest
-    where
-        a_size = sizeOf arch $ snd a
-        b_size = sizeOf arch $ snd b
-        has_paddr kobj = isJust (objPaddr (snd kobj))
-        paddr kobj = fromMaybe 1 (objPaddr (snd kobj))
-
 memberObjects ::  Map ObjID Int -> Arch -> [(ObjID, KernelObject Word)] -> IRQMap -> CDT ->
                   ObjMap Word -> String
 memberObjects obj_ids _ objs irqNode cdt objs' =
@@ -465,5 +405,5 @@ printC (Model arch objs irqNode cdt _) _ _ =
     "};"
     where
         objs_sz = length $ Map.toList objs
-        objs' = sortBy (sorter arch) $ Map.toList objs
+        objs' = sortObjects arch $ Map.toList objs
         obj_ids = Map.fromList $ flip zip [0..] $ Prelude.Compat.map fst objs'
