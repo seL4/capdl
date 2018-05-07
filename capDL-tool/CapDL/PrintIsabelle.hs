@@ -306,13 +306,16 @@ printObjs arch ms irqNode covers =
 printObjMapping :: (ObjID, KernelObject Word) -> Doc
 printObjMapping (id, _) = printID id <+> text ("\\<mapsto> " ++ showID id)
 
+numberOfIRQs :: Int
+numberOfIRQs = 2^10
+
 printEmptyIrqObjMapping :: ObjMap Word -> IRQMap -> Doc
 printEmptyIrqObjMapping ms irqNode =
     parens (lambda <> text ("obj_id. if " ++ start ++ " \\<le> obj_id \\<and> obj_id \\<le> " ++ end) <+>
         text "then (Some empty_irq_node)" <+> text "else None")
     where ms' = Map.filterWithKey (\id _ -> not (mapElem id irqNode)) ms
           start = show $ Map.size ms
-          end = show $ Map.size ms' + 255
+          end = show $ Map.size ms' + numberOfIRQs - 1
 
 printEmptyIrqObjMap :: ObjMap Word -> IRQMap -> Doc
 printEmptyIrqObjMap ms irqNode =
@@ -335,32 +338,27 @@ printIrqMapping :: (Int, Doc) -> Doc
 printIrqMapping (irqID, id) =
     int irqID <+> text ":=" <+> id
 
-completeMap :: Ord a => [(a, b)] -> [(a, b)] -> [(a, b)]
-completeMap [] [] = []
-completeMap [] y = y
-completeMap x [] = x
-completeMap x@((x1, x2):xs) y@((y1, y2):ys)
-    | x1 < y1 = (x1, x2) : completeMap xs y
-    | x1 == y1 = (x1, x2) : completeMap xs ys
-    | otherwise = (y1, y2) : completeMap x ys
-
-printIrqMappings :: ObjMap Word -> IRQMap -> [Doc]
-printIrqMappings ms irqNode =
-    let irqs = Map.map printID irqNode
-        irqs' = Map.toList $ Map.mapKeys fromIntegral irqs
-        ids = completeMap irqs' (zip [0..255] (map num [Map.size ms'..])) --FIXME: factor out 255?
-    in map printIrqMapping ids
-    where ms' = Map.filterWithKey (\id _ -> not (mapElem id irqNode)) ms
-
+{- The capDL formal model requires all possible IRQ numbers to be assigned.
+ - Hence we define a default mapping, baseIrqs, which auto-assigns IDs
+ - beyond the maximum cdl_object_id in ms. Then we update this mapping with
+ - the IRQ slots actually defined by the input model.
+ -}
 printIRQsMap :: ObjMap Word -> IRQMap -> Doc
 printIRQsMap ms irqNode =
-    parens $ fsep $ punctuate comma (printIrqMappings ms irqNode)
+    let irqs = Map.map printID irqNode
+        irqs' = Map.toList $ Map.mapKeys fromIntegral irqs
+        firstBaseIrqId = Map.size ms'
+        irqMap = parens $ fsep $ punctuate comma $ map printIrqMapping irqs'
+        baseIrqs = parens $ lambda <> text ("x. ucast x + " ++ show firstBaseIrqId)
+        allIrqs | null irqs' = baseIrqs -- irqMap would be "()"
+                | otherwise = baseIrqs <+> irqMap
+    in allIrqs
+    where ms' = Map.filterWithKey (\id _ -> not (mapElem id irqNode)) ms
 
 printIRQs :: ObjMap Word -> IRQMap -> Doc
 printIRQs ms irqNode =
     constdefs "irqs" "cdl_irq \\<Rightarrow> cdl_object_id" $+$
-    doubleQuotes (text "irqs" <+> equiv <+> text "undefined"
-                                                   <+> printIRQsMap ms irqNode)
+    doubleQuotes (text "irqs" <+> equiv <+> printIRQsMap ms irqNode)
 
 addToASIDTable' :: CapMap Word -> Cap -> CapMap Word
 addToASIDTable' asidTable cap = case cap of
