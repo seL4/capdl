@@ -172,7 +172,12 @@ def calculate_cnode_size(max_slot):
     return int(math.floor(math.log(max(max_slot, 2), 2)) + 1)
 
 def calculate_size(cnode):
-    return calculate_cnode_size(max(cnode.slots.keys()))
+    max_slot = None
+    try:
+        max_slot = max(cnode.slots.keys())
+    except ValueError as e:
+        max_slot = 0
+    return calculate_cnode_size(max_slot)
 
 class CNode(ContainerObject):
     def __init__(self, name, size_bits='auto'):
