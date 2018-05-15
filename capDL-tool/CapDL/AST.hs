@@ -47,10 +47,6 @@ data TCBExtraParam =
       prio :: Integer }
   | MaxPrio {
       max_prio :: Integer }
-  | Crit {
-      crit :: Integer }
-  | MaxCrit {
-      max_crit :: Integer }
   | Affinity {
       affinity :: Integer }
    deriving (Show, Eq, Ord, Typeable, Data)

@@ -132,8 +132,6 @@ data TCBExtraInfo = TCBExtraInfo {
     elf :: Maybe String,
     prio :: Maybe Integer,
     max_prio :: Maybe Integer,
-    crit :: Maybe Integer,
-    max_crit :: Maybe Integer,
     affin :: Maybe Integer }
     deriving (Eq, Show)
 

@@ -196,8 +196,6 @@ typedef enum {
 typedef struct {
     uint8_t priority;
     uint8_t max_priority;
-    uint8_t criticality;
-    uint8_t max_criticality;
     uint8_t affinity;
     seL4_Word pc;
     seL4_Word sp;
@@ -392,18 +390,6 @@ static inline uint8_t
 CDL_TCB_MaxPriority(CDL_Object *obj)
 {
     return obj->tcb_extra.max_priority;
-}
-
-static inline uint8_t
-CDL_TCB_Criticality(CDL_Object *obj)
-{
-    return obj->tcb_extra.criticality;
-}
-
-static inline uint8_t
-CDL_TCB_MaxCriticality(CDL_Object *obj)
-{
-    return obj->tcb_extra.max_criticality;
 }
 
 static inline uint8_t

@@ -211,20 +211,6 @@ tcb_max_prio = do
     n <- integer
     return $ MaxPrio n
 
-tcb_crit :: MapParser TCBExtraParam
-tcb_crit = do
-    reserved "crit"
-    colon
-    n <- integer
-    return $ Crit n
-
-tcb_max_crit :: MapParser TCBExtraParam
-tcb_max_crit = do
-    reserved "max_crit"
-    colon
-    n <- integer
-    return $ MaxCrit n
-
 tcb_affinity :: MapParser TCBExtraParam
 tcb_affinity = do
     reserved "affinity"
@@ -240,8 +226,6 @@ tcb_extra_param = do
             <|> tcb_elf
             <|> tcb_prio
             <|> tcb_max_prio
-            <|> tcb_crit
-            <|> tcb_max_crit
             <|> tcb_affinity)
     return $ TCBExtraParam param
 

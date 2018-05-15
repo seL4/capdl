@@ -905,8 +905,6 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     uint8_t priority = CDL_TCB_Priority(cdl_tcb);
     CDL_Core UNUSED affinity = CDL_TCB_Affinity(cdl_tcb);
     uint8_t UNUSED max_priority = CDL_TCB_MaxPriority(cdl_tcb);
-    uint8_t UNUSED criticality = CDL_TCB_Criticality(cdl_tcb);
-    uint8_t UNUSED max_criticality = CDL_TCB_MaxCriticality(cdl_tcb);
 
     seL4_CPtr sel4_tcb = orig_caps(tcb);
 
