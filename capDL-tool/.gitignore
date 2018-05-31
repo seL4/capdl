@@ -1,15 +1,15 @@
 syntax: glob
 
-*.parse
-*.parse.x
-*.out
-*.dot
-*.png
-*.xml
-*.thy
+/*.parse
+/*.parse.x
+/*.dot
+/*.png
+/*.xml
+/*.thy
 doc/capDL.pdf
 doc/capDL.aux
 doc/capDL.log
+doc/capDL.out
 
 .cabal-sandbox
 cabal.sandbox.config

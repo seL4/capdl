@@ -1,0 +1,389 @@
+% csiro.sty
+%
+% Document style for Data61 reports. Might grow into general CSIRO style...
+%
+% Written 2016-01-15 by Gernot Heiser <gernot@data61.csiro.au>
+
+% OPTIONS:
+%   data61:		Data61 (instead of general CSIRO) branding.
+%   				Note that nothing else is supported ATM.
+%   showAuthor:	Show author name in title page (default is only on back page)
+%   noCalibri:		Use default fonts rather than the (CSIRO-prescribed) Calibri
+%
+% COMMANDS:
+%   \subtitle		Optional subtitle of report
+%   \AuthorTitle	Optional title of author
+%   \AuthorEmail	Author's email address
+%   \AuthorTel		Optional phone number of author
+%   \AuthorWeb	Optional web address of author (without "http://")
+%   \FooterText	Footer centred text (report only)
+
+\ProvidesPackage{csiro}[2016/01/17 CSIRO/Data61 report style]
+
+\RequirePackage{ifluatex}
+\RequirePackage{graphicx}
+\RequirePackage{tabularx}
+\RequirePackage{enumitem}
+\RequirePackage{times,courier}          % to ensure no Type 0 (CM) fonts, even with Calibri
+% For some reason, \verb and \texttt still produces CM fonts...
+
+\RequirePackage[font={footnotesize,bf,color=DATAsixlgreen}]{caption}
+\RequirePackage{url}
+\RequirePackage{color}
+\RequirePackage{fancyhdr}
+\RequirePackage[UKenglish]{isodate}
+\RequirePackage[pages=some,placement=top]{background}
+\RequirePackage[margin=17mm,top=19mm]{geometry}
+\RequirePackage{parskip}
+\RequirePackage{xpatch}
+
+\cleanlookdateon
+
+\renewcommand\headrulewidth{0pt} % remove header rule
+\renewcommand\footrulewidth{0pt} % remove footer rule
+
+
+
+\DeclareOption{data61}{\DATAsixltrue\CSIROplainfalse}
+\DeclareOption{showAuthor}{\ShowAuthortrue}
+\DeclareOption{12pt}{\FontSizeOKtrue}
+\DeclareOption{noCalibri}{\Calibrifalse}
+
+\newif\ifCSIROplain \CSIROplaintrue
+\newif\ifDATAsixl	\DATAsixlfalse
+\newif\ifShowAuthor\ShowAuthorfalse
+\newif\ifFontSizeOK \FontSizeOKfalse
+\newif\ifCalibri	\Calibritrue
+\newif\ifArticle	\Articlefalse
+\newif\ifReport	\Reportfalse
+
+\ProcessOptions
+
+\newif\if@openright             % expected by some internal commands
+
+\ifx\undefined\chapter
+  \Articletrue
+\else
+  \Reporttrue
+\fi
+
+\ifCalibri
+  \ifluatex
+    \usepackage{fontspec}
+    \setmainfont{Calibri}
+    \typeout{Using calibri}
+  \else
+    \PackageError{csiro}{Calibri fonts need LuaTeX}{
+      This package uses Calibri fonts, which are not supported in pdfTeX.
+      Please compile your document with the ``lualatex'' command,
+      or specify the ``noCalibri'' package option.
+    }
+  \fi
+\else 
+  \renewcommand{\familydefault}{\sfdefault}
+\fi
+\urlstyle{rm}
+
+\ifCSIROplain
+  \PackageError{csiro}{Plain CSIRO format not (yet) supported.}{
+    This package presently only works with the ``data61'' option.
+  }
+\fi
+\ifFontSizeOK\else
+  \PackageError{csiro}{This package requires 12pt font}{
+    Please use the ``12pt'' documentclass option
+  }
+\fi
+
+\definecolor{DATAsixlgreen}{RGB}{48,184,136}
+\newcommand{\subtitle}[1]{\def\subtitlestring{#1}}
+\newcommand{\AuthorTitle}[1]{\def\AuthorTitleString{#1}}
+\newcommand{\AuthorTel}[1]{\def\AuthorTelString{#1}}
+\newcommand{\AuthorEmail}[1]{\def\AuthorEmailString{#1}}
+\newcommand{\AuthorWeb}[1]{\def\AuthorWebString{#1}}
+\ifReport
+  \newcommand{\Footer}[1]{\def\FooterString{#1}}
+\fi
+
+\newcommand{\LogoFileName}{data61-logo.png}
+\newcommand{\BackgroundFileName}{data61-rep-bg.pdf} % cropped to 606x705
+\newcommand{\BannerFileName}{data61-banner.png}
+\providecommand{\Datasixlemail}{enquiries@data61.csiro.au}
+\providecommand{\href}[2]{#2}   % in case the user hasn't loaded hyperref
+
+\newlength{\logowidth}
+\newcommand{\Logo}{\includegraphics[width=\logowidth]{\LogoFileName}}
+
+
+\def\abstractname{Summary}
+\renewenvironment{abstract}{
+  \section*{\abstractname}
+}{}
+
+%% General formatting 
+\renewcommand{\baselinestretch}{1.2}
+\setlength\parskip{1ex \@plus \p@}
+\frenchspacing
+
+%%% setup Chapter
+\ifReport
+  \renewcommand{\tableofcontents}{
+    \chapter*{\contentsname}
+    {\color{DATAsixlgreen}\@starttoc{toc}}}
+  \renewcommand\chapter{\if@openright\cleardoublepage\else\clearpage\fi
+                    \global\@topnum\z@
+                    \@afterindentfalse
+                    \secdef{\@chapter}{\@schapter}}
+   \def\@chapter[#1]#2{\ifnum \c@secnumdepth >\m@ne
+                         \refstepcounter{chapter}%
+                         \addcontentsline{toc}{chapter}%
+                                   {\protect\numberline{\thechapter}#1}%
+                    \else
+                      \addcontentsline{toc}{chapter}{#1}%
+                    \fi
+                    \chaptermark{#1}
+                    \addtocontents{lof}{\protect\addvspace{10\p@}}%
+                    \addtocontents{lot}{\protect\addvspace{10\p@}}%
+                    \if@twocolumn
+                      \@topnewpage[\@makechapterhead{#2}]%
+                    \else
+                      \@makechapterhead{#2}%
+                      \@afterheading
+                    \fi}
+  \def\@makechapterhead#1{%
+    {\parindent \z@ \raggedright \normalfont
+      \bfseries\fontsize{22}{25pt}\selectfont \parbox{20mm}{\thechapter} #1
+      \vskip 40\p@
+    }}
+  \def\@schapter#1{\if@twocolumn
+                   \@topnewpage[\@makeschapterhead{#1}]%
+                 \else
+                   \@makeschapterhead{#1}%
+                   \@afterheading
+                 \fi}
+  \def\@makeschapterhead#1{%
+    {\parindent \z@ \raggedright
+      \normalfont
+      \interlinepenalty\@M
+      \bfseries\fontsize{22}{25pt}\selectfont  #1\par\nobreak
+      \vskip 3mm
+    }}
+\fi % \ifReport
+
+%%% Setup sections 
+\setcounter{secnumdepth}{3}     % number down to subsubsection 
+\ifReport
+  \renewcommand\section{\@startsection {section}{1}{\z@}%
+                                   {-3.5ex \@plus -1ex \@minus -.2ex}% before vspace
+                                   {2.3ex \@plus.2ex}% after vspace
+                                   {\normalfont\fontsize{16}{19pt}\selectfont}}
+  \renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {1.5ex \@plus .2ex}%
+                                     {\normalfont\bfseries\fontsize{13}{16pt}\selectfont}}
+  \renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {1.5ex \@plus .2ex}%
+                                     {\normalfont\bfseries\fontsize{12}{14pt}\selectfont \color{DATAsixlgreen}}}
+  %% Put section number into a 20mm box
+  \def\@seccntformat#1{\parbox{20mm}{\csname the#1\endcsname}}
+  %% Define an \if that's used in some internal commands
+  \newif\ifHave@HyperRef\Have@HyperReffalse
+\else % \ifReport
+  \renewcommand\section{\@startsection {section}{1}{\z@}%
+                                   {-3.5ex \@plus -1ex \@minus -.2ex}% before vspace
+                                   {2.3ex \@plus.2ex}% after vspace
+                                   {\normalfont\bfseries\fontsize{22}{25pt}\selectfont}}
+  \renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {1.5ex \@plus .2ex}%
+                                     {\normalfont\fontsize{16}{19pt}\selectfont}}
+  \renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {1.5ex \@plus .2ex}%
+                                     {\normalfont\bfseries\fontsize{13}{16pt}\selectfont}}
+\fi % \ifReport
+
+%%% Setup list environments 
+\newcommand\textsquare{\raisebox{0.3ex}{\rule{0.3em}{0.3em}}}
+\ifArticle
+  \setlist{itemsep=0.5\parskip, parsep=0.2ex}
+  \setlist[1]{leftmargin=*, itemindent=0pt, labelsep=0.4em, labelwidth=0pt, labelindent=0pt}
+  \setlist[enumerate,1]{labelsep=0.7em}
+  \setlist[2]{leftmargin=*, itemindent=0pt, labelsep=0.7em, labelwidth=0pt, labelindent=1em}
+  \setlist[enumerate,2]{label=\alph*.}
+  \setlist[3]{leftmargin=1em, itemindent=0pt, labelsep=*, labelwidth=1em, labelindent=0pt}
+  \setlist[itemize,3]{label=\textsquare}
+  \setlist[enumerate,3]{label=\roman*), labelindent*=-2em, labelwidth=0em, leftmargin=2em}
+  \setlist[description]{leftmargin=3em, labelwidth=2.5em, labelsep=0.5em}
+\fi % \ifArticle
+
+\pagestyle{fancyplain}
+\lhead{}
+\chead{}
+\rhead{}
+\lfoot[\scriptsize\thepage~\textbar~\@title]{\scriptsize\copyright~\the\year~CSIRO}
+\cfoot{\ifx\undefined\FooterString\else\scriptsize\FooterString\fi}
+\rfoot[\scriptsize\copyright~\the\year~CSIRO]{\scriptsize\@title~\textbar~\thepage}
+
+
+\ifReport
+  \backgroundsetup{
+    firstpage=true,
+    placement=top,
+    color=black,
+    scale=1.0,
+    opacity=1.0,
+    contents={%
+      \includegraphics[width=\paperwidth]{\BackgroundFileName}%
+      \setlength{\logowidth}{48mm}%
+      \begin{minipage}[b]{0pt}
+        \raisebox{254mm}[0pt][0pt]{%
+          \makebox[0pt][r]{%
+            \Logo\hspace*{150mm}\rule{0pt}{1pt}%
+          }%
+        }%
+      \end{minipage}%
+    }%
+  }
+\else
+  \backgroundsetup{
+    firstpage=true,
+    placement=top,
+    color=black,
+    scale=1.0,
+    opacity=1.0,
+    contents={%
+      \makebox[\paperwidth][r]{\includegraphics[width=1.45\paperwidth]{\BannerFileName}}%
+      \setlength{\logowidth}{39mm}%
+      \begin{minipage}[b]{0pt}
+        \raisebox{10mm}[27mm][0pt]{%
+          \makebox[0pt][r]{%
+            \Logo\hspace*{154mm}\rule{0pt}{1pt}%
+          }%
+        }%
+      \end{minipage}%
+    }%
+  }
+\fi
+
+\def\maketitle{
+  % to suppress overfull bars in ``draft'' mode:
+  \newlength{\saveOverfullRule}
+  \setlength{\saveOverfullRule}{\overfullrule}
+  \setlength\overfullrule{0pt}
+
+{
+  \ifReport
+    \thispagestyle{empty}
+    \vspace*{22mm}%
+  \else
+    \centering 
+    \vspace*{11mm}%
+  \fi%
+  \noindent%
+  {\ifReport\bfseries\fontsize{40}{38pt}\selectfont\color{white}\else\LARGE\fi\@title\\}
+
+  \ifx\undefined\subtitlestring\else
+    {\vskip \ifReport 6mm\else 4mm\fi \Large\subtitlestring\ifArticle\vskip -2mm\fi}
+  \fi 
+
+  \vskip \ifReport 6mm\else 4mm\fi
+  \ifShowAuthor
+    {\large \@author}
+    \ifx\undefined\AuthorEmailString\else
+      \\[1ex] \href{mailto:\AuthorEmailString}{\AuthorEmailString}
+    \fi
+  \fi
+
+  \@date
+
+  \ifReport
+    \vspace*{\stretch{1}}
+    \noindent
+    \clearpage
+  \else
+    %\raggedright
+  \fi
+  % reset overfull rule
+  \setlength{\overfullrule}{\saveOverfullRule}
+  }
+}%\maketitle
+
+\AtBeginDocument{
+  %\@ifpackageloaded{hyperref}{\Have@HyperReftrue}{}%
+  \ifArticle
+    \vspace*{11mm}%
+  \fi
+  %\raggedright
+}
+
+\ifReport
+\AtEndDocument{
+  \renewcommand{\Logo}{\relax}
+  \clearpage
+  % in two-sided mode, force last page to be even:
+  \if@twoside \ifodd\c@page \thispagestyle{empty} ~ \newpage\fi\fi
+  \renewcommand{\baselinestretch}{1.0}
+  \thispagestyle{empty}
+  \BgThispage
+
+  %% Not sure why minipage insists on right-adjusting text, this hack
+  %% from https://tex.stackexchange.com/questions/269308/how-do-i-make-text-raggedright-inside-all-miniboxes
+  %% forces it not to:
+  \xpatchcmd{\@iiiminipage}
+  {\@setminipage}
+  {\@setminipage\raggedright}
+  {}
+  {}
+
+
+  \fontsize{9}{12pt}\selectfont
+  \noindent
+  \begin{minipage}[t]{55mm}
+    {\noindent
+      CONTACT US\\[1ex]
+      \color{white}
+      \begin{tabular}{@{} >{\bf} l @{\hspace{0.5em}} l}
+        %% NOTE: NEEDS TO BE REPLACED BY DATA61 CONTACT NUMBERS!
+        t  & 1300 363 400 \\
+           & +61 3 9345 2176 \\
+        e & \href{mailto:\Datasixlemail}{\Datasixlemail} \\
+        w & \href{http://www.data61.csiro.au}{www.data61.csiro.au} \\
+      \end{tabular}
+    }
+    
+    \vspace{7mm}
+    
+    {
+      AT CSIRO WE SHAPE THE FUTURE\\[0.9ex]
+
+      \color{white}
+      We do this by using science and technology to solve real
+      issues. Our research makes a difference to industry, people and
+      the planet.
+    }
+  \end{minipage}
+  \hspace{15mm}
+  \begin{minipage}[t]{75mm}
+    FOR FURTHER INFORMATION\\[1ex]
+    \color{white}
+    \@author\\
+    \ifx\undefined\AuthorTitleString\else
+      \AuthorTitleString\\
+    \fi
+    \rule{0pt}{5ex}%
+    \begin{tabular}{@{} >{\bf} l @{\hspace{0.5em}} l}
+      \ifx\undefined\AuthorTelString\else
+         t & \AuthorTelString\\
+      \fi
+      \ifx\undefined\AuthorEmailString\else
+         e & \href{mailto:}{\AuthorEmailString}\\
+      \fi
+      \ifx\undefined\AuthorWebString\else
+         w & \href{http://\AuthorWebString}{\AuthorWebString}\\
+      \fi
+    \end{tabular}
+  \end{minipage}
+}
+\fi % \ifReport

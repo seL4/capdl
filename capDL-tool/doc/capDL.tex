@@ -10,11 +10,12 @@
 % @TAG(DATA61_BSD)
 %
 
-\documentclass[a4paper,11pt]{article}
-\usepackage[colour,nictaonly]{disy}
+\documentclass[a4paper,12pt]{article}
+\usepackage[data61,showAuthor,noCalibri]{csiro}
 
 % Setting this to true turns on the ``draft'' watermark
 \newif \ifDraft         \Drafttrue
+\Draftfalse
 
 %%% Hyperlinks embed links for references in the PDF output (both for
 %%% internal as well as external links).
@@ -24,11 +25,8 @@
 %%% Section~\ref{label}. This will make ``Section'' part of the link, not
 %%% just the number.
 
-% Easy control over page margins. You can use ``right'', ``top'', ...
-\usepackage[margin=25mm]{geometry}
-%\usepackage[margin=25mm,left=33mm]{geometry}	% better for double-sided reports
-
 \usepackage{graphicx}
+\graphicspath{{./imgs/}}
 \setkeys{Gin}{keepaspectratio=true,clip=true,draft=false,width=\linewidth}
 \usepackage{times,cite,url,microtype}
 \urlstyle{rm}
@@ -37,21 +35,26 @@
 \usepackage{tabularx}
 
 \ifDraft
-  \usepackage{draftcopy}
+  \usepackage{draftwatermark}
+  \SetWatermarkLightness{0.85}
   \newcommand{\Comment}[1]{\textbf{\textsl{#1}}}
+  \newenvironment{LongComment}[1] % multi-paragraph comment, argument is owner
+    {\begingroup\par\noindent\slshape \textbf{Begin Comment[#1]}\par}
+    {\par\noindent\textbf{End Comment}\endgroup\par}
   \newcommand{\FIXME}[1]{\textbf{\textsl{FIXME: #1}}}
-%  \date{\version}
+  \newcommand{\TODO}[1]{\textbf{\textsl{TODO: #1}}}
 \else
   \newcommand{\Comment}[1]{\relax}
+  \newenvironment{LongComment}[1]{\expandafter\comment}{\expandafter\endcomment}
   \newcommand{\FIXME}[1]{\relax}
-  \date{}
+  \newcommand{\TODO}[1]{\relax}
 \fi
 
 \ifhyperlinks
-  \usepackage[pdftex,pagebackref,hyperindex,bookmarks]{hyperref}
+  \usepackage[pagebackref,hyperindex,bookmarks]{hyperref}
   \hypersetup{linktocpage,colorlinks}
-\else   
-  \providecommand{\href}[2]{\url{#2}}
+\else
+  \usepackage{url}
 \fi
 
 
@@ -60,7 +63,7 @@
 
 \title{capDL --- Capability Distribution Language Specification}
 \author{Gerwin Klein}
-\AuthorEmail{gerwin.klein@nicta.com.au}
+\AuthorEmail{gerwin.klein@data61.csiro.au}
 \maketitle
 
 \noindent
@@ -297,7 +300,7 @@ This section describes the concrete syntax of capDL using the tokens defined abo
 \section{Semantics}
 \label{sec:capDL:semantics}
 
-In this section we show the semi-formal semantics of capDL in the form of its underlying data model in Haskell and give a brief rationale for its contents. This data model can be made fully formal by mapping it directly into the Isabelle theorem prover via NICTA's existing Haskell-to-Isabelle translation tool. The data model can also be mapped into various output formats. 
+In this section we show the semi-formal semantics of capDL in the form of its underlying data model in Haskell and give a brief rationale for its contents. This data model can be made fully formal by mapping it directly into the Isabelle theorem prover via Data61's existing Haskell-to-Isabelle translation tool. The data model can also be mapped into various output formats.
 
 After describing the data model below, we outline a semi-formal definition of the semantics: mapping the capDL syntax into the capDL data model.
 

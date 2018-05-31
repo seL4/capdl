@@ -13,8 +13,8 @@
 all: capDL.pdf
 
 capDL.pdf: capDL.tex
-	pdflatex capDL
-	pdflatex capDL
+	lualatex capDL
+	lualatex capDL
 
 clean:
 	rm -f *.log
