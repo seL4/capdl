@@ -7,3 +7,5 @@ capDL-tool/.stack-work/*
 *.bin
 capDL-tool/parse-capDL
 capDL-tool/*.right
+capDL-tool/doc/imgs/*
+capDL-tool/doc/csiro.sty
