@@ -18,14 +18,6 @@ all: $(TARGET)
 .PHONY: tests
 tests: example-arm.parse example-ia32.parse hello-dump.parse
 
-# The size of the IRQ array we emit (if using --code) needs to match the size
-# expected by the initialiser. If we're building within a project, try to
-# retrieve this from the current configuration.
--include .config
-ifndef CONFIG_CAPDL_LOADER_MAX_IRQS
-    CONFIG_CAPDL_LOADER_MAX_IRQS = 256
-endif
-
 %.parse: %.cdl %.right $(TARGET)
 	stack exec $(TARGET) -- -t $*.parse -x $*.xml -d $*.dot $< || rm -f $*.parse $*.dot $*.xml
 	dot -Tpng $*.dot -o $*.png
@@ -40,7 +32,7 @@ sandbox: stack.yaml capDL-tool.cabal
 	stack build --only-dependencies
 
 $(TARGET): stack.yaml capDL-tool.cabal Setup.hs Main.hs CapDL/*.hs
-	CONFIG_CAPDL_LOADER_MAX_IRQS=$(CONFIG_CAPDL_LOADER_MAX_IRQS) stack build
+	stack build
 
 .PHONY: install
 install: $(TARGET)

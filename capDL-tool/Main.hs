@@ -37,6 +37,7 @@ data Options = Options {
     optOutputXml :: Maybe String,
     optOutputDot :: Maybe String,
     optOutputHeader :: Maybe String,
+    optCodeMaxIRQs :: Word,
     optOutputText :: Maybe String,
     optOutputAnalysis :: Maybe String
     }
@@ -48,6 +49,7 @@ defaultOptions = Options {
     optOutputXml = Nothing,
     optOutputDot = Nothing,
     optOutputHeader = Nothing,
+    optCodeMaxIRQs = 256,
     optOutputText = Nothing,
     optOutputAnalysis = Nothing
     }
@@ -67,6 +69,10 @@ options = [
     Option ['c'] ["code"]
         (ReqArg (\arg -> \o -> o {optOutputHeader = Just arg}) "FILE")
         "output C initialiser source to FILE",
+
+    Option [] ["code-max-irqs"]
+        (ReqArg (\arg -> \o -> o {optCodeMaxIRQs = read arg}) "IRQ_NUM")
+        "Set IRQ array we emit to size IRQ_NUM. Default: 256",
 
     Option ['x'] ["xml"]
         (ReqArg (\arg -> \o -> o {optOutputXml = Just arg }) "FILE")
@@ -141,7 +147,7 @@ main = do
         let optActions = [(optOutputIsabelle, \f -> writeFile f $ show $ printIsabelle f m),
                           (optOutputXml,      \f -> writeFile f $ show $ printXml inputFile m),
                           (optOutputDot,      \f -> writeFile f $ show $ printDot inputFile m),
-                          (optOutputHeader,   \f -> writeFile f $ show $ printC m i c),
+                          (optOutputHeader,   \f -> writeFile f $ show $ printC m i c (optCodeMaxIRQs opt)),
                           (optOutputText,     \f -> writeFile f $ show $ pretty m),
                           (optOutputAnalysis, \f -> do (leakDot, flowDot, newM) <- leakMatrix m
                                                        writeFile (f ++ "-leak.dot") leakDot

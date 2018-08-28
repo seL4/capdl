@@ -345,12 +345,12 @@ memberObjects obj_ids _ objs irqNode cdt objs' =
 -- Emit an array where each entry represents a given interrupt. Each is -1 if
 -- that interrupt has no handler or else the object ID of the interrupt
 -- (0-sized CNode).
-memberIRQs :: Map ObjID Int -> IRQMap -> Arch -> String
-memberIRQs objs irqNode _ =
+memberIRQs :: Map ObjID Int -> IRQMap -> Arch -> Word -> String
+memberIRQs objs irqNode _ maxIrqs =
     ".irqs = {" +++
     (join ", " $ Data.List.Compat.map (\k -> show $ case Map.lookup k irqNode of
         Just i -> fromJust $ Map.lookup i objs
-        _ -> -1) [0..(CONFIG_CAPDL_LOADER_MAX_IRQS - 1)]) +++
+        _ -> -1) [0..(maxIrqs - 1)]) +++
     "},"
 
 showFrameInfo :: Map ObjID Int -> (ObjID, KernelObject Word) -> Maybe String
@@ -379,8 +379,8 @@ extraFrameInfos obj_ids objs =
     where
         frameinfo = showFrameInfos obj_ids objs
 
-printC :: Model Word -> Idents CapName -> CopyMap -> Doc
-printC (Model arch objs irqNode cdt _) _ _ =
+printC :: Model Word -> Idents CapName -> CopyMap -> Word -> Doc
+printC (Model arch objs irqNode cdt _) _ _ maxIrqs =
     text $
     "/* Generated file. Your changes will be overwritten. */" +++
     "" +++
@@ -395,7 +395,7 @@ printC (Model arch objs irqNode cdt _) _ _ =
     "CDL_Model capdl_spec = {" +++
     memberArch arch +++
     memberNum objs_sz +++
-    memberIRQs obj_ids irqNode arch +++
+    memberIRQs obj_ids irqNode arch maxIrqs +++
     memberObjects obj_ids arch objs' irqNode cdt objs +++
     extraFrameInfos obj_ids objs' +++
     "};"
