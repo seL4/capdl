@@ -18,9 +18,11 @@ set(CapDLToolDirectory ${CMAKE_CURRENT_LIST_DIR})
 function(CapDLToolInstall target program_path)
     # Require the parse-capDL tool
     ExternalProject_Add(parse_capdl_tool
+        BUILD_ALWAYS ON # for tracking changes to the capDL source dir
+        CONFIGURE_COMMAND "" # capDL-tool has its own build system
         SOURCE_DIR "${CapDLToolDirectory}"
-        CONFIGURE_COMMAND bash -c "cp -ra ${CapDLToolDirectory}/* ."
-        BUILD_COMMAND ${CMAKE_COMMAND} -E env make
+        BUILD_COMMAND bash -c "cp -a ${CapDLToolDirectory}/* ."
+        COMMAND       ${CMAKE_COMMAND} -E env make
         INSTALL_COMMAND ${CMAKE_COMMAND} -E env "PATH=$ENV{PATH}:${CMAKE_CURRENT_BINARY_DIR}/parse_capdl_tool-prefix/src/parse_capdl_tool-build" make install
     )
     ExternalProject_Get_property(parse_capdl_tool BINARY_DIR)

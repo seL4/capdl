@@ -31,12 +31,17 @@ sandbox: stack.yaml capDL-tool.cabal
 	stack setup
 	stack build --only-dependencies
 
+# `stack install` copies the binary out of the build dir
 $(TARGET): stack.yaml capDL-tool.cabal Setup.hs Main.hs CapDL/*.hs
 	stack build
+	stack install
 
 .PHONY: install
-install: $(TARGET)
-	stack install
+# Deprecated. This used to be `stack install` but did not install
+# to any meaningful PATH location
+install:
+	echo >&2 'capDL-tool/Makefile: install target no longer exists'
+	false
 
 .PHONY: clean
 clean:
