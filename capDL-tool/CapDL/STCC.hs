@@ -37,7 +37,7 @@ projectCNode capset =
   Set.fromList [capObj | (CNodeCap capObj _ _) <- Set.toList capset]
 projectEndpoint capset =
   Set.fromList $ concat [[(r, capObj) | r <- Set.toList rights] | (EndpointCap capObj _ rights) <- Set.toList capset]
-projectAsync capset =
+projectNtfn capset =
   Set.fromList $ concat [[(r, capObj) | r <- Set.toList rights] | (NotificationCap capObj _ rights) <- Set.toList capset]
 projectFrame capset =
   Set.fromList $ concat [[(r, capObj) | r <- Set.toList rights] | (FrameCap capObj rights Nothing True Nothing) <- Set.toList capset]
@@ -170,18 +170,18 @@ directTCBFlows ((tcbID,  capSet) : tcbs) =
                endpointSet' = projectEndpoint capSet'
                frameSet = projectFrame capSet
                frameSet' = projectFrame capSet'
-               asyncSet = projectAsync capSet
-               asyncSet' = projectAsync capSet'
+               ntfnSet = projectNtfn capSet
+               ntfnSet' = projectNtfn capSet'
 
                endpointFlow = writeReadOverlap endpointSet endpointSet'
                               || writeReadOverlap endpointSet' endpointSet
                frameFlowOut = writeReadOverlap frameSet frameSet'
                frameFlowIn = writeReadOverlap frameSet' frameSet
-               asyncFlowOut = writeReadOverlap asyncSet asyncSet'
-               asyncFlowIn = writeReadOverlap asyncSet' asyncSet
+               ntfnFlowOut = writeReadOverlap ntfnSet ntfnSet'
+               ntfnFlowIn = writeReadOverlap ntfnSet' ntfnSet
 
-               outCon = endpointFlow || frameFlowOut || asyncFlowOut
-               inCon = endpointFlow || frameFlowIn || asyncFlowIn
+               outCon = endpointFlow || frameFlowOut || ntfnFlowOut
+               inCon = endpointFlow || frameFlowIn || ntfnFlowIn
            in case (inCon,outCon) of
              (False, False) -> []
              (False, True)  -> [(tcbID, tcbID')]

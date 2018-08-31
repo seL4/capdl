@@ -359,7 +359,7 @@ data Object = Endpoint
             | IODevice { slots :: CapMap }
 \end{verbatim}
 
-The first two objects, communication endpoints and asynchronous endpoints, do not store any capabilities and have a fixed size. Thread Control Blocks (TCB) contain a small number of capability registers, modelled by the field \texttt{slots}, a map from a machine word (the slot/register number) to the capability that is stored in that slot. Slots may be empty. CNode objects are the main capability storage object in seL4. They have configurable size. Untyped objects are conceptual containers for dynamically created objects. They cover a set of objects referred to by their \texttt{ObjID}. This set is called the covering set. In the implementation untyped objects must have a size, but in capDL specifications we often want to leave the size unspecified (as large as necessary). 
+The first two objects, communication endpoints and notifications, do not store any capabilities and have a fixed size. Thread Control Blocks (TCB) contain a small number of capability registers, modelled by the field \texttt{slots}, a map from a machine word (the slot/register number) to the capability that is stored in that slot. Slots may be empty. CNode objects are the main capability storage object in seL4. They have configurable size. Untyped objects are conceptual containers for dynamically created objects. They cover a set of objects referred to by their \texttt{ObjID}. This set is called the covering set. In the implementation untyped objects must have a size, but in capDL specifications we often want to leave the size unspecified (as large as necessary). 
 
 The next batch of objects in the data type above are architecture dependent. Most of these data structures and devices do not store actual capabilities in the kernel and hardware implementation. Instead they store pointers or mappings to other resources in the system. Since these resources are already represented as objects, we use capabilities to model these mappings and to express the access, for instance, a device may have to physical memory. In detail, the architecture dependent objects are as follows. ASID pools store which page directories (PD) can be activated by the machine. As mentioned, we represent this mapping as a capability in the model. Analogously, we model the mappings in virtual memory objects page directory (PD) and page table (PT). Physical memory frames (\texttt{Frame}) come in different sizes, depending on architecture, but do not contain further capabilities. IOMMU page tables (\texttt{IOPT}) come in multiple levels and again store mappings to frames or further page tables. Finally, hardware devices are represented by the object type \texttt{IODevice}. Again, we model the access hardware may have to resources in the system as capabilities. Specifically, IODevices may have a capability to a CNode for IRQ delivery, potentially multiple capabilities to physical memory frames for memory mapped device registers, and one capability for the root IOMMU space. 
 
@@ -400,8 +400,8 @@ In detail, the capabilities are as follows. We go through the list of
 capabilities and give a brief indication of the authority they convey. The 
 \texttt{NullCap} is occasionally used to represent the absence of a capability. 
 An untyped capability points to an untyped object and confers the right to 
-issue create/retype and revoke/delete operations. Endpoint and asynchronous 
-endpoint capabilities point to their respective object types. They explicitly 
+issue create/retype and revoke/delete operations. Endpoint and notification
+capabilities point to their respective object types. They explicitly 
 store which Read/Write/Grant access is conferred to the communications channel 
 and they may carry one machine word of additional information, called the 
 badge. CNode capabilities in addition to their CNode object reference carry 
@@ -411,7 +411,7 @@ the size of that guard, and finally the rights to the CNode object itself. A
 TCB cap gives authority over one TCB object with given access rights. The 
 IRQControl capability gives authority to create specific IRQHandler 
 capabilities. Each device may have a special CNode associated with it that may 
-contain an asynchronous endpoint which in turn is used to deliver interrupts to 
+contain a notification which in turn is used to deliver interrupts to 
 user level. IRQHandler caps in capDL point to these specific CNodes. It confers 
 the authority to change which endpoint the interrupt is delivered to. Frame 
 capabilities confer authority to map and unmap physical memory frames into and 

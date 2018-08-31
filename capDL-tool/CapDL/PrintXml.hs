@@ -100,7 +100,7 @@ showObjectAttrs _ = []
 --
 showObjectName :: KernelObject a -> String
 showObjectName Endpoint = "Endpoint"
-showObjectName Notification = "AsyncEndpoint" -- TODO: Rename AsyncEndpoint to Notification
+showObjectName Notification = "Notification"
 showObjectName TCB {} = "TCB"
 showObjectName CNode {} = "CNode"
 showObjectName Untyped {} = "Untyped"
@@ -127,7 +127,7 @@ showCapName :: Cap -> String
 showCapName NullCap = "NullCap"
 showCapName UntypedCap {} = "UntypedCap"
 showCapName EndpointCap {} = "EndpointCap"
-showCapName NotificationCap {} = "AsyncEndpointCap" -- TODO: Rename AsyncEndpointCap to NotificationCap
+showCapName NotificationCap {} = "NotificationCap"
 showCapName ReplyCap {} = "ReplyCap"
 showCapName MasterReplyCap {} = "MasterReplyCap"
 showCapName CNodeCap {} = "CNodeCap"

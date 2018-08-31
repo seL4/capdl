@@ -151,8 +151,7 @@ printCap ms _ covers _ (UntypedCap id) =
     printSet []
 printCap _ _ _ _ (EndpointCap id badge rights) = text "EndpointCap" <+>
     printID id <+> num badge <+> printRights rights
--- TODO: Rename AsyncEndpointCap to NotificationCap
-printCap _ _ _ _ (NotificationCap id badge rights) = text "AsyncEndpointCap" <+>
+printCap _ _ _ _ (NotificationCap id badge rights) = text "NotificationCap" <+>
     printID id <+> num badge <+> printRights rights
 printCap _ _ _ _ (ReplyCap id) = text "ReplyCap" <+> printID id
 printCap _ _ _ _ (MasterReplyCap id) =
@@ -249,7 +248,7 @@ printObjIDs arch ms irqs =
 
 printObj' :: ObjMap Word -> ObjID -> KernelObject Word -> Doc
 printObj' _ _ Endpoint = text "Endpoint"
-printObj' _ _ Notification = text "AsyncEndpoint" -- TODO: Rename AsyncEndpoint to Notification
+printObj' _ _ Notification = text "Notification"
 printObj' _ id (TCB _ fault _ dom _) = text "Tcb" <+>
     record (fsep $ punctuate comma $ map text
     ["cdl_tcb_caps = " ++ capsName id,
