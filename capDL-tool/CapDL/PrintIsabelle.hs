@@ -189,7 +189,7 @@ printCapMapping ms irqNode covers real (slot, cap) =
 printCapMap :: ObjMap Word -> IRQMap -> CoverMap -> Bool -> CapMap Word -> Doc
 printCapMap ms irqNode covers real slots =
     case map (printCapMapping ms irqNode covers real) (Map.toList slots) of
-        [] -> text "empty"
+        [] -> text "Map.empty"
         xs -> brackets $ vcat $ punctuate comma xs
 
 printCaps' :: ObjMap Word -> ObjID -> IRQMap -> CoverMap -> Bool -> CapMap Word -> Doc
@@ -295,7 +295,7 @@ printEmptyIrqNode :: Doc
 printEmptyIrqNode = constdefs "empty_irq_node" "cdl_object" $+$
     doubleQuotes (text "empty_irq_node"  <+> equiv <+> text "Types_D.CNode" <+>
     record (fsep $ punctuate comma $
-                map text ["cdl_cnode_caps = empty", "cdl_cnode_size_bits = 0"]))
+                map text ["cdl_cnode_caps = Map.empty", "cdl_cnode_size_bits = 0"]))
 
 printObjs :: Arch -> ObjMap Word -> IRQMap -> CoverMap -> Doc
 printObjs arch ms irqNode covers =
@@ -324,7 +324,7 @@ printEmptyIrqObjMap ms irqNode =
 printObjMap :: Arch -> ObjMap Word -> IRQMap -> Doc
 printObjMap arch ms _ = text "empty_irq_objects ++" $+$
     case map printObjMapping (sortObjects arch $ Map.toList ms) of
-        [] -> text "empty"
+        [] -> text "Map.empty"
         xs -> brackets $ fsep $ punctuate comma xs
 
 printObjects :: Arch -> ObjMap Word -> IRQMap -> Doc
@@ -395,7 +395,7 @@ printCDTMapping (parent, child) =
 printCDTMap :: CDT -> Doc
 printCDTMap cdt =
     case map printCDTMapping (Map.toList cdt) of
-        [] -> text "empty"
+        [] -> text "Map.empty"
         xs -> brackets $ fsep $ punctuate comma xs
 
 printCDT :: CDT -> Doc
