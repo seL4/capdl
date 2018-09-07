@@ -23,7 +23,7 @@ function(CapDLToolInstall target program_path)
         SOURCE_DIR "${CapDLToolDirectory}"
         BUILD_COMMAND bash -c "cp -a ${CapDLToolDirectory}/* ."
         COMMAND       ${CMAKE_COMMAND} -E env make
-        INSTALL_COMMAND ${CMAKE_COMMAND} -E env "PATH=$ENV{PATH}:${CMAKE_CURRENT_BINARY_DIR}/parse_capdl_tool-prefix/src/parse_capdl_tool-build" make install
+        INSTALL_COMMAND ""
     )
     ExternalProject_Get_property(parse_capdl_tool BINARY_DIR)
     DeclareExternalProjObjectFiles(parse_capdl_tool ${BINARY_DIR} FILES parse-capDL)
