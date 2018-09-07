@@ -16,15 +16,24 @@ TARGET=parse-capDL
 all: $(TARGET)
 
 .PHONY: tests
-tests: example-arm.parse example-ia32.parse hello-dump.parse
+tests: example-arm.test-OK example-ia32.test-OK hello-dump.test-OK
 
-%.parse: %.cdl %.right $(TARGET)
+%.parse %.dot %.xml: %.cdl $(TARGET)
 	stack exec $(TARGET) -- -t $*.parse -x $*.xml -d $*.dot $< || rm -f $*.parse $*.dot $*.xml
-	dot -Tpng $*.dot -o $*.png
+
+%.test-OK: %.parse %.dot %.xml %.right
 	@diff -b $*.parse $*.right
 	@stack exec $(TARGET) -- -t $*.parse.x $*.parse > /dev/null
 	@diff $*.parse $*.parse.x  || (echo "Self parse failed"; exit 1)
 	which xmllint && xmllint --noout --dtdvalid ./capdl.dtd $*.xml
+	dot -Tpng $*.dot -o $*.png || true # don't fail the test if graph layout is too hard
+	echo placeholder for Makefile >$*.test-OK
+
+# This tells GNU Make that *.parse files should not be considered as intermediate files
+# for the *.test-OK targets, so that Make won't delete them.
+# We can't use a wildcard here because it's not implemented in Make; see
+# https://stackoverflow.com/questions/27090032
+.SECONDARY: example-arm.parse example-arm.dot example-arm.xml example-ia32.parse example-ia32.dot example-ia32.xml hello-dump.parse hello-dump.dot hello-dump.xml
 
 .PHONY: sandbox
 sandbox: stack.yaml capDL-tool.cabal
