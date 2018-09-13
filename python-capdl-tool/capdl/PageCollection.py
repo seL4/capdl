@@ -65,7 +65,7 @@ class PageCollection(object):
     def get_vspace_root(self):
         if not self._vspace_root:
             vspace = lookup_architecture(self.arch).vspace()
-            self._vspace_root = vspace.get_make_object()('%s_%s' % (vspace.get_type_name(), self.name))
+            self._vspace_root = vspace.make_object('%s_%s' % (vspace.type_name, self.name))
         return self._vspace_root, Cap(self._vspace_root)
 
     def get_asid(self):
