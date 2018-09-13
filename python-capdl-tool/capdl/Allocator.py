@@ -197,13 +197,10 @@ class CSpaceAllocator(object):
                 assert 'read' not in kwargs
                 assert 'write' not in kwargs
                 assert 'grant' not in kwargs
-                read = kwargs['rights'] & seL4_CanRead > 0
-                write = kwargs['rights'] & seL4_CanWrite > 0
-                grant = kwargs['rights'] & seL4_CanGrant > 0
-            else:
-                read = kwargs.get('read', False)
-                write = kwargs.get('write', False)
-                grant = kwargs.get('grant', False)
-            cap = Cap(obj, read=read, write=write, grant=grant)
+                kwargs['read'] = kwargs['rights'] & seL4_CanRead > 0
+                kwargs['write'] = kwargs['rights'] & seL4_CanWrite > 0
+                kwargs['grant'] = kwargs['rights'] & seL4_CanGrant > 0
+            cap = Cap(obj, **kwargs)
+
         self.cnode[slot] = cap
         return slot

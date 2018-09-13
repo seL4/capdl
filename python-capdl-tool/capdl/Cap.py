@@ -19,19 +19,19 @@ class Cap(object):
     """
     A capability to a kernel object.
     """
-    def __init__(self, referent, read=False, write=False, grant=False):
+    def __init__(self, referent, **kwargs):
         assert isinstance(referent, Object.Object)
         self.referent = referent
-        self.read = read
-        self.write = write
-        self.grant = grant
-        self.guard = 0
-        self.guard_size = 0
-        self.badge = None
-        self.cached = True
-        self.ports = None
-        self.mapping_container = None
-        self.mapping_slot = None
+        self.read = kwargs.get('read', False)
+        self.write = kwargs.get('write', False)
+        self.grant = kwargs.get('grant', False)
+        self.guard = kwargs.get('guard', 0)
+        self.guard_size = kwargs.get('guard_size', 0)
+        self.badge = kwargs.get('badge', None)
+        self.cached = kwargs.get('cached', True)
+        self.ports = kwargs.get('ports', None)
+        self.mapping_container = kwargs.get('mapping_container', None)
+        self.mapping_slot = kwargs.get('mapping_slot', None)
 
     def set_guard(self, guard):
         assert isinstance(self.referent, Object.CNode)
