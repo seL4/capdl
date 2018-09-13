@@ -984,7 +984,7 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
 
     ZF_LOGF_IFERR(error, "");
 
-#ifdef SEL4_DEBUG_KERNEL
+#ifdef CONFIG_DEBUG_BUILD
     /* Name the thread after its TCB name if possible. We need to do some
      * juggling first to ensure the name will not overflow the IPC buffer.
      */

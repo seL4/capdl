@@ -70,6 +70,11 @@ config_option(CapDLLoaderPrintCapDLObjects CAPDL_LOAD_PRINT_CAPDL_OBJECTS
     DEPENDS "NOT CapDLLoaderVerified"
 )
 
+config_option(CapDLLoaderPrintf CAPDL_LOADER_PRINTF
+    "Enable ZF_LOG of information while loading for the purposes of debugging."
+    DEFAULT OFF
+    DEPENDS "NOT CapDLLoaderVerified")
+
 add_config_library(capdl_loader_app "${configure_string}")
 
 # The capdl-loader-app requires outside configuration in order to build. To achieve this
