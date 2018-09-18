@@ -229,7 +229,7 @@ typedef struct {
 } CDL_MSIIRQExtraInfo;
 
 typedef struct {
-#ifdef CONFIG_CAPDL_LOADER_PRINTF
+#ifdef CONFIG_DEBUG_BUILD
     const char *name; /* textual ObjID from the capDL spec */
 #endif
 
@@ -345,7 +345,7 @@ static inline seL4_CapRights_t CDL_seL4_Cap_Rights(CDL_Cap *cap)
 
 static inline const char *CDL_Obj_Name(CDL_Object *obj)
 {
-#ifdef CONFIG_CAPDL_LOADER_PRINTF
+#ifdef CONFIG_DEBUG_BUILD
     if (obj->name == NULL) {
         return "<unnamed>";
     } else {

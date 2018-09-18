@@ -320,7 +320,7 @@ showObjectFields _ _ x _ _ _ = assert False $
 showObject :: Map ObjID Int -> (ObjID, KernelObject Word) -> IRQMap -> CDT -> ObjMap Word -> String
 showObject objs obj irqNode cdt ms =
     "{" +++
-    "#ifdef CONFIG_CAPDL_LOADER_PRINTF" +++ ".name = \"" ++ name ++ "\"," +++ "#endif" +++
+    "#ifdef CONFIG_DEBUG_BUILD" +++ ".name = \"" ++ name ++ "\"," +++ "#endif" +++
     showObjectFields objs id (snd obj) irqNode cdt ms +++
     "}"
     where
