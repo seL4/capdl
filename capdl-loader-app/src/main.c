@@ -974,11 +974,18 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
         init_sc(spec, CDL_Cap_ObjID(cdl_sc), affinity);
     }
 
-    error = seL4_TCB_Configure(sel4_tcb, sel4_fault_ep, sel4_tempfault_ep,
-                               sel4_sc,
+    error = seL4_TCB_Configure(sel4_tcb,
                                sel4_cspace_root, sel4_cspace_root_data,
                                sel4_vspace_root, sel4_vspace_root_data,
                                ipcbuffer_addr, sel4_ipcbuffer);
+    ZF_LOGF_IFERR(error, "");
+
+
+    error = seL4_TCB_SetSchedParams(sel4_tcb, seL4_CapInitThreadTCB, max_priority, priority,
+                                    sel4_sc, sel4_fault_ep);
+    ZF_LOGF_IFERR(error, "");
+
+    error = seL4_TCB_SetTimeoutEndpoint(sel4_tcb, sel4_tempfault_ep);
 #else
     error = seL4_TCB_Configure(sel4_tcb, sel4_fault_ep,
                                sel4_cspace_root, sel4_cspace_root_data,
@@ -986,9 +993,9 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
                                ipcbuffer_addr, sel4_ipcbuffer);
     ZF_LOGF_IFERR(error, "");
 
+    error = seL4_TCB_SetSchedParams(sel4_tcb, seL4_CapInitThreadTCB, max_priority, priority);
 #endif
 
-    error = seL4_TCB_SetSchedParams(sel4_tcb, seL4_CapInitThreadTCB, max_priority, priority);
     ZF_LOGF_IFERR(error, "");
 
 #if CONFIG_MAX_NUM_NODES > 1
