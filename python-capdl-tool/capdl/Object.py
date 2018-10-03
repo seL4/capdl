@@ -59,11 +59,11 @@ class ObjectType(Enum):
     seL4_RTReplyObject = 34
     seL4_ARM_IOSpace = 35
 
-
-seL4_CanRead = 1
-seL4_CanWrite = 2
-seL4_CanGrant = 4
-seL4_AllRights = seL4_CanRead|seL4_CanWrite|seL4_CanGrant
+class ObjectRights(Enum):
+    seL4_CanRead = 1
+    seL4_CanWrite = 2
+    seL4_CanGrant = 4
+    seL4_AllRights = seL4_CanRead|seL4_CanWrite|seL4_CanGrant
 
 class Object(object):
     """

@@ -16,7 +16,7 @@ from __future__ import absolute_import, division, print_function, \
 from .Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
     Notification, TCB, Untyped, IOPageTable, Object, IRQ, IOPorts, IODevice, \
     VCPU, ASIDPool, SC, SchedControl, RTReply, ObjectType, \
-    seL4_CanRead, seL4_CanWrite, seL4_CanGrant, seL4_AllRights, IOAPICIRQ, MSIIRQ, PML4
+    ObjectRights, IOAPICIRQ, MSIIRQ, PML4
 from .Spec import Spec
 from .Cap import Cap
 import collections, os
@@ -188,9 +188,9 @@ class CSpaceAllocator(object):
                 assert 'read' not in kwargs
                 assert 'write' not in kwargs
                 assert 'grant' not in kwargs
-                kwargs['read'] = kwargs['rights'] & seL4_CanRead > 0
-                kwargs['write'] = kwargs['rights'] & seL4_CanWrite > 0
-                kwargs['grant'] = kwargs['rights'] & seL4_CanGrant > 0
+                kwargs['read'] = kwargs['rights'] & ObjectRights.seL4_CanRead > 0
+                kwargs['write'] = kwargs['rights'] & ObjectRights.seL4_CanWrite > 0
+                kwargs['grant'] = kwargs['rights'] & ObjectRights.seL4_CanGrant > 0
             cap = Cap(obj, **kwargs)
 
         self.cnode[slot] = cap

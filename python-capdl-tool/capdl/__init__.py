@@ -18,10 +18,9 @@ from .ELF import ELF
 from .Object import Frame, PageTable, PageDirectory, ASIDPool, CNode, Endpoint, \
                    Notification, TCB, Untyped, IOPorts, IODevice, IOPageTable, \
                    IRQ, SC, RTReply, calculate_cnode_size, \
-                   Object, ContainerObject, ObjectType
+                   Object, ContainerObject, ObjectType, ObjectRights
 from .Spec import Spec
-from .Allocator import seL4_CanRead, seL4_CanWrite, seL4_CanGrant, \
-        seL4_AllRights, ObjectAllocator, CSpaceAllocator
+from .Allocator import ObjectAllocator, CSpaceAllocator
 from .PageCollection import PageCollection, create_address_space
 from .util import page_index, page_sizes, page_table_coverage, \
     page_table_index, page_table_vaddr, page_vaddr, lookup_architecture
