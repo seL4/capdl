@@ -19,12 +19,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from six.moves import range
 
-from .Object import seL4_IA32_4M, seL4_IA32_4K, seL4_ARM_SectionObject, \
-    seL4_ARM_SuperSectionObject, seL4_ARM_SmallPageObject, seL4_ARM_LargePageObject, \
-    seL4_IA32_PageDirectoryObject, seL4_IA32_PageTableObject, \
-    seL4_ARM_PageDirectoryObject, seL4_ARM_PageTableObject, \
-    seL4_X64_PML4, seL4_X64_PDPT, seL4_IA32_2M, seL4_X64_1G, \
-    PageTable, PageDirectory, PML4, PDPT
+from .Object import ObjectType, PageTable, PageDirectory, PML4, PDPT
 
 # Size of a frame and page (applies to all architectures)
 FRAME_SIZE = 4096 # bytes
@@ -114,8 +109,8 @@ class IA32Arch(Arch):
         return "ia32"
     def vspace(self):
         return make_levels([
-            Level(SIZE_4GB, [Frame(SIZE_4M, seL4_IA32_4M)], seL4_IA32_PageDirectoryObject, PageDirectory, "pd"),
-            Level(SIZE_4M, [Frame(PAGE_SIZE, seL4_IA32_4K)], seL4_IA32_PageTableObject, PageTable, "pt"),
+            Level(SIZE_4GB, [Frame(SIZE_4M, ObjectType.seL4_IA32_4M)], ObjectType.seL4_IA32_PageDirectoryObject, PageDirectory, "pd"),
+            Level(SIZE_4M, [Frame(PAGE_SIZE, ObjectType.seL4_IA32_4K)], ObjectType.seL4_IA32_PageTableObject, PageTable, "pt"),
         ])
     def word_size_bits(self):
         return 32
@@ -127,10 +122,10 @@ class X64Arch(Arch):
         return "x86_64"
     def vspace(self):
         return make_levels([
-            Level(2 ** 48, [], seL4_X64_PML4, PML4, "pml4"),
-            Level(2 ** 39, [Frame(SIZE_1GB, seL4_X64_1G)], seL4_X64_PDPT, PDPT, "pdpt"),
-            Level(2 ** 30, [Frame(SIZE_2M, seL4_IA32_2M)], seL4_IA32_PageDirectoryObject, PageDirectory, "pd"),
-            Level(2 ** 21, [Frame(PAGE_SIZE, seL4_IA32_4K)], seL4_IA32_PageTableObject, PageTable, "pt"),
+            Level(2 ** 48, [], ObjectType.seL4_X64_PML4, PML4, "pml4"),
+            Level(2 ** 39, [Frame(SIZE_1GB, ObjectType.seL4_X64_1G)], ObjectType.seL4_X64_PDPT, PDPT, "pdpt"),
+            Level(2 ** 30, [Frame(SIZE_2M, ObjectType.seL4_IA32_2M)], ObjectType.seL4_IA32_PageDirectoryObject, PageDirectory, "pd"),
+            Level(2 ** 21, [Frame(PAGE_SIZE, ObjectType.seL4_IA32_4K)], ObjectType.seL4_IA32_PageTableObject, PageTable, "pt"),
         ])
     def word_size_bits(self):
         return 64
@@ -142,8 +137,8 @@ class ARM32Arch(Arch):
         return "arm11"
     def vspace(self):
         return make_levels([
-            Level(SIZE_4GB, [Frame(SIZE_1M, seL4_ARM_SectionObject), Frame(SIZE_16M, seL4_ARM_SuperSectionObject)], seL4_ARM_PageDirectoryObject, PageDirectory, "pd"),
-            Level(SIZE_1M, [Frame(PAGE_SIZE, seL4_ARM_SmallPageObject), Frame(SIZE_64K, seL4_ARM_LargePageObject)], seL4_ARM_PageTableObject, PageTable, "pt"),
+            Level(SIZE_4GB, [Frame(SIZE_1M, ObjectType.seL4_ARM_SectionObject), Frame(SIZE_16M, ObjectType.seL4_ARM_SuperSectionObject)], ObjectType.seL4_ARM_PageDirectoryObject, PageDirectory, "pd"),
+            Level(SIZE_1M, [Frame(PAGE_SIZE, ObjectType.seL4_ARM_SmallPageObject), Frame(SIZE_64K, ObjectType.seL4_ARM_LargePageObject)], ObjectType.seL4_ARM_PageTableObject, PageTable, "pt"),
         ])
     def word_size_bits(self):
         return 32
@@ -155,8 +150,8 @@ class ARMHypArch(Arch):
         return "arm11"
     def vspace(self):
         return make_levels([
-            Level(SIZE_4GB, [Frame(SIZE_2M, seL4_ARM_SectionObject), Frame(SIZE_32M, seL4_ARM_SuperSectionObject)], seL4_ARM_PageDirectoryObject, PageDirectory, "pd"),
-            Level(SIZE_2M, [Frame(PAGE_SIZE, seL4_ARM_SmallPageObject), Frame(SIZE_64K, seL4_ARM_LargePageObject)], seL4_ARM_PageTableObject, PageTable, "pt"),
+            Level(SIZE_4GB, [Frame(SIZE_2M, ObjectType.seL4_ARM_SectionObject), Frame(SIZE_32M, ObjectType.seL4_ARM_SuperSectionObject)], ObjectType.seL4_ARM_PageDirectoryObject, PageDirectory, "pd"),
+            Level(SIZE_2M, [Frame(PAGE_SIZE, ObjectType.seL4_ARM_SmallPageObject), Frame(SIZE_64K, ObjectType.seL4_ARM_LargePageObject)], ObjectType.seL4_ARM_PageTableObject, PageTable, "pt"),
         ])
     def word_size_bits(self):
         return 32

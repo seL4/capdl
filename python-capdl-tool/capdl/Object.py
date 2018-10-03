@@ -18,44 +18,47 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
 import math, six
+from enum import Enum
 
-seL4_UntypedObject = 0
-seL4_TCBObject = 1
-seL4_EndpointObject = 2
-seL4_NotificationObject = 3
-seL4_CapTableObject = 4
 
-seL4_ARM_SmallPageObject = 5
-seL4_ARM_LargePageObject = 6
-seL4_ARM_SectionObject = 7
-seL4_ARM_SuperSectionObject = 8
-seL4_ARM_PageTableObject = 9
-seL4_ARM_PageDirectoryObject = 10
+class ObjectType(Enum):
+    seL4_UntypedObject = 0
+    seL4_TCBObject = 1
+    seL4_EndpointObject = 2
+    seL4_NotificationObject = 3
+    seL4_CapTableObject = 4
 
-seL4_IA32_4K = 15
-seL4_IA32_2M = 16
-seL4_IA32_4M = 17
-seL4_X64_1G = 18
-seL4_IA32_PageTableObject = 19
-seL4_IA32_PageDirectoryObject = 20
-seL4_X64_PDPT = 21
-seL4_X64_PML4 = 22
-seL4_IA32_IOPageTableObject = 23
-seL4_IA32_IOPort = 24
-seL4_IA32_IOSpace = 25
-seL4_IA32_VCPU = 26
+    seL4_ARM_SmallPageObject = 5
+    seL4_ARM_LargePageObject = 6
+    seL4_ARM_SectionObject = 7
+    seL4_ARM_SuperSectionObject = 8
+    seL4_ARM_PageTableObject = 9
+    seL4_ARM_PageDirectoryObject = 10
 
-seL4_FrameObject = 27
-seL4_IRQControl = 28
+    seL4_IA32_4K = 15
+    seL4_IA32_2M = 16
+    seL4_IA32_4M = 17
+    seL4_X64_1G = 18
+    seL4_IA32_PageTableObject = 19
+    seL4_IA32_PageDirectoryObject = 20
+    seL4_X64_PDPT = 21
+    seL4_X64_PML4 = 22
+    seL4_IA32_IOPageTableObject = 23
+    seL4_IA32_IOPort = 24
+    seL4_IA32_IOSpace = 25
+    seL4_IA32_VCPU = 26
 
-seL4_PageDirectoryObject = 30
-seL4_ASID_Pool = 31
+    seL4_FrameObject = 27
+    seL4_IRQControl = 28
 
-seL4_SchedContextObject = 32
-seL4_SchedControl = 33
-seL4_RTReplyObject = 34
+    seL4_PageDirectoryObject = 30
+    seL4_ASID_Pool = 31
 
-seL4_ARM_IOSpace = 35
+    seL4_SchedContextObject = 32
+    seL4_SchedControl = 33
+    seL4_RTReplyObject = 34
+    seL4_ARM_IOSpace = 35
+
 
 seL4_CanRead = 1
 seL4_CanWrite = 2

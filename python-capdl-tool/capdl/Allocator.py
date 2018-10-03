@@ -15,16 +15,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from .Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
     Notification, TCB, Untyped, IOPageTable, Object, IRQ, IOPorts, IODevice, \
-    VCPU, ASIDPool, SC, SchedControl, RTReply, \
-    seL4_UntypedObject, seL4_TCBObject, seL4_EndpointObject, \
-    seL4_NotificationObject, seL4_CapTableObject, seL4_ARM_SmallPageObject, seL4_ARM_LargePageObject, \
-    seL4_ARM_SectionObject, seL4_ARM_SuperSectionObject, seL4_ARM_PageTableObject, \
-    seL4_ARM_PageDirectoryObject, seL4_IA32_4K, seL4_IA32_4M, seL4_IA32_PageTableObject, \
-    seL4_IA32_PageDirectoryObject, seL4_IA32_IOPageTableObject, seL4_IA32_IOPort, \
-    seL4_IA32_IOSpace, seL4_IA32_VCPU, seL4_FrameObject, seL4_IRQControl, \
-    seL4_ARM_IOSpace, ARMIODevice, \
-    seL4_PageDirectoryObject, seL4_ASID_Pool, seL4_SchedContextObject, seL4_SchedControl, \
-    seL4_RTReplyObject, \
+    VCPU, ASIDPool, SC, SchedControl, RTReply, ObjectType, \
     seL4_CanRead, seL4_CanWrite, seL4_CanGrant, seL4_AllRights, IOAPICIRQ, MSIIRQ, PML4
 from .Spec import Spec
 from .Cap import Cap
@@ -68,45 +59,45 @@ class ObjectAllocator(object):
 
         self.counter += 1
         frame_type = [page for page in self.spec.arch.get_pages() if page.object == type]
-        if type == seL4_UntypedObject:
+        if type == ObjectType.seL4_UntypedObject:
             size_bits = kwargs.get('size_bits', 12)
             paddr = kwargs.get('paddr', None)
             assert(paddr != 0)
             o = Untyped(name, size_bits, paddr)
-        elif type == seL4_TCBObject:
+        elif type == ObjectType.seL4_TCBObject:
             o = TCB(name)
-        elif type == seL4_EndpointObject:
+        elif type == ObjectType.seL4_EndpointObject:
             o = Endpoint(name)
-        elif type == seL4_NotificationObject:
+        elif type == ObjectType.seL4_NotificationObject:
             o = Notification(name)
-        elif type == seL4_CapTableObject:
+        elif type == ObjectType.seL4_CapTableObject:
             o = CNode(name, **kwargs)
-        elif type == seL4_FrameObject:
+        elif type == ObjectType.seL4_FrameObject:
             if 'size' not in kwargs:
                 kwargs['size'] = 4096
             o = Frame(name, **kwargs)
-        elif type == seL4_IA32_PageTableObject or type == seL4_ARM_PageTableObject:
+        elif type == ObjectType.seL4_IA32_PageTableObject or type == ObjectType.seL4_ARM_PageTableObject:
             o = PageTable(name)
         elif type == self.spec.arch.vspace().object:
             o = self.spec.arch.vspace().make_object(name)
-        elif type == seL4_PageDirectoryObject:
+        elif type == ObjectType.seL4_PageDirectoryObject:
             o = PageDirectory(name)
-        elif type == seL4_IA32_IOPageTableObject:
+        elif type == ObjectType.seL4_IA32_IOPageTableObject:
             o = IOPageTable(name)
-        elif type == seL4_IA32_IOPort:
+        elif type == ObjectType.seL4_IA32_IOPort:
             # There is only one IOPort object in the system, which describes the entire
             # port region.
             if 'start_port' in kwargs and 'end_port' in kwargs:
                 o = IOPorts(name, start_port=kwargs['start_port'], end_port=kwargs['end_port'])
             else:
                 raise ValueError
-        elif type == seL4_IA32_IOSpace:
+        elif type == ObjectType.seL4_IA32_IOSpace:
             o = IODevice(name, **kwargs)
-        elif type == seL4_ARM_IOSpace:
+        elif type == ObjectType.seL4_ARM_IOSpace:
             o = ARMIODevice(name, **kwargs)
-        elif type == seL4_IA32_VCPU:
+        elif type == ObjectType.seL4_IA32_VCPU:
             o = VCPU(name)
-        elif type == seL4_IRQControl:
+        elif type == ObjectType.seL4_IRQControl:
             if 'number' in kwargs and 'notification' in kwargs:
                 o = IRQ(name, kwargs['number'])
                 o.set_notification(kwargs['notification'])
@@ -122,15 +113,15 @@ class ObjectAllocator(object):
                 o.set_notification(kwargs['notification'])
             else:
                 raise ValueError
-        elif type == seL4_ASID_Pool:
+        elif type == ObjectType.seL4_ASID_Pool:
             o = ASIDPool(name)
         elif len(frame_type) == 1:
             o = Frame(name, frame_type[0].size, **kwargs)
-        elif type == seL4_SchedContextObject:
+        elif type == ObjectType.seL4_SchedContextObject:
             o = SC(name)
-        elif type == seL4_SchedControl:
+        elif type == ObjectType.seL4_SchedControl:
             o = SchedControl(name)
-        elif type == seL4_RTReplyObject:
+        elif type == ObjectType.seL4_RTReplyObject:
             o = RTReply(name)
         else:
             raise Exception('Invalid object type %s' % type)
