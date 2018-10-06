@@ -195,6 +195,8 @@ class CSpaceAllocator(object):
                 kwargs['write'] = kwargs['rights'] & ObjectRights.seL4_CanWrite > 0
                 kwargs['grant'] = kwargs['rights'] & ObjectRights.seL4_CanGrant > 0
             cap = Cap(obj, **kwargs)
+        if isinstance(obj, CNode):
+            obj.update_guard_size_caps.append(cap)
 
         self.cnode[slot] = cap
         return slot

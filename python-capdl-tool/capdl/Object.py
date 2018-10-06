@@ -187,12 +187,16 @@ class CNode(ContainerObject):
     def __init__(self, name, size_bits='auto'):
         super(CNode, self).__init__(name)
         self.size_bits = size_bits
+        self.update_guard_size_caps = []
 
-    def finalise_size(self):
+    def finalise_size(self, arch=None):
         if self.size_bits == 'auto':
             # Minimum CNode size is 1 bit. Maximum size (28 bits) is not
             # checked.
             self.size_bits = calculate_size(self)
+            if arch:
+                for x in self.update_guard_size_caps:
+                    x.set_guard_size(arch.word_size_bits() - self.size_bits)
 
     def __repr__(self):
         if self.size_bits == 'auto':
