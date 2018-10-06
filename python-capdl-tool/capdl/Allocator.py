@@ -200,3 +200,85 @@ class CSpaceAllocator(object):
 
         self.cnode[slot] = cap
         return slot
+
+class AddressSpaceAllocator(object):
+    '''
+    Structure for describing backing frame policy for an address space loaded
+    by capDL.
+
+    Currently there is a default policy that will create frame mappings
+    for all elf loadable sections that will use the largest frames that are less
+    or equal to the section sizes. In the future it may be possible to specify
+    different policies, such as ones that minimise object count or translate
+    ELF mapping attributes differently.
+
+    For now, this structure is used to describe regions with different attributes
+    than the default policy for describing things such as IPC buffers, shared memory,
+    guarded symbols, unmapped symbols, DMA pools, Physical memory mappings, etc.
+
+    A likely lifecycle of this object is to record special symbols that will appear
+    in the ELF file with the frame objects to use for mapping. Then when the ELF file is
+    constructed, these symbols will be translated into virtual addresses that can
+    be given to the PageCollection object as it creates a spec with the provided frames.
+    '''
+    def __init__(self, name, vspace_root):
+        self.name = name
+        self.vspace_root = vspace_root
+        self._symbols = {}
+        self._regions = {}
+
+    def add_symbol_with_caps(self, symbol, sizes, caps):
+        '''
+        Specify the caps and sizes to use for a given symbol.  Objects that the
+        caps refer to should have been allocated by a ObjectAllocator otherwise
+        they might not end up in the final CDL spec file.
+
+        It should be possible for the frames to be mapped into the address space
+        of the symbol in a sensible way. Therefore alignment and size of the symbol
+        should be compatible with the array of frames provided.
+
+        Examples:
+        - A symbol of size 4k with a 4k Frame object should be 4K aligned in the
+          elf file.
+        - A Symbol of size 12k, with 3 4K Frames that have different rights, should
+          be 4K aligned in the ELF file and the frames correspond to the mappings
+          in order from lowest to highest.
+        - A Symbol using a 1M sized frame object should be either 1M sized with
+          compatible alignment, or guarantee that the ELF file will have a 1M hole
+          with compatible alignment for the 1M frame to be mapped that overlaps the
+          symbol.
+        '''
+        self._symbols[symbol] = (sizes, caps)
+
+    def get_symbols_and_clear(self):
+        '''
+        This function is used for converting symbols into virtual addresses with
+        an elf file. Resulting regions should be added back via add_region_with_caps
+        This sets the internal symbols structure to None to prevent usages after.
+        '''
+        symbols = self._symbols
+        self._symbols = None
+        return symbols
+
+    def add_region_with_caps(self, vaddr, sizes, caps):
+        '''
+        This is the same as add_symbol_with_caps but uses a specific address in
+        the virtual address space instead of a symbol. At some point before the
+        address space objects are created, all of the symbols should be converted
+        to regions using get_symbols_and_clear and add_region_with_caps to transform
+        the symbols into vaddrs with the help of an ELF file.
+        '''
+        assert len(sizes) == len(caps)
+        for (size, cap) in zip(sizes, caps):
+            self._regions[vaddr] = (size, cap)
+            vaddr+=size
+
+    def get_regions_and_clear(self):
+        '''
+        This is for consuming this allocator to create a PageCollection structure
+        that gets merged with the main object allocator.
+        This sets the internal regions structure to None to prevent usages after.
+        '''
+        regions = self._regions
+        self._regions = None
+        return regions

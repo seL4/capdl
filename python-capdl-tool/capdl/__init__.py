@@ -20,7 +20,7 @@ from .Object import Frame, PageTable, PageDirectory, ASIDPool, CNode, Endpoint, 
                    IRQ, SC, RTReply, calculate_cnode_size, \
                    Object, ContainerObject, ObjectType, ObjectRights, IRQControl
 from .Spec import Spec
-from .Allocator import ObjectAllocator, CSpaceAllocator
+from .Allocator import ObjectAllocator, CSpaceAllocator, AddressSpaceAllocator
 from .PageCollection import PageCollection, create_address_space
 from .util import page_index, page_sizes, page_table_coverage, \
     page_table_index, page_table_vaddr, page_vaddr, lookup_architecture
