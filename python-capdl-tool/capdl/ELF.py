@@ -99,7 +99,13 @@ class ELF(object):
     def get_arch(self):
         return self._elf.get_machine_arch()
 
-    def get_pages(self, infer_asid=True, pd=None, use_large_frames=True):
+    def check_alignment(self, regions):
+        for (vaddr, sizes, caps) in regions:
+            for size in sizes:
+                assert vaddr % size == 0, "vaddr: 0x%x is not aligned to frame_size: 0x%x" %(vaddr, size)
+                vaddr += size
+
+    def get_pages(self, infer_asid=True, pd=None, use_large_frames=True, addr_space=None):
         """
         Returns a dictionary of pages keyed on base virtual address, that are
         required to ELF load this file. Each dictionary entry is a dictionary
@@ -113,6 +119,16 @@ class ELF(object):
         regex = re.compile("^(ignore_|shared_|persistent|guarded)");
         sections = [x for x in self._elf.iter_sections() if
             regex.match(_decode(x.name))]
+
+        # We assume that this array contains aligned vaddrs and sizes that are frame sizes
+        existing_pages = []
+        if addr_space:
+            # Update symbols with their vaddrs in the AddressSpaceAllocator if we were given one
+            existing_pages = [(self.get_symbol_vaddr(symbol), sizes, caps)
+                 for (symbol, (sizes, caps)) in addr_space.get_symbols_and_clear().iteritems()]
+            self.check_alignment(existing_pages)
+            for (vaddr, sizes, caps) in existing_pages:
+                addr_space.add_region_with_caps(vaddr, sizes, caps)
 
         for seg in self._elf.iter_segments():
             if not seg['p_type'] == 'PT_LOAD':
@@ -174,13 +190,13 @@ class ELF(object):
         return pages
 
     def get_spec(self, infer_tcb=True, infer_asid=True, pd=None,
-            use_large_frames=True):
+            use_large_frames=True, addr_space=None):
         """
         Return a CapDL spec with as much information as can be derived from the
         ELF file in isolation.
         """
-        pages = self.get_pages(infer_asid, pd, use_large_frames)
-        spec = pages.get_spec()
+        pages = self.get_pages(infer_asid, pd, use_large_frames, addr_space=addr_space)
+        spec = pages.get_spec(addr_space.get_regions_and_clear() if addr_space else {})
 
         if infer_tcb:
             # Create a single TCB.

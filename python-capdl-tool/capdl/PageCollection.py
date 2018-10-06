@@ -74,7 +74,23 @@ class PageCollection(object):
             self._asid[0] = self.get_vspace_root()[1]
         return self._asid
 
-    def get_spec(self):
+    def _get_page_cap(self, existing_frames, page, page_vaddr, page_counter, spec):
+        '''
+        Get a mapping cap from somewhere. First check if the existing_frames we
+        were given contain a cap already.  Otherwise create a Frame and Cap from
+        the mapping information we have.
+        '''
+        if page_vaddr in existing_frames:
+            (size, cap) = existing_frames[page_vaddr]
+            assert size == page['size']
+            return cap
+        frame = Frame('frame_%s_%04d' % (self.name, page_counter),
+            page['size'])
+        spec.add_object(frame)
+        return Cap(frame, read=page['read'], write=page['write'],
+            grant=page['execute'])
+
+    def get_spec(self, existing_frames={}):
         if self._spec is not None:
             return self._spec
 
@@ -92,12 +108,7 @@ class PageCollection(object):
         object_counter = 0
         objects = {}
         for page_counter, (page_vaddr, page) in enumerate(self._pages.items()):
-            frame = Frame('frame_%s_%04d' % (self.name, page_counter),
-                page['size'])
-            spec.add_object(frame)
-            page_cap = Cap(frame, read=page['read'], write=page['write'],
-                grant=page['execute'])
-
+            page_cap = self._get_page_cap(existing_frames, page, page_vaddr, page_counter, spec)
             # Walk the hierarchy, creating missing objects until we can
             # insert the frame
             level = vspace
