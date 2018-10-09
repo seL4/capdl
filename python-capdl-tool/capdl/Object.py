@@ -50,6 +50,7 @@ class ObjectType(Enum):
 
     seL4_FrameObject = 27
     seL4_IRQControl = 28
+    seL4_IRQHandler = 29
 
     seL4_PageDirectoryObject = 30
     seL4_ASID_Pool = 31
@@ -362,6 +363,17 @@ class SC(Object):
     def __repr__(self):
         s = '%(name)s = sc (period: %(period)s, budget: %(budget)s, data: %(data)s, %(size_bits)s bits)' % self.__dict__
         return s
+
+
+class IRQControl(Object):
+    def __init__(self, name):
+        super(IRQControl, self).__init__(name)
+
+    def __repr__(self):
+        # no object representation for an IRQControl
+        s = ""
+        return s
+
 
 class SchedControl(Object):
     def __init__(self, name, core=0):

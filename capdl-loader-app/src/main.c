@@ -45,6 +45,7 @@ static seL4_CPtr capdl_to_sel4_orig[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 static seL4_CPtr capdl_to_sel4_copy[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 static seL4_CPtr capdl_to_sel4_irq[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 static seL4_CPtr capdl_to_sched_ctrl[CONFIG_MAX_NUM_NODES];
+static seL4_CPtr capdl_to_irq_ctrl;
 // List of untyped cptrs, sorted from largest to smallest.
 static seL4_CPtr untyped_cptrs[CONFIG_MAX_NUM_BOOTINFO_UNTYPED_CAPS];
 
@@ -94,7 +95,7 @@ next_free_slot(void)
 }
 
 typedef enum {MOVE, COPY} init_cnode_mode;
-typedef enum {ORIG, DUP, IRQ, SCHED_CTRL} seL4_cap_type;
+typedef enum {ORIG, DUP, IRQ, SCHED_CTRL, IRQ_CTRL} seL4_cap_type;
 
 static seL4_CPtr
 orig_caps(CDL_ObjID object_id)
@@ -124,6 +125,11 @@ sched_ctrl_caps(CDL_Core id)
     return capdl_to_sched_ctrl[id];
 }
 
+static seL4_CPtr irq_control_cap(void)
+{
+    return capdl_to_irq_ctrl;
+}
+
 static void
 add_sel4_cap(CDL_ObjID object_id, seL4_cap_type type, seL4_CPtr slot)
 {
@@ -135,6 +141,8 @@ add_sel4_cap(CDL_ObjID object_id, seL4_cap_type type, seL4_CPtr slot)
         capdl_to_sel4_irq[object_id] = slot;
     } else if (type == SCHED_CTRL) {
         capdl_to_sched_ctrl[object_id] = slot;
+    } else if (type == IRQ_CTRL) {
+        capdl_to_irq_ctrl = slot;
     }
 }
 
@@ -854,6 +862,11 @@ create_sched_ctrl_caps(seL4_BootInfo *bi)
         add_sel4_cap(i, SCHED_CTRL, i + bi->schedcontrol.start);
     }
 #endif
+}
+
+static void create_irq_ctrl_cap(void)
+{
+    add_sel4_cap(0, IRQ_CTRL, seL4_CapIRQControl);
 }
 
 /* Initialise SCs */
@@ -1608,6 +1621,12 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
     case CDL_IRQHandlerCap:
         src_index = irq_caps(target_cap_irq);
         break;
+    case CDL_IRQControlCap:
+        /* there's only one */
+        src_index = capdl_to_irq_ctrl;
+        move_cap = true;
+        is_irq_handler_cap = true;
+        break;
     case CDL_SchedControlCap:
         src_index = sched_ctrl_caps(CDL_SchedControl_Core(get_spec_object(spec, target_cap_obj)));
         break;
@@ -1801,6 +1820,7 @@ init_system(CDL_Model *spec)
 
     create_objects(spec, bootinfo);
     create_irq_caps(spec);
+    create_irq_ctrl_cap();
     if (config_set(CONFIG_KERNEL_RT)) {
         create_sched_ctrl_caps(bootinfo);
     }

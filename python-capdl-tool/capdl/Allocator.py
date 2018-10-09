@@ -16,7 +16,7 @@ from __future__ import absolute_import, division, print_function, \
 from .Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
     Notification, TCB, Untyped, IOPageTable, Object, IRQ, IOPorts, IODevice, \
     VCPU, ASIDPool, SC, SchedControl, RTReply, ObjectType, \
-    ObjectRights, IOAPICIRQ, MSIIRQ, PML4
+    ObjectRights, IOAPICIRQ, MSIIRQ, PML4, IRQControl
 from .Spec import Spec
 from .Cap import Cap
 import collections, os
@@ -97,7 +97,7 @@ class ObjectAllocator(object):
             o = ARMIODevice(name, **kwargs)
         elif type == ObjectType.seL4_IA32_VCPU:
             o = VCPU(name)
-        elif type == ObjectType.seL4_IRQControl:
+        elif type == ObjectType.seL4_IRQHandler:
             if 'number' in kwargs and 'notification' in kwargs:
                 o = IRQ(name, kwargs['number'])
                 o.set_notification(kwargs['notification'])
@@ -113,6 +113,8 @@ class ObjectAllocator(object):
                 o.set_notification(kwargs['notification'])
             else:
                 raise ValueError
+        elif type == ObjectType.seL4_IRQControl:
+            o = IRQControl(name)
         elif type == ObjectType.seL4_ASID_Pool:
             o = ASIDPool(name)
         elif len(frame_type) == 1:
