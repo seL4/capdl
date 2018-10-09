@@ -98,21 +98,22 @@ class ObjectAllocator(object):
         elif type == ObjectType.seL4_IA32_VCPU:
             o = VCPU(name)
         elif type == ObjectType.seL4_IRQHandler:
-            if 'number' in kwargs and 'notification' in kwargs:
+            if 'number' in kwargs:
                 o = IRQ(name, kwargs['number'])
-                o.set_notification(kwargs['notification'])
-            elif 'vector' in kwargs and 'notification' in kwargs and 'ioapic' in kwargs \
+            elif 'vector' in kwargs and 'ioapic' in kwargs \
                     and 'ioapic_pin' in kwargs and 'level' in kwargs and 'polarity' in kwargs:
                 o = IOAPICIRQ(name, kwargs['vector'], kwargs['ioapic'], kwargs['ioapic_pin'],
                     kwargs['level'], kwargs['polarity'])
-                o.set_notification(kwargs['notification'])
-            elif 'vector' in kwargs and 'notification' in kwargs and 'handle' in kwargs \
+            elif 'vector' in kwargs and 'handle' in kwargs \
                     and 'pci_bus' in kwargs and 'pci_dev' in kwargs and 'pci_fun' in kwargs:
                 o = MSIIRQ(name, kwargs['vector'], kwargs['handle'], kwargs['pci_bus'],
                     kwargs['pci_dev'], kwargs['pci_fun'])
-                o.set_notification(kwargs['notification'])
             else:
-                raise ValueError
+                raise ValueError("IRQHandler objects must define (number|vector,ioapic,ioapic_pin,level,"
+                                 "polarity|vector,handle,pci_bus,pci_dev,pci_fun)")
+
+            if 'notification' in kwargs:
+                o.set_notification(kwargs['notification'])
         elif type == ObjectType.seL4_IRQControl:
             o = IRQControl(name)
         elif type == ObjectType.seL4_ASID_Pool:
