@@ -105,6 +105,21 @@ class ELF(object):
                 assert vaddr % size == 0, "vaddr: 0x%x is not aligned to frame_size: 0x%x" %(vaddr, size)
                 vaddr += size
 
+    def regions_in_segment(self, segment, regions):
+        seg_start = segment['p_vaddr']
+        seg_size = segment['p_memsz']
+        seg_end = seg_start + seg_size
+        regions = []
+        for (vaddr, sizes, caps) in regions:
+            for size in sizes:
+                if vaddr >= (seg_end) or (vaddr+size) < seg_start:
+                    pass
+                else:
+                    assert vaddr >= seg_start and (vaddr + size) <= seg_end, "Regions overlap segments which is not allowed"
+                    regions.append((vaddr, size))
+                vaddr += size
+        return regions
+
     def get_pages(self, infer_asid=True, pd=None, use_large_frames=True, addr_space=None):
         """
         Returns a dictionary of pages keyed on base virtual address, that are
@@ -113,12 +128,6 @@ class ELF(object):
         of the page.
         """
         pages = PageCollection(self._safe_name(), self.arch, infer_asid, pd)
-
-        # Various CAmkES output sections we are expecting to see in the ELF.
-        TYPE = {"ignore": 1, "shared": 2, "persistent": 3, "guarded": 4}
-        regex = re.compile("^(ignore_|shared_|persistent|guarded)");
-        sections = [x for x in self._elf.iter_sections() if
-            regex.match(_decode(x.name))]
 
         # We assume that this array contains aligned vaddrs and sizes that are frame sizes
         existing_pages = []
@@ -139,20 +148,20 @@ class ELF(object):
             regions = [{'addr': seg['p_vaddr'],
                         'size': seg['p_memsz'],
                         'type': 0}]
-            relevant_sections = filter(seg.section_in_segment, sections)
-            for sec in relevant_sections:
+            relevant_regions = self.regions_in_segment(seg, existing_pages)
+            for (reg_vaddr, reg_size) in relevant_regions:
                 region = [x for x in regions if
-                    sec['sh_addr'] >= x['addr'] and sec['sh_addr'] < (x['addr'] + x['size'])]
-                assert len(region) == 1
+                    reg_vaddr >= x['addr'] and reg_vaddr < (x['addr'] + x['size'])]
+                assert len(region) == 1, "section is overlapping which is not allowed"
                 region = region[0]
                 orig_size = region['size']
                 # Shrink the region to the range preceding this section.
-                region['size'] = sec['sh_addr'] - region['addr']
+                region['size'] = reg_vaddr - region['addr']
                 # Append a region for this section itself and that following
                 # this section.
-                regions += [{'addr': sec['sh_addr'],
-                             'size': sec['sh_size'],
-                             'type': TYPE[_decode(sec.name).split('_')[0]]},
+                regions += [{'addr': reg_vaddr,
+                             'size': reg_size,
+                             'type': 1},
                             {'addr': sec['sh_addr'] + sec['sh_size'],
                              'size': orig_size - region['size'] - sec['sh_size'],
                              'type': 0}]
@@ -165,12 +174,9 @@ class ELF(object):
 
             # Allocate pages
             for reg in regions:
-                if reg['type'] in [1, 2, 3, 4]:
-                    # A range that must be backed by small pages.
-                    vaddr = round_down(reg['addr'])
-                    while vaddr < reg['addr'] + reg['size']:
-                        pages.add_page(vaddr, r, w, x)
-                        vaddr += PAGE_SIZE
+                if reg['type']:
+                    vaddr = reg['addr']
+                    pages.add_page(vaddr, r, w, x, reg['size'])
                 else:
                     # A range that is eligible for promotion.
                     possible_pages = list(reversed(page_sizes(self.arch)))
