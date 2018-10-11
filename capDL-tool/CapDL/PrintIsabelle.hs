@@ -60,6 +60,11 @@ lemma name statement proof =
   text ("lemma " ++ name ++ ": ") <> doubleQuotes (text statement) $$
   nest 2 (text proof)
 
+long_lemma :: String -> String -> [String] -> Doc
+long_lemma name statement proof =
+  text ("lemma " ++ name ++ ": ") <> doubleQuotes (text statement) $$
+  nest 2 (vcat (map text proof))
+
 lemma' :: String -> [String] -> String -> Doc
 lemma' name statements proof =
   text ("lemma " ++ name ++ ": ") $+$ vcat (map (doubleQuotes . text) statements) $$
@@ -409,18 +414,56 @@ printCDLState arch =
         "cdl_current_thread = undefined", "cdl_irq_node = irqs",
         "cdl_asid_table = asid_table", "cdl_current_domain = undefined"]
 
+deriveObjectSimpsSlowly :: [(ObjID, KernelObject Word)] -> Doc
+deriveObjectSimpsSlowly obj_list =
+    lemma' "objects" (map objects obj_list) ("by (auto simp: objects_def ids)")
+    where objects (id, _) = "objects " ++ showID id ++ "_id = Some " ++ showID id
+
+
+deriveObjectSimps :: [(ObjID, KernelObject Word)] -> Doc
+deriveObjectSimps obj_list =
+    text "(* Use the FastMap package to define an objects_alt with efficient" $+$
+    text " * lookup proofs, then prove that it is equivalent to objects *)" $+$
+    text "local_setup {*" $+$
+    text "FastMap.define_map (FastMap.name_opts_default \"objects_alt\")" $+$
+    nest 2 (
+         text "[" $+$
+         nest 2 (vcat $ punctuate comma $ map binding obj_list) $+$
+         text "]" $+$
+         text "@{term \"id :: cdl_object_id \\<Rightarrow> cdl_object_id\"}" $+$
+         text "@{thms ids}" $+$
+         text "false"
+         ) $+$
+    text "*}"$+$
+    text "" $+$
+    long_lemma "objects_alt"
+        "objects = empty_irq_objects ++ objects_alt"
+        [ "apply (simp only: objects_def objects_alt_tree_to_map)"
+        , "apply (rule arg_cong[where f = \"\\<lambda>x. empty_irq_objects ++ x\"])"
+        , "apply (subst FastMap.map_of_rev[symmetric])"
+        , " apply (rule objects_alt_keys_distinct)"
+        , "apply (simp only: rev.simps append.simps) (* FIXME: quadratic time *)"
+        , "apply (simp only: map_of.simps prod.sel)"
+        , "done"
+        ] $+$
+    text "" $+$
+    lemma' "objects" (map objects obj_list)
+           "by (auto simp: objects_alt map_add_def objects_alt_lookups)"
+    where objects (id, _) = "objects " ++ showID id ++ "_id = Some " ++ showID id
+          binding (id, _) = text $ "(@{term \"" ++ showID id ++ "_id\"}, " ++
+                                   "@{term \"" ++ showID id ++ "\"})"
+
 printSimps :: Arch -> ObjMap Word -> Doc
 printSimps arch ms =
     text "lemmas ids = "      $+$ vcat (map obj_ids obj_list) $+$ text "" $+$
     text "lemmas cap_defs = " $+$ vcat (map caps objs_with_caps) $+$ text "" $+$
     text "lemmas obj_defs = " $+$ vcat (map objs obj_list) $+$ text "" $+$
-    lemma' "objects" (map objects obj_list) ("by (auto simp: objects_def ids)")
+    deriveObjectSimps obj_list
     where obj_ids (id, _) = printID id <> text "_def"
           caps (id, _) = text (capsName id) <> text "_def"
           objs (id, _) = text (showID id) <> text "_def"
           obj_list = sortObjects arch $ Map.toList ms
           objs_with_caps = filter (\(_, obj) -> hasSlots obj) obj_list
-          objects (id, _) = "objects " ++ showID id ++ "_id = Some " ++ showID id
 
 printState :: Arch -> Doc
 printState arch = constdefs "state" "cdl_state" $+$
@@ -431,8 +474,10 @@ printFileName file = text $ dropExtension $ takeFileName file
 
 printHeader :: String -> Doc
 printHeader name =
-    text "theory" <+> doubleQuotes (printFileName name) $+$ text "imports \"DSpec.Types_D\""
-    $+$ text "begin"
+    text "theory" <+> doubleQuotes (printFileName name) $+$ text "imports" $+$
+    nest 2 (text "\"DSpec.Types_D\"" $+$
+            text "\"Lib.FastMap\"") $+$
+    text "begin"
 
 printFooter :: Doc
 printFooter = text "end"
