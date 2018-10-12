@@ -109,16 +109,16 @@ class ELF(object):
         seg_start = segment['p_vaddr']
         seg_size = segment['p_memsz']
         seg_end = seg_start + seg_size
-        regions = []
+        regions_return = []
         for (vaddr, sizes, caps) in regions:
             for size in sizes:
                 if vaddr >= (seg_end) or (vaddr+size) < seg_start:
                     pass
                 else:
                     assert vaddr >= seg_start and (vaddr + size) <= seg_end, "Regions overlap segments which is not allowed"
-                    regions.append((vaddr, size))
+                    regions_return.append((vaddr, size))
                 vaddr += size
-        return regions
+        return regions_return
 
     def get_pages(self, infer_asid=True, pd=None, use_large_frames=True, addr_space=None):
         """
@@ -162,8 +162,8 @@ class ELF(object):
                 regions += [{'addr': reg_vaddr,
                              'size': reg_size,
                              'type': 1},
-                            {'addr': sec['sh_addr'] + sec['sh_size'],
-                             'size': orig_size - region['size'] - sec['sh_size'],
+                            {'addr': reg_vaddr + reg_size,
+                             'size': orig_size - region['size'] - reg_size,
                              'type': 0}]
             # Remove empty regions.
             regions[:] = [x for x in regions if x['size'] != 0]
