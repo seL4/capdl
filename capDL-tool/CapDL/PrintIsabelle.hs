@@ -438,7 +438,7 @@ deriveObjectSimps obj_list =
     text "" $+$
     long_lemma "objects_alt"
         "objects = empty_irq_objects ++ objects_alt"
-        [ "apply (simp only: objects_def objects_alt_tree_to_map)"
+        [ "apply (simp only: objects_def objects_alt_to_lookup_list)"
         , "apply (rule arg_cong[where f = \"\\<lambda>x. empty_irq_objects ++ x\"])"
         , "apply (subst FastMap.map_of_rev[symmetric])"
         , " apply (rule objects_alt_keys_distinct)"
