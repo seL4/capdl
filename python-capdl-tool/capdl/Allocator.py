@@ -15,7 +15,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from .Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
     Notification, TCB, Untyped, IOPageTable, Object, IRQ, IOPorts, IODevice, \
-    VCPU, ASIDPool, SC, SchedControl, RTReply, ObjectType, \
+    ARMIODevice, VCPU, ASIDPool, SC, SchedControl, RTReply, ObjectType, \
     ObjectRights, IOAPICIRQ, MSIIRQ, PML4, IRQControl
 from .Spec import Spec
 from .Cap import Cap
