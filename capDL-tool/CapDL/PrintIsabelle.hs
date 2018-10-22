@@ -410,12 +410,6 @@ printCDLState arch =
         "cdl_current_thread = undefined", "cdl_irq_node = irqs",
         "cdl_asid_table = asid_table", "cdl_current_domain = undefined"]
 
--- Old version that does not depend on FastMap. Currently unused.
-deriveObjectSimpsSlowly :: [(ObjID, KernelObject Word)] -> Doc
-deriveObjectSimpsSlowly obj_list =
-    lemmas "objects" (map objects obj_list) ["by (auto simp: objects_def ids)"]
-    where objects (id, _) = "objects " ++ showID id ++ "_id = Some " ++ showID id
-
 deriveObjectSimps :: [(ObjID, KernelObject Word)] -> Doc
 deriveObjectSimps obj_list =
     text "(* Use the FastMap package to define an objects_alt with efficient" $+$
