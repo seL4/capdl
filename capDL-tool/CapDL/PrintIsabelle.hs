@@ -420,7 +420,7 @@ deriveObjectSimps :: [(ObjID, KernelObject Word)] -> Doc
 deriveObjectSimps obj_list =
     text "(* Use the FastMap package to define an objects_alt with efficient" $+$
     text " * lookup proofs, then prove that it is equivalent to objects *)" $+$
-    defineObjectAlt $+$
+    defineObjectsAlt $+$
     text "" $+$
     proveObjectsAltEquiv $+$
     text "" $+$
@@ -429,7 +429,7 @@ deriveObjectSimps obj_list =
 
           binding (id, _) = text $ "(@{term \"" ++ showID id ++ "_id\"}, " ++
                                    "@{term \"" ++ showID id ++ "\"})"
-          defineObjectAlt =
+          defineObjectsAlt =
               text "local_setup {*" $+$
               text "FastMap.define_map (FastMap.name_opts_default \"objects_alt\")" $+$
               nest 2 (
