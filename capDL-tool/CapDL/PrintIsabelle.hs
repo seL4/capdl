@@ -83,12 +83,10 @@ notUntyped _ = True
 {-
  - Assign objects to contiguous ascending cdl_object_ids, starting
  - from 0. IRQ objects are allocated in a separate range according to
- - their IRQ slot numbers. This scheme should be kept in sync with our
- - Isabelle specification of the capDL generator.
+ - their IRQ slot numbers.
  -
- - XXX: this algorithm traverses the mapping repeatedly and is not
- - scalable. However, Isabelle processing time dwarfs whatever
- - inefficiencies we can achieve here.
+ - FIXME: this algorithm traverses the mapping repeatedly, we should
+ - do it more efficiently at some point.
  -}
 getID :: Arch -> ObjMap Word -> IRQMap -> ObjID -> Doc
 getID arch ms irqNode id =
