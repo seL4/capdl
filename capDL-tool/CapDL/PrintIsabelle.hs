@@ -55,20 +55,18 @@ constdefs name typ =
     text ("definition " ++ name ++ " :: ") <> doubleQuotes (text typ) <+>
     text "where"
 
-lemma :: String -> String -> String -> Doc
-lemma name statement proof =
-  text ("lemma " ++ name ++ ": ") <> doubleQuotes (text statement) $$
-  nest 2 (text proof)
-
-long_lemma :: String -> String -> [String] -> Doc
-long_lemma name statement proof =
-  text ("lemma " ++ name ++ ": ") <> doubleQuotes (text statement) $$
+{- Prove a set of lemmas. The given proof script is assumed to
+ - discharge all the proof goals. -}
+lemmas :: String -> [String] -> [String] -> Doc
+lemmas name statements proof =
+  text ("lemma " ++ name ++ ": ") $+$
+  nest 2 (vcat (map (doubleQuotes . text) statements)) $+$
   nest 2 (vcat (map text proof))
 
-lemma' :: String -> [String] -> String -> Doc
-lemma' name statements proof =
-  text ("lemma " ++ name ++ ": ") $+$ vcat (map (doubleQuotes . text) statements) $$
-  nest 2 (text proof)
+-- Prove a single lemma.
+lemma :: String -> String -> [String] -> Doc
+lemma name statement proof =
+  lemmas name [statement] proof
 
 record :: Doc -> Doc
 record p = text "\\<lparr>" <+> p <+> text "\\<rparr>"
@@ -283,7 +281,7 @@ printLemmaObjectSlots :: ObjID -> Doc
 printLemmaObjectSlots id =
   lemma (objName++"_object_slots")
         ("object_slots "++objName++" = "++slots)
-        ("by (simp add: "++objName++"_def object_slots_def)")
+        ["by (simp add: "++objName++"_def object_slots_def)"]
   where objName = showID id
         slots = capsName id
 
@@ -414,44 +412,52 @@ printCDLState arch =
         "cdl_current_thread = undefined", "cdl_irq_node = irqs",
         "cdl_asid_table = asid_table", "cdl_current_domain = undefined"]
 
+-- Old version that does not depend on FastMap. Currently unused.
 deriveObjectSimpsSlowly :: [(ObjID, KernelObject Word)] -> Doc
 deriveObjectSimpsSlowly obj_list =
-    lemma' "objects" (map objects obj_list) ("by (auto simp: objects_def ids)")
+    lemmas "objects" (map objects obj_list) ["by (auto simp: objects_def ids)"]
     where objects (id, _) = "objects " ++ showID id ++ "_id = Some " ++ showID id
-
 
 deriveObjectSimps :: [(ObjID, KernelObject Word)] -> Doc
 deriveObjectSimps obj_list =
     text "(* Use the FastMap package to define an objects_alt with efficient" $+$
     text " * lookup proofs, then prove that it is equivalent to objects *)" $+$
-    text "local_setup {*" $+$
-    text "FastMap.define_map (FastMap.name_opts_default \"objects_alt\")" $+$
-    nest 2 (
-         text "[" $+$
-         nest 2 (vcat $ punctuate comma $ map binding obj_list) $+$
-         text "]" $+$
-         text "@{term \"id :: cdl_object_id \\<Rightarrow> cdl_object_id\"}" $+$
-         text "@{thms ids}" $+$
-         text "false"
-         ) $+$
-    text "*}"$+$
+    defineObjectAlt $+$
     text "" $+$
-    long_lemma "objects_alt"
-        "objects = empty_irq_objects ++ objects_alt"
-        [ "apply (simp only: objects_def objects_alt_to_lookup_list)"
-        , "apply (rule arg_cong[where f = \"\\<lambda>x. empty_irq_objects ++ x\"])"
-        , "apply (subst FastMap.map_of_rev[symmetric])"
-        , " apply (rule objects_alt_keys_distinct)"
-        , "apply (simp only: rev.simps append.simps) (* FIXME: quadratic time *)"
-        , "apply (simp only: map_of.simps prod.sel)"
-        , "done"
-        ] $+$
+    proveObjectsAltEquiv $+$
     text "" $+$
-    lemma' "objects" (map objects obj_list)
-           "by (auto simp: objects_alt map_add_def objects_alt_lookups)"
+    proveObjectLookups
     where objects (id, _) = "objects " ++ showID id ++ "_id = Some " ++ showID id
+
           binding (id, _) = text $ "(@{term \"" ++ showID id ++ "_id\"}, " ++
                                    "@{term \"" ++ showID id ++ "\"})"
+          defineObjectAlt =
+              text "local_setup {*" $+$
+              text "FastMap.define_map (FastMap.name_opts_default \"objects_alt\")" $+$
+              nest 2 (
+                   nest 2 (brackets (vcat $ punctuate comma $ map binding obj_list)) $+$
+                   text "@{term \"id :: cdl_object_id \\<Rightarrow> cdl_object_id\"}" $+$
+                   text "@{thms ids}" $+$
+                   text "false"
+                   ) $+$
+              text "*}"
+
+          proveObjectsAltEquiv =
+              lemma "objects_alt_equiv"
+                "objects = empty_irq_objects ++ objects_alt"
+                [ "apply (simp only: objects_def objects_alt_to_lookup_list)"
+                , "apply (rule arg_cong[where f = \"\\<lambda>x. empty_irq_objects ++ x\"])"
+                , "apply (subst FastMap.map_of_rev[symmetric])"
+                , " apply (rule objects_alt_keys_distinct)"
+                , "apply (simp only: rev.simps append.simps) (* FIXME: quadratic time *)"
+                , "apply (simp only: map_of.simps prod.sel)"
+                , "done"
+                ]
+
+          proveObjectLookups =
+              lemmas "objects"
+                (map objects obj_list)
+                ["by (auto simp: objects_alt_equiv map_add_def objects_alt_lookups)"]
 
 printSimps :: Arch -> ObjMap Word -> Doc
 printSimps arch ms =
