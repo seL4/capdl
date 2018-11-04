@@ -21,7 +21,7 @@ import Data.Data
 import Data.Word
 
 -- Supported architectures:
-data Arch = IA32 | ARM11 | X86_64 deriving (Eq, Show)
+data Arch = IA32 | ARM11 | X86_64 | AARCH64 deriving (Eq, Show)
 
 -- Access rights of capabilities. Not all capability types support all rights.
 data Rights = Read
@@ -84,7 +84,7 @@ data Cap
         | SchedControlCap { core :: Word }
         | RTReplyCap { capObj :: ObjID }
 
-        -- arch specific caps, ARM11, IA32 and X86_64 merged
+        -- arch specific caps, ARM11, IA32, X86_64 and AARCH64 merged
         | FrameCap {
             capObj :: ObjID,
             capRights :: CapRights,
@@ -101,6 +101,12 @@ data Cap
             capObj :: ObjID,
             capMaybeAsid :: Maybe Asid }
         | PML4Cap {
+            capObj :: ObjID,
+            capMaybeAsid :: Maybe Asid }
+        | PUDCap {
+            capObj :: ObjID,
+            capMaybeAsid :: Maybe Asid }
+        | PGDCap {
             capObj :: ObjID,
             capMaybeAsid :: Maybe Asid }
         | ASIDControlCap -- only one ASIDTable in the system
@@ -169,12 +175,14 @@ data KernelObject a
         maybeSizeBits :: Maybe Word}
     | RTReply
 
--- arch specific objects, ARM11, IA32 and X86_64 mixed
+-- arch specific objects, ARM11, IA32, X86_64 and AARCH64 mixed
     | ASIDPool { slots :: CapMap a }
     | PT { slots :: CapMap a }
     | PD { slots :: CapMap a }
     | PDPT { slots :: CapMap a }
     | PML4 { slots :: CapMap a }
+    | PUD { slots :: CapMap a }
+    | PGD { slots :: CapMap a }
     | Frame {
         vmSizeBits :: Word,
         maybePaddr :: Maybe Word,
@@ -223,6 +231,8 @@ data KOType
     | PD_T
     | PDPT_T
     | PML4_T
+    | PUD_T
+    | PGD_T
     | Frame_T
     | IOPorts_T
     | IODevice_T
@@ -380,6 +390,8 @@ hasSlots (PT {})        = True
 hasSlots (PD {})        = True
 hasSlots (PDPT {})      = True
 hasSlots (PML4 {})      = True
+hasSlots (PUD {})      = True
+hasSlots (PGD {})      = True
 hasSlots (IODevice {})  = True
 hasSlots (ARMIODevice {}) = True
 hasSlots (IOPT {})      = True

@@ -53,6 +53,7 @@ memberArch arch =
             IA32 -> "IA32"
             ARM11 -> "ARM"
             X86_64 -> "X86_64"
+            AARCH64 -> "AARCH64"
 
 memberNum :: Int -> String
 memberNum n = ".num = " ++ show n ++ ","
@@ -149,6 +150,12 @@ showCap objs (PDPTCap id _) _ is_orig _ =
     ", .is_orig = " ++ is_orig ++ "}"
 showCap objs (PML4Cap id _) _ is_orig _ =
     "{.type = CDL_PML4Cap, .obj_id = " ++ showObjID objs id ++
+    ", .is_orig = " ++ is_orig ++ "}"
+showCap objs (PUDCap id _) _ is_orig _ =
+    "{.type = CDL_PUDCap, .obj_id = " ++ showObjID objs id ++
+    ", .is_orig = " ++ is_orig ++ "}"
+showCap objs (PGDCap id _) _ is_orig _ =
+    "{.type = CDL_PGDCap, .obj_id = " ++ showObjID objs id ++
     ", .is_orig = " ++ is_orig ++ "}"
 showCap _ ASIDControlCap _ _ _ =
     "{.type = CDL_ASIDControlCap}"
@@ -280,6 +287,12 @@ showObjectFields objs obj_id (PDPT slots) _ _ _ =
     memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
 showObjectFields objs obj_id (PML4 slots) _ _ _ =
     ".type = CDL_PML4," +++
+    memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
+showObjectFields objs obj_id (PUD slots) _ _ _ =
+    ".type = CDL_PUD," +++
+    memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
+showObjectFields objs obj_id (PGD slots) _ _ _ =
+    ".type = CDL_PGD," +++
     memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
 showObjectFields _ _ (Frame size paddr _) _ _ _ =
     ".type = CDL_Frame," +++

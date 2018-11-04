@@ -321,6 +321,8 @@ koType (PML4 {}) = PML4_T
 koType (PDPT {}) = PDPT_T
 koType (PD {}) = PD_T
 koType (PT {}) = PT_T
+koType (PGD {}) = PGD_T
+koType (PUD {}) = PUD_T
 koType (Frame {}) = Frame_T
 koType (IOPorts {}) = IOPorts_T
 koType (IODevice {}) = IODevice_T
@@ -352,6 +354,8 @@ capTyp (PTCap {}) = PT_T
 capTyp (PDCap {}) = PD_T
 capTyp (PML4Cap {} ) = PML4_T
 capTyp (PDPTCap {} ) = PDPT_T
+capTyp (PUDCap {} ) = PUD_T
+capTyp (PGDCap {} ) = PGD_T
 capTyp (ASIDPoolCap {}) = ASIDPool_T
 capTyp (IOPortsCap {}) = IOPorts_T
 capTyp (IOSpaceCap {}) = IODevice_T
@@ -408,6 +412,8 @@ validCapArch X86_64 (IOSpaceCap {}) = True
 validCapArch X86_64 (IOPTCap {}) = True
 validCapArch X86_64 (VCPUCap {}) = True
 validCapArch ARM11 (ARMIOSpaceCap {}) = True
+validCapArch AARCH64 (PUDCap {}) = True
+validCapArch AARCH64 (PGDCap {}) = True
 validCapArch _ _ = False
 
 checkCapArch :: Arch -> Cap -> ObjID -> Word -> Logger Bool
@@ -458,6 +464,8 @@ validObjArch X86_64 (IOPT {}) = True
 validObjArch X86_64 (VCPU {}) = True
 validObjArch X86_64 (IOAPICIrq {}) = True
 validObjArch X86_64 (MSIIrq {}) = True
+validObjArch AARCH64 (PUD {}) = True
+validObjArch AARCH64 (PGD {}) = True
 validObjArch _ _ = False
 
 checkObjArch :: Arch -> KernelObject Word -> ObjID -> Logger Bool
@@ -485,6 +493,11 @@ validObjCap (PD {}) _ = False
 validObjCap (IOPT {}) (FrameCap {}) = True
 validObjCap (IOPT {}) (IOPTCap {}) = True
 validObjCap (IOPT {}) _ = False
+validObjCap (PGD {}) (PUDCap {}) = True
+validObjCap (PGD {}) _ = False
+validObjCap (PUD {}) (PDCap {}) = True
+validObjCap (PUD {}) (FrameCap {}) = True
+validObjCap (PUD {}) _ = False
 validObjCap _ _ = True
 
 checkValidSlot :: KernelObject Word -> ObjID -> (Word, Cap) -> Logger Bool
@@ -645,6 +658,8 @@ getSlotsFromKernelObject (PT slots) = Just slots
 getSlotsFromKernelObject (PD slots) = Just slots
 getSlotsFromKernelObject (PML4 slots) = Just slots
 getSlotsFromKernelObject (PDPT slots) = Just slots
+getSlotsFromKernelObject (PUD slots) = Just slots
+getSlotsFromKernelObject (PGD slots) = Just slots
 getSlotsFromKernelObject (IODevice slots _ _) = Just slots
 getSlotsFromKernelObject (ARMIODevice slots _) = Just slots
 getSlotsFromKernelObject (IOPT slots _) = Just slots

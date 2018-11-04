@@ -424,6 +424,8 @@ objectOf n obj =
         Obj PD_T _ [] -> PD Map.empty
         Obj PML4_T _ [] -> PML4 Map.empty
         Obj PDPT_T _ [] -> PDPT Map.empty
+        Obj PUD_T _ [] -> PUD Map.empty
+        Obj PGD_T _ [] -> PGD Map.empty
         Obj Frame_T ps [] -> Frame (getVMSize n ps) (getMaybePaddr ps) (getMaybeFill ps)
         Obj IOPT_T ps [] -> IOPT Map.empty (getLevel n ps)
         Obj IOPorts_T ps [] -> IOPorts (getPorts n ps)
@@ -600,6 +602,8 @@ objCapOf containerName obj objRef params =
         PDPT {} -> PDPTCap objRef (getMaybeAsid params)
         PD {} -> PDCap objRef (getMaybeAsid params)
         PT {} -> PTCap objRef (getMaybeAsid params)
+        PUD {} -> PUDCap objRef (getMaybeAsid params)
+        PGD {} -> PGDCap objRef (getMaybeAsid params)
         ASIDPool {} -> ASIDPoolCap objRef (getAsid containerName objRef params)
         IOPT {} -> IOPTCap objRef
         IOPorts {} -> IOPortsCap objRef

@@ -198,6 +198,8 @@ prettyObjParams obj = case obj of
     PD {} -> text "pd"
     PML4 {} -> text "pml4"
     PDPT {} -> text "pdpt"
+    PUD {} -> text "pud"
+    PGD {} -> text "pgd"
     Frame vmSz paddr fill -> text "frame" <+> maybeParensList [prettyVMSize vmSz, prettyPaddr paddr, prettyFill fill]
 
     IOPT _ level -> text "io_pt" <+> maybeParensList [prettyLevel level]
@@ -371,6 +373,7 @@ same (name1, obj1) (name2, obj2) =
 prettyArch ARM11 = text "arm11"
 prettyArch IA32  = text "ia32"
 prettyArch X86_64 = text "x86_64"
+prettyArch AARCH64 = text "aarch64"
 
 -- Helpers for sorting function
 sizeOf :: Arch -> KernelObject Word -> Word
@@ -379,10 +382,12 @@ sizeOf _ (Untyped (Just bSz) _) = 2 ^ bSz
 sizeOf IA32 (CNode _ bSz) = 16 * 2 ^ bSz
 sizeOf ARM11 (CNode _ bSz) = 16 * 2 ^ bSz
 sizeOf X86_64 (CNode _ bSz) = 32 * 2 ^ bSz
+sizeOf AARCH64 (CNode _ bSz) = 32 * 2 ^ bSz
 sizeOf _ Endpoint = 16
 sizeOf IA32 Notification = 16
 sizeOf ARM11 Notification = 16
 sizeOf X86_64 Notification = 32
+sizeOf AARCH64 Notification = 32
 sizeOf _ ASIDPool {} = 4 * 2^10
 sizeOf _ IOPT {} = 4 * 2^10
 sizeOf _ IODevice {} = 1
@@ -401,6 +406,12 @@ sizeOf X86_64 PD {} = 4 * 2^10
 sizeOf X86_64 PDPT {} = 4 * 2^10
 sizeOf X86_64 PML4 {} = 4 * 2^10
 sizeOf X86_64 SC {} = 60
+sizeOf AARCH64 TCB {} = 2^11
+sizeOf AARCH64 PT {} = 4 * 2^10
+sizeOf AARCH64 PD {} = 4 * 2^10
+sizeOf AARCH64 PUD {} = 4 * 2^10
+sizeOf AARCH64 PGD {} = 4 * 2^10
+sizeOf AARCH64 SC {} = 60
 sizeOf _ _ = 0
 
 objPaddr :: KernelObject Word -> Maybe Word
