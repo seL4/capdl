@@ -76,6 +76,8 @@ typedef enum {
     CDL_PDCap,
     CDL_PML4Cap,
     CDL_PDPTCap,
+    CDL_PUDCap,
+    CDL_PGDCap,
     CDL_ASIDControlCap,
     CDL_ASIDPoolCap,
 #if defined(CONFIG_ARCH_X86)
@@ -162,6 +164,10 @@ typedef enum {
     CDL_PT            = seL4_ARM_PageTableObject,
     CDL_PD            = seL4_ARM_PageDirectoryObject,
     CDL_Frame         = seL4_ARM_SmallPageObject,
+#ifdef CONFIG_ARCH_AARCH64
+    CDL_PUD           = seL4_ARM_PageUpperDirectoryObject,
+    CDL_PGD           = seL4_ARM_PageGlobalDirectoryObject,
+#endif
 #elif defined(CONFIG_ARCH_X86)
     CDL_PT            = seL4_X86_PageTableObject,
     CDL_PD            = seL4_X86_PageDirectoryObject,
@@ -192,6 +198,26 @@ typedef enum {
     CDL_ARMIODevice   = seL4_ObjectTypeCount + 9,
 #endif
 } CDL_ObjectType;
+
+#ifdef CONFIG_ARCH_AARCH64
+#define CDL_TOP_LEVEL_PD         CDL_PGD
+#define CDL_PT_LEVEL_1_MAP       seL4_ARM_PageUpperDirectory_Map
+#define CDL_PT_LEVEL_1_IndexBits seL4_PUDIndexBits
+#define CDL_PT_LEVEL_2_MAP       seL4_ARM_PageDirectory_Map
+#define CDL_PT_LEVEL_2_IndexBits seL4_PageDirIndexBits
+#define CDL_PT_LEVEL_3_MAP       seL4_ARM_PageTable_Map
+#define CDL_PT_LEVEL_3_IndexBits seL4_PageTableIndexBits
+#elif CONFIG_ARCH_X86_64
+#define CDL_TOP_LEVEL_PD         CDL_PML4
+#define CDL_PT_LEVEL_1_MAP       seL4_X86_PDPT_Map
+#define CDL_PT_LEVEL_1_IndexBits seL4_PDPTIndexBits
+#define CDL_PT_LEVEL_2_MAP       seL4_X86_PageDirectory_Map
+#define CDL_PT_LEVEL_2_IndexBits seL4_PageDirIndexBits
+#define CDL_PT_LEVEL_3_MAP       seL4_X86_PageTable_Map
+#define CDL_PT_LEVEL_3_IndexBits seL4_PageTableIndexBits
+#else
+#define CDL_TOP_LEVEL_PD         CDL_PD
+#endif
 
 typedef struct {
     uint8_t priority;

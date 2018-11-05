@@ -36,6 +36,8 @@
 #define PDPT_SLOT(vaddr) ((vaddr >> (seL4_PageDirIndexBits + seL4_PageTableIndexBits + seL4_PageBits)) & MASK(seL4_PDPTIndexBits))
 #define PD_SLOT(vaddr)   ((vaddr >> (seL4_PageTableIndexBits + seL4_PageBits)) & MASK(seL4_PageDirIndexBits))
 #define PT_SLOT(vaddr)   ((vaddr >> seL4_PageBits) & MASK(seL4_PageTableIndexBits))
+#define PGD_SLOT(vaddr) ((vaddr >> (seL4_PUDIndexBits + seL4_PageDirIndexBits + seL4_PageTableIndexBits + seL4_PageBits)) & MASK(seL4_PGDIndexBits))
+#define PUD_SLOT(vaddr) ((vaddr >> (seL4_PageDirIndexBits + seL4_PageTableIndexBits + seL4_PageBits)) & MASK(seL4_PUDIndexBits))
 
 #define CAPDL_SHARED_FRAMES
 
@@ -205,9 +207,33 @@ static CDL_Cap *get_cdl_frame_pd(CDL_ObjID root, uintptr_t vaddr, CDL_Model *spe
 }
 #endif
 
+#ifdef CONFIG_ARCH_AARCH64
+static CDL_Cap *get_cdl_frame_pud(CDL_ObjID root, uintptr_t vaddr, CDL_Model *spec)
+{
+    CDL_Object *cdl_pgd = get_spec_object(spec, root);
+    CDL_Cap *pud_cap = get_cap_at(cdl_pgd, PGD_SLOT(vaddr));
+    if (pud_cap == NULL) {
+        ZF_LOGF("Could not find PUD cap %s[%d]", CDL_Obj_Name(cdl_pgd), (int)PGD_SLOT(vaddr));
+    }
+    return pud_cap;
+}
+
+static CDL_Cap *get_cdl_frame_pd(CDL_ObjID root, uintptr_t vaddr, CDL_Model *spec)
+{
+    CDL_Cap *pud_cap = get_cdl_frame_pud(root, vaddr, spec);
+    CDL_Object *cdl_pud = get_spec_object(spec, CDL_Cap_ObjID(pud_cap));
+    CDL_Cap *pd_cap = get_cap_at(cdl_pud, PUD_SLOT(vaddr));
+    if (pd_cap == NULL) {
+        ZF_LOGF("Could not find PD cap %s[%d]", CDL_Obj_Name(cdl_pud), (int)PUD_SLOT(vaddr));
+    }
+    return pd_cap;
+}
+#endif
+
+
 static CDL_Cap *get_cdl_frame_pt(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
 {
-#ifdef CONFIG_ARCH_X86_64
+#if defined(CONFIG_ARCH_X86_64) || defined(CONFIG_ARCH_AARCH64)
     CDL_Cap *pd_cap = get_cdl_frame_pd(pd, vaddr, spec);
     CDL_Object *cdl_pd = get_spec_object(spec, CDL_Cap_ObjID(pd_cap));
 #else
@@ -311,8 +337,8 @@ void init_copy_frame(seL4_BootInfo *bootinfo)
      * to skip the PD */
     seL4_CPtr copy_addr_pt = bootinfo->userImagePaging.start + 1 +
                              PD_SLOT(((uintptr_t)copy_addr)) - PD_SLOT(((uintptr_t)&__executable_start));
-#ifdef CONFIG_ARCH_X6_64
-    /* guess that there is one PDPT and PML4 */
+#if defined(CONFIG_ARCH_X86_64) || defined(CONFIG_ARCH_AARCH64)
+    /* guess that there is one PDPT and PML4 on x86_64 or one PGD and PUD on aarch64 */
     copy_addr_pt += 2;
 #endif
 
@@ -1119,10 +1145,17 @@ configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
 #if defined(CONFIG_ARCH_ARM)
         .pc = pc,
         .sp = sp,
+#ifdef CONFIG_ARCH_AARCH32
         .r0 = argc > 0 ? argv[0] : 0,
         .r1 = argc > 1 ? argv[1] : 0,
         .r2 = argc > 2 ? argv[2] : 0,
         .r3 = argc > 3 ? argv[3] : 0,
+#else // CONFIG_ARCH_AARCH64
+        .x0 = argc > 0 ? argv[0] : 0,
+        .x1 = argc > 1 ? argv[1] : 0,
+        .x2 = argc > 2 ? argv[2] : 0,
+        .x3 = argc > 3 ? argv[3] : 0,
+#endif // CONFIG_ARCH_AARCH32
 #elif defined(CONFIG_ARCH_IA32)
         .eip = pc,
         .esp = sp,
@@ -1274,12 +1307,7 @@ init_pd_asids(CDL_Model *spec)
     ZF_LOGD("Initialising Page Directory ASIDs...\n");
 
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
-        CDL_ObjectType type;
-#ifdef CONFIG_ARCH_X86_64
-        type = CDL_PML4;
-#else
-        type = CDL_PD;
-#endif
+        CDL_ObjectType type = CDL_TOP_LEVEL_PD;
         if (spec->objects[obj_id].type == type) {
             ZF_LOGD(" Initialising pd/pml4 ASID %s...\n",
                     CDL_Obj_Name(&spec->objects[obj_id]));
@@ -1387,76 +1415,77 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
     }
 }
 
-#ifdef CONFIG_ARCH_X86_64
+#if defined(CONFIG_ARCH_X86_64) || defined(CONFIG_ARCH_AARCH64)
+
 static void
-init_pt(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pt_base, CDL_ObjID pt)
+init_level_3(CDL_Model *spec, CDL_ObjID level_0_obj, uintptr_t level_3_base, CDL_ObjID level_3_obj)
 {
-    CDL_Object *obj = get_spec_object(spec, pt);
+    CDL_Object *obj = get_spec_object(spec, level_3_obj);
     for (unsigned long slot_index = 0; slot_index < CDL_Obj_NumSlots(obj); slot_index++) {
         CDL_CapSlot *slot = CDL_Obj_GetSlot(obj, slot_index);
         unsigned long obj_slot = CDL_CapSlot_Slot(slot);
-        uintptr_t base = pt_base + (obj_slot << (seL4_PageBits));
+        uintptr_t base = level_3_base + (obj_slot << (seL4_PageBits));
         CDL_Cap *frame_cap = CDL_CapSlot_Cap(slot);
         seL4_CapRights_t frame_rights = CDL_seL4_Cap_Rights(frame_cap);
-        map_page(spec, frame_cap, pml4, frame_rights, base);
+        map_page(spec, frame_cap, level_0_obj, frame_rights, base);
     }
 }
 
 static void
-init_pd(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pd_base, CDL_ObjID pd)
+init_level_2(CDL_Model *spec, CDL_ObjID level_0_obj, uintptr_t level_2_base, CDL_ObjID level_2_obj)
 {
-    CDL_Object *obj = get_spec_object(spec, pd);
+    CDL_Object *obj = get_spec_object(spec, level_2_obj);
     for (unsigned long slot_index = 0; slot_index < CDL_Obj_NumSlots(obj); slot_index++) {
         CDL_CapSlot *slot = CDL_Obj_GetSlot(obj, slot_index);
         unsigned long obj_slot = CDL_CapSlot_Slot(slot);
-        uintptr_t base = pd_base + (obj_slot << (seL4_PageTableIndexBits + seL4_PageBits));
-        CDL_Cap *pt_cap = CDL_CapSlot_Cap(slot);
-        CDL_ObjID pt_obj = CDL_Cap_ObjID(pt_cap);
-        if (CDL_Cap_Type(pt_cap) == CDL_FrameCap) {
-            seL4_CapRights_t frame_rights = CDL_seL4_Cap_Rights(pt_cap);
-            map_page(spec, pt_cap, pml4, frame_rights, base);
+        uintptr_t base = level_2_base + (obj_slot << (CDL_PT_LEVEL_3_IndexBits + seL4_PageBits));
+        CDL_Cap *level_3_cap = CDL_CapSlot_Cap(slot);
+        CDL_ObjID level_3_obj = CDL_Cap_ObjID(level_3_cap);
+        if (CDL_Cap_Type(level_3_cap) == CDL_FrameCap) {
+            seL4_CapRights_t frame_rights = CDL_seL4_Cap_Rights(level_3_cap);
+            map_page(spec, level_3_cap, level_0_obj, frame_rights, base);
         } else {
-            seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(pt_cap);
-            seL4_X86_PageTable_Map(orig_caps(pt_obj), orig_caps(pml4), base, vm_attribs);
-            init_pt(spec, pml4, base, pt_obj);
+            seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(level_3_cap);
+            CDL_PT_LEVEL_3_MAP(orig_caps(level_3_obj), orig_caps(level_0_obj), base, vm_attribs);
+            init_level_3(spec, level_0_obj, base, level_3_obj);
         }
     }
 }
 
 static void
-init_pdpt(CDL_Model *spec, CDL_ObjID pml4, uintptr_t pdpt_base, CDL_ObjID pdpt)
+init_level_1(CDL_Model *spec, CDL_ObjID level_0_obj, uintptr_t level_1_base, CDL_ObjID level_1_obj)
 {
-    CDL_Object *obj = get_spec_object(spec, pdpt);
+    CDL_Object *obj = get_spec_object(spec, level_1_obj);
     for (unsigned int slot_index = 0; slot_index < CDL_Obj_NumSlots(obj); slot_index++) {
         CDL_CapSlot *slot = CDL_Obj_GetSlot(obj, slot_index);
         unsigned long obj_slot = CDL_CapSlot_Slot(slot);
-        uintptr_t base = pdpt_base + (obj_slot << (seL4_PageDirIndexBits + seL4_PageTableIndexBits + seL4_PageBits));
-        CDL_Cap *pd_cap = CDL_CapSlot_Cap(slot);
-        CDL_ObjID pd_obj = CDL_Cap_ObjID(pd_cap);
-        if (CDL_Cap_Type(pd_cap) == CDL_FrameCap) {
-            seL4_CapRights_t frame_rights = CDL_seL4_Cap_Rights(pd_cap);
-            map_page(spec, pd_cap, pml4, frame_rights, base);
+        uintptr_t base = level_1_base + (obj_slot << (CDL_PT_LEVEL_2_IndexBits + CDL_PT_LEVEL_3_IndexBits + seL4_PageBits));
+        CDL_Cap *level_2_cap = CDL_CapSlot_Cap(slot);
+        CDL_ObjID level_2_obj = CDL_Cap_ObjID(level_2_cap);
+        if (CDL_Cap_Type(level_2_cap) == CDL_FrameCap) {
+            seL4_CapRights_t frame_rights = CDL_seL4_Cap_Rights(level_2_cap);
+            map_page(spec, level_2_cap, level_0_obj, frame_rights, base);
         } else {
-            seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(pd_cap);
-            seL4_X86_PageDirectory_Map(orig_caps(pd_obj), orig_caps(pml4), base, vm_attribs);
-            init_pd(spec, pml4, base, pd_obj);
+            seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(level_2_cap);
+            CDL_PT_LEVEL_2_MAP(orig_caps(level_2_obj), orig_caps(level_0_obj), base, vm_attribs);
+            init_level_2(spec, level_0_obj, base, level_2_obj);
         }
     }
 }
 
 static void
-init_pml4(CDL_Model *spec, CDL_ObjID pml4)
+init_level_0(CDL_Model *spec, CDL_ObjID level_0_obj)
 {
-    CDL_Object *obj = get_spec_object(spec, pml4);
+    CDL_Object *obj = get_spec_object(spec, level_0_obj);
     for (unsigned long slot_index = 0; slot_index < CDL_Obj_NumSlots(obj); slot_index++) {
         CDL_CapSlot *slot = CDL_Obj_GetSlot(obj, slot_index);
         unsigned long obj_slot = CDL_CapSlot_Slot(slot);
-        uintptr_t base = obj_slot << (seL4_PDPTIndexBits + seL4_PageDirIndexBits + seL4_PageTableIndexBits + seL4_PageBits);
-        CDL_Cap *pdpt_cap = CDL_CapSlot_Cap(slot);
-        CDL_ObjID pdpt_obj = CDL_Cap_ObjID(pdpt_cap);
-        seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(pdpt_cap);
-        seL4_X86_PDPT_Map(orig_caps(pdpt_obj), orig_caps(pml4), base, vm_attribs);
-        init_pdpt(spec, pml4, base, pdpt_obj);
+        uintptr_t base = obj_slot << (CDL_PT_LEVEL_1_IndexBits + CDL_PT_LEVEL_2_IndexBits + CDL_PT_LEVEL_3_IndexBits + seL4_PageBits);
+        CDL_Cap *level_1_cap = CDL_CapSlot_Cap(slot);
+        CDL_ObjID level_1_obj = CDL_Cap_ObjID(level_1_cap);
+        seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(level_1_cap);
+        CDL_PT_LEVEL_1_MAP(orig_caps(level_1_obj), orig_caps(level_0_obj), base, vm_attribs);
+        init_level_1(spec, level_0_obj, base, level_1_obj);
     }
 }
 
@@ -1534,15 +1563,15 @@ init_vspace(CDL_Model *spec)
 {
     ZF_LOGD("Initialising VSpaces...\n");
 
-#ifdef CONFIG_ARCH_X86_64
+#if defined(CONFIG_ARCH_X86_64) || defined(CONFIG_ARCH_AARCH64)
     /* Have no understanding of the logic of model of whatever the hell the
        other code in this function is doing as it is pure gibberish. For
-       x86_64 we will just do the obvious recursive initialization */
+       x86_64 and aarch64 we will just do the obvious recursive initialization */
     ZF_LOGD("================================\n");
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
-        if (spec->objects[obj_id].type == CDL_PML4) {
-            ZF_LOGD(" Initialising pml4 %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
-            init_pml4(spec, obj_id);
+        if (spec->objects[obj_id].type == CDL_TOP_LEVEL_PD) {
+            ZF_LOGD(" Initialising top level %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
+            init_level_0(spec, obj_id);
         }
     }
 #else
