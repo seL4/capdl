@@ -60,6 +60,14 @@ class ObjectType(Enum):
     seL4_RTReplyObject = 34
     seL4_ARM_IOSpace = 35
 
+    seL4_AARCH64_PGD = 36
+    seL4_AARCH64_PUD = 37
+    seL4_AARCH64_PageDirectoryObject = 38
+    seL4_AARCH64_PageTableObject = 39
+    seL4_AARCH64_HugePageObject = 40
+    seL4_AARCH64_LargePageObject = 41
+    seL4_AARCH64_SmallPageObject = 42
+
 class ObjectRights(Enum):
     seL4_CanRead = 1
     seL4_CanWrite = 2
@@ -167,6 +175,14 @@ class PDPT(ContainerObject):
 class PML4(ContainerObject):
     def __repr__(self):
         return '%s = pml4' % self.name
+
+class PUD(ContainerObject):
+    def __repr__(self):
+        return '%s = pud' % self.name
+
+class PGD(ContainerObject):
+    def __repr__(self):
+        return '%s = pgd' % self.name
 
 class ASIDPool(ContainerObject):
     def __repr__(self):

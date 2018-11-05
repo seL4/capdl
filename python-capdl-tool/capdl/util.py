@@ -19,7 +19,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from six.moves import range
 
-from .Object import ObjectType, PageTable, PageDirectory, PML4, PDPT
+from .Object import ObjectType, PageTable, PageDirectory, PML4, PDPT, PGD, PUD
 
 # Size of a frame and page (applies to all architectures)
 FRAME_SIZE = 4096 # bytes
@@ -145,6 +145,21 @@ class ARM32Arch(Arch):
     def ipc_buffer_size(self):
         return 512
 
+class AARCH64Arch(Arch):
+    def capdl_name(self):
+        return "aarch64"
+    def vspace(self):
+        return make_levels([
+            Level(2 ** 48, [], ObjectType.seL4_AARCH64_PGD, PGD, "pgd"),
+            Level(2 ** 39, [Frame(SIZE_1GB, ObjectType.seL4_AARCH64_HugePageObject)], ObjectType.seL4_AARCH64_PUD, PUD, "pud"),
+            Level(2 ** 30, [Frame(SIZE_2M, ObjectType.seL4_AARCH64_LargePageObject)], ObjectType.seL4_AARCH64_PageDirectoryObject, PageDirectory, "pd"),
+            Level(2 ** 21, [Frame(PAGE_SIZE, ObjectType.seL4_AARCH64_SmallPageObject)], ObjectType.seL4_AARCH64_PageTableObject, PageTable, "pt"),
+        ])
+    def word_size_bits(self):
+        return 64
+    def ipc_buffer_size(self):
+        return 1024
+
 class ARMHypArch(Arch):
     def capdl_name(self):
         return "arm11"
@@ -161,6 +176,7 @@ class ARMHypArch(Arch):
 def lookup_architecture(arch):
     normalise = {
         'aarch32':'aarch32',
+        'aarch64':'aarch64',
         'arm':'aarch32',
         'arm11':'aarch32',
         'arm_hyp':'arm_hyp',
@@ -170,6 +186,7 @@ def lookup_architecture(arch):
     }
     arch_map = {
         'aarch32': ARM32Arch(),
+        'aarch64': AARCH64Arch(),
         'arm_hyp': ARMHypArch(),
         'ia32': IA32Arch(),
         'x86_64': X64Arch()
