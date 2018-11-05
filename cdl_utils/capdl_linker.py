@@ -73,7 +73,7 @@ def main():
     parser = argparse.ArgumentParser(
                 description="")
     parser.add_argument('--architecture', '--arch', default='aarch32',
-        type=lambda x: type('')(x).lower(), choices=('aarch32', 'arm_hyp', 'ia32', 'x86_64'),
+        type=lambda x: type('')(x).lower(), choices=('aarch32', 'arm_hyp', 'ia32', 'x86_64', 'aarch64'),
         help='Target architecture.')
     subparsers = parser.add_subparsers()
     parser_a = subparsers.add_parser('build_cnode')
