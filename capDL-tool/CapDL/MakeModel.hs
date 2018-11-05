@@ -577,6 +577,10 @@ validCapPars (Frame {}) ps =
                                                         FrameMapping undefined undefined]
 validCapPars (PD {}) ps = subsetConstrs ps [Asid undefined]
 validCapPars (PT {}) ps = subsetConstrs ps [Asid undefined]
+validCapPars (PML4 {}) ps = subsetConstrs ps [Asid undefined]
+validCapPars (PDPT {}) ps = subsetConstrs ps [Asid undefined]
+validCapPars (PUD {}) ps = subsetConstrs ps [Asid undefined]
+validCapPars (PGD {}) ps = subsetConstrs ps [Asid undefined]
 validCapPars (ASIDPool {}) ps = subsetConstrs ps [Asid undefined]
 validCapPars _ ps = null ps
 
