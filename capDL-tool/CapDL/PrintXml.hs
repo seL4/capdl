@@ -75,11 +75,12 @@ showCapRef (obj, slot) = "(" ++ showID obj ++ ", " ++ show slot ++ ")"
 -- Convert CapRights into a string.
 --
 showRights :: CapRights -> String
-showRights rights = readRight ++ writeRight ++ grantRight
+showRights rights = readRight ++ writeRight ++ grantRight ++ grantReplyRight
     where
         readRight = if Read `Set.member` rights then "r" else ""
         writeRight = if Write `Set.member` rights then "w" else ""
         grantRight = if Grant `Set.member` rights then "g" else ""
+        grantReplyRight = if GrantReply `Set.member` rights then "p" else ""
 
 --
 -- Get an object's attributes.

@@ -72,7 +72,8 @@ class ObjectRights(Enum):
     seL4_CanRead = 1
     seL4_CanWrite = 2
     seL4_CanGrant = 4
-    seL4_AllRights = seL4_CanRead|seL4_CanWrite|seL4_CanGrant
+    seL4_CanGrantReply = 8
+    seL4_AllRights = seL4_CanRead|seL4_CanWrite|seL4_CanGrant|seL4_CanGrantReply
 
 class Object(object):
     """

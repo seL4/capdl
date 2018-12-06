@@ -170,8 +170,8 @@ class CSpaceAllocator(object):
         object. The caller is expected to pass either (a) no extra parameters
         indicating a cap with no rights, (b) the extra parameter 'rights' set
         to one of 0/seL4_CanRead/seL4_CanWrite/seL4_CanGrant/seL4_AllRights,
-        or (c) some combination of the boolean parameters 'read', 'write' and
-        'grant' indicating the rights of the cap.
+        or (c) some combination of the boolean parameters 'read', 'write', 'grant'
+        and 'grantreply' indicating the rights of the cap.
         '''
         assert isinstance(obj, Object) or obj is None
 
@@ -191,9 +191,11 @@ class CSpaceAllocator(object):
                 assert 'read' not in kwargs
                 assert 'write' not in kwargs
                 assert 'grant' not in kwargs
+                assert 'grantreply' not in kwargs
                 kwargs['read'] = kwargs['rights'] & ObjectRights.seL4_CanRead > 0
                 kwargs['write'] = kwargs['rights'] & ObjectRights.seL4_CanWrite > 0
                 kwargs['grant'] = kwargs['rights'] & ObjectRights.seL4_CanGrant > 0
+                kwargs['grantreply'] = kwargs['rights'] & ObjectRights.seL4_CanGrantReply > 0
             cap = Cap(obj, **kwargs)
         if isinstance(obj, CNode):
             obj.update_guard_size_caps.append(cap)

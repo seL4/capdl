@@ -105,6 +105,7 @@ printRight :: Rights -> Doc
 printRight Read = text "Read"
 printRight Write = text "Write"
 printRight Grant = text "Grant"
+printRight GrantReply = text "GrantReply"
 
 printRightsList :: [Rights] -> [Doc]
 printRightsList [] = [empty]

@@ -27,12 +27,13 @@ data Arch = IA32 | ARM11 | X86_64 | AARCH64 deriving (Eq, Show)
 data Rights = Read
             | Write
             | Grant
+            | GrantReply
             deriving (Eq, Show, Enum, Ord, Typeable, Data)
 
 type CapRights = Set Rights
 
 allRights :: CapRights
-allRights = Data.Set.fromList [Read, Write, Grant]
+allRights = Data.Set.fromList [Read, Write, Grant, GrantReply]
 
 --
 -- Object identifiers.

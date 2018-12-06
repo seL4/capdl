@@ -366,7 +366,7 @@ The next batch of objects in the data type above are architecture dependent. Mos
 To conclude the description of the capDL data model, it remains to define the data type of capabilities \texttt{Cap}. Almost all capabilities in seL4 refer to one specific object. Some may refer to a set of objects or implicitly to all objects of a given type. Many of the capabilities store explicit access rights. These are modelled as follows:
 
 \begin{verbatim}
-data Rights = Read | Write | Grant
+data Rights = Read | Write | Grant | GrantReply
 types CapRights = Set Right
 \end{verbatim}
 

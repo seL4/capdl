@@ -25,6 +25,7 @@ class Cap(object):
         self.read = kwargs.get('read', False)
         self.write = kwargs.get('write', False)
         self.grant = kwargs.get('grant', False)
+        self.grantreply = kwargs.get('grantreply', False)
         self.guard = kwargs.get('guard', 0)
         self.guard_size = kwargs.get('guard_size', 0)
         self.badge = kwargs.get('badge', None)
@@ -69,10 +70,11 @@ class Cap(object):
         if isinstance(self.referent, Object.Frame) or \
            isinstance(self.referent, Object.Endpoint) or \
            isinstance(self.referent, Object.Notification):
-            extra.append('%s%s%s' %
+            extra.append('%s%s%s%s' %
                 ('R' if self.read else '',
                  'W' if self.write else '',
-                 'X' if self.grant else ''))
+                 'X' if self.grant else '',
+                 'P' if self.grantreply else ''))
         if isinstance(self.referent, Object.Frame) and not self.cached:
             extra.append('uncached')
         if isinstance(self.referent, Object.Frame) and \

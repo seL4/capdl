@@ -65,11 +65,12 @@ showObjID xs id = (case Map.lookup id xs of
 
 showRights :: CapRights -> String
 showRights rights =
-    "(" ++ intercalate "|" (["0"] ++ r ++ w ++ g) ++ ")"
+    "(" ++ intercalate "|" (["0"] ++ r ++ w ++ g ++ rg) ++ ")"
     where
         r = if Read ∈ rights then  ["CDL_CanRead"]  else []
         w = if Write ∈ rights then ["CDL_CanWrite"] else []
         g = if Grant ∈ rights then ["CDL_CanGrant"] else []
+        rg = if GrantReply ∈ rights then ["CDL_CanGrantReply"] else []
 
 showPCI :: Word -> (Word, Word, Word) -> String
 showPCI domainID (pciBus, pciDev, pciFun) =

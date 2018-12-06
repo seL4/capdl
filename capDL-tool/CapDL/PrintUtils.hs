@@ -268,6 +268,7 @@ prettyRight _ Read = text "R"
 prettyRight _ Write = text "W"
 prettyRight True Grant = text "X"
 prettyRight False Grant = text "G"
+prettyRight _ GrantReply = text "P"
 
 maybeRightsList _ [] = []
 maybeRightsList isFrame xs = [hcat (map (prettyRight isFrame) xs)]

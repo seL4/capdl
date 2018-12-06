@@ -451,7 +451,12 @@ chr :: Char -> a -> MapParser a
 chr c v = lexeme (char c) >> return v
 
 right :: MapParser Rights
-right = chr 'R' Read <|> chr 'W' Write <|> chr 'G' Grant <|> chr 'X' Grant
+right =
+        chr 'R' Read
+    <|> chr 'W' Write
+    <|> chr 'G' Grant
+    <|> chr 'X' Grant
+    <|> chr 'P' GrantReply
 
 parse_rights :: MapParser CapRights
 parse_rights = do

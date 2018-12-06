@@ -47,7 +47,8 @@ typedef enum {
     CDL_CanWrite = BIT(0),
     CDL_CanRead = BIT(1),
     CDL_CanGrant = BIT(2),
-    CDL_AllRights = (BIT(0) | BIT(1) | BIT(2)),
+    CDL_CanGrantReply = BIT(3),
+    CDL_AllRights = (BIT(0) | BIT(1) | BIT(2) | BIT(3)),
 } CDL_CapRights;
 
 /* ObjectID: index into the objects array */
@@ -128,7 +129,7 @@ typedef struct {
      */
     /* seL4_ARCH_VMAttributes */ unsigned vm_attribs: 3;
     /* bool                   */ unsigned is_orig: 1;
-    /* seL4_CapRights         */ unsigned rights: 3;
+    /* seL4_CapRights         */ unsigned rights: seL4_CapRightsBits;
 } PACKED CDL_Cap;
 
 /* CapMap: is just an array of cap slots, position of the slot and cap */
@@ -364,7 +365,8 @@ static inline CDL_ObjID      CDL_ObjSlot_ObjID(CDL_ObjSlot *obj_slot)
 /* Returns the sel4utils representation of a CDL_Cap's rights */
 static inline seL4_CapRights_t CDL_seL4_Cap_Rights(CDL_Cap *cap)
 {
-    return seL4_CapRights_new(!!(cap->rights & CDL_CanGrant),
+    return seL4_CapRights_new(!!(cap->rights & CDL_CanGrantReply),
+                              !!(cap->rights & CDL_CanGrant),
                               !!(cap->rights & CDL_CanRead),
                               !!(cap->rights & CDL_CanWrite));
 }
