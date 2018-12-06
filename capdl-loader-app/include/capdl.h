@@ -40,7 +40,7 @@
 /* Binary CapDL representation -- capdl.h */
 
 /* CapRights:  Access rights of capabilities
- * This type is used internally by capDL, and doesn't necessarily
+ * This type is used internally by capDL, and doesn't
  * reflect the representation of cap rights in the kernel api.
  */
 typedef enum {
