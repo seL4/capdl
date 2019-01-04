@@ -160,7 +160,8 @@ class ObjectAllocator(object):
         elif type == ObjectType.seL4_SchedContextObject:
             o = SC(name)
         elif type == ObjectType.seL4_SchedControl:
-            o = SchedControl(name)
+            core = kwargs.get('core', 0)
+            o = SchedControl(name, core)
         elif type == ObjectType.seL4_RTReplyObject:
             o = RTReply(name)
         elif type == ObjectType.seL4_ARMSID:
