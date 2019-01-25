@@ -20,10 +20,10 @@ maintainer:          corey.lewis@data61.csiro.au
 homepage:            https://github.com/seL4/capDL-tool/
 copyright:           Data61, CSIRO
 category:            Development
-build-type:          Custom
+build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.18
-tested-with:         GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.1, GHC == 8.0.2
+tested-with:         GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.1, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.6.3
 
 executable parse-capDL
   main-is:             Main.hs
@@ -31,11 +31,11 @@ executable parse-capDL
   other-extensions:    DeriveDataTypeable, FlexibleInstances,
                        TypeSynonymInstances, CPP
 
-  build-depends:       base >= 4.9 && <4.10, parsec >=3.1 && <3.2,
-                       mtl >=2.2 && <2.3, containers >=0.5 && <0.6,
+  build-depends:       base >= 4.9 && <4.13, parsec >=3.1 && <3.2,
+                       mtl >=2.2 && <2.3, containers >=0.5 && <0.7,
                        split >=0.2 && <0.3, array >=0.5 && <0.6,
                        MissingH >=1.4 && <1.5, pretty >=1.1 && <1.2,
-                       filepath >=1.4 && <1.5, base-compat >= 0.9 && <0.10
+                       filepath >=1.4 && <1.5, base-compat >= 0.9 && <0.11
 
   other-modules:       CapDL.AST, CapDL.DumpParser, CapDL.MakeModel,
                        CapDL.Matrix, CapDL.Model, CapDL.Parser,

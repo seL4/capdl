@@ -25,7 +25,11 @@ import Data.List.Compat
 import Data.List.Utils
 import Data.Maybe (fromJust, fromMaybe, mapMaybe)
 import Prelude ()
+#if MIN_VERSION_base(4,11,0)
+import Prelude.Compat hiding ((<>))
+#else
 import Prelude.Compat
+#endif
 import Data.Map as Map
 import Data.Set as Set
 import Data.Bits
@@ -276,7 +280,7 @@ showObjectFields _ _ (Untyped size_bits paddr) _ _ _ =
     ".size_bits = " ++ show sizeBits ++ "," +++
     ".paddr = (void*)" ++ hex (fromMaybe 0 paddr) ++ ","
     where
-        sizeBits = case size_bits of {Just s -> s; _ -> -1}
+        sizeBits = case size_bits of {Just s -> fromIntegral s; _ -> -1}
 showObjectFields objs obj_id (PT slots) _ _ _ =
     ".type = CDL_PT," +++
     memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required

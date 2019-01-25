@@ -10,6 +10,7 @@
 -- @TAG(DATA61_BSD)
 --
 
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
 module CapDL.PrintDot where
 
@@ -19,7 +20,11 @@ import CapDL.PrintUtils
 import Text.PrettyPrint
 import Data.List.Compat
 import Prelude ()
+#if MIN_VERSION_base(4,11,0)
+import Prelude.Compat hiding ((<>))
+#else
 import Prelude.Compat
+#endif
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 

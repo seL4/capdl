@@ -10,6 +10,7 @@
 -- @TAG(DATA61_BSD)
 --
 
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 module CapDL.PrintUtils where
@@ -18,7 +19,11 @@ import CapDL.Model
 
 import Text.PrettyPrint
 import Prelude ()
+#if MIN_VERSION_base(4,11,0)
+import Prelude.Compat hiding ((<>))
+#else
 import Prelude.Compat
+#endif
 import qualified Data.Set as Set
 import Data.Word
 import Numeric

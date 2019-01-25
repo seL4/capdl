@@ -496,7 +496,7 @@ addIRQMappings objs irqNode =
 addIRQNode :: ObjMap Word -> IRQMap -> Decl -> IRQMap
 addIRQNode objs irqNode (IRQDecl irqs) =
     if Map.null irqNode
-    then ST.evalState (addIRQMappings objs irqNode irqs) (-1)
+    then ST.evalState (addIRQMappings objs irqNode irqs) maxBound
     else error "Duplicate IRQ node declaration"
 addIRQNode _ irqNode _ = irqNode
 
@@ -715,7 +715,7 @@ addCap (Model arch objs irqNode cdt untypedCovers) (id, mappings) =
             then Model arch (Map.insert id mapped objs) irqNode cdt untypedCovers
             else error $ printID id ++
                                 " uses both copies of caps and unnumbered slots"
-            where mapped = ST.evalState (addMappings objs id obj mappings) (-1)
+            where mapped = ST.evalState (addMappings objs id obj mappings) (maxBound)
 
 addCapDecl :: Model Word -> Decl -> Model Word
 addCapDecl m@(Model _ objs _ _ _) (CapDecl names mappings) =
@@ -929,7 +929,7 @@ addCDTMappings ids cdt (obj, mappings) =
 
 addCDTCapDecl :: ObjMap Word -> Idents CapName -> CDT -> Decl -> CDT
 addCDTCapDecl objs ids cdt (CapDecl names mappings) =
-    foldl' (\cdt capDecl -> ST.evalState (addCDTMappings ids cdt capDecl) (-1))
+    foldl' (\cdt capDecl -> ST.evalState (addCDTMappings ids cdt capDecl) maxBound)
            cdt (zip (refToIDs objs names) (repeat mappings))
 addCDTCapDecl _ _ cdt _ = cdt
 
