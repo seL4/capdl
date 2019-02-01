@@ -20,6 +20,8 @@
 #include <string.h>
 #include <stdint.h>
 #include <elf/elf.h>
+#include <elf/elf32.h>
+#include <elf/elf64.h>
 #include <sel4platsupport/platsupport.h>
 #include <cpio/cpio.h>
 #include <simple-default/simple-default.h>
@@ -370,21 +372,23 @@ elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
         ZF_LOGF("ELF file %s not found", elf_name);
     }
 
-    if (elf_checkFile(elf_file) != 0) {
-        ZF_LOGF("Unable to read elf file %s at %p", elf_name, elf_file);
+    elf_t elf;
+    int ret = elf_newFile(elf_file, elf_size, &elf);
+    if (ret < 0) {
+        ZF_LOGF("ELF %s is invalid", elf_name);
     }
 
     ZF_LOGD("   ELF loading %s (from %p)... \n", elf_name, elf_file);
 
-    for (int i = 0; i < elf_getNumProgramHeaders(elf_file); i++) {
-        ZF_LOGD("    to %p... ", (void*)(uintptr_t)elf_getProgramHeaderVaddr(elf_file, i));
+    for (int i = 0; i < elf_getNumProgramHeaders(&elf); i++) {
+        ZF_LOGD("    to %p... ", (void *) elf_getProgramHeaderVaddr(&elf, i));
 
-        size_t f_len = elf_getProgramHeaderFileSize(elf_file, i);
-        uintptr_t dest = elf_getProgramHeaderVaddr(elf_file, i);
-        uintptr_t src = (uintptr_t) elf_file + elf_getProgramHeaderOffset(elf_file, i);
+        size_t f_len = elf_getProgramHeaderFileSize(&elf, i);
+        uintptr_t dest = elf_getProgramHeaderVaddr(&elf, i);
+        uintptr_t src = (uintptr_t) elf_getProgramSegment(&elf, i);
 
         //Skip non loadable headers
-        if (elf_getProgramHeaderType(elf_file, i) != PT_LOAD) {
+        if (elf_getProgramHeaderType(&elf, i) != PT_LOAD) {
             ZF_LOGD("Skipping non loadable header\n");
             continue;
         }
@@ -454,10 +458,10 @@ elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
          * bit of a hack, but fine for now.
          */
         ZF_LOGD(" Marking header as loaded\n");
-        if (((struct Elf32_Header*)elf_file)->e_ident[EI_CLASS] == ELFCLASS32) {
-            elf32_getProgramHeaderTable(elf_file)[i].p_type = PT_NULL;
-        } else if (((struct Elf64_Header*)elf_file)->e_ident[EI_CLASS] == ELFCLASS64) {
-            elf64_getProgramHeaderTable(elf_file)[i].p_type = PT_NULL;
+        if (elf.elfClass == ELFCLASS32) {
+            elf32_getProgramHeaderTable(&elf)[i].p_type = PT_NULL;
+        } else if (elf.elfClass == ELFCLASS64) {
+            elf64_getProgramHeaderTable(&elf)[i].p_type = PT_NULL;
         }
     }
 }
