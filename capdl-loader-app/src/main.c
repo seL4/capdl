@@ -61,6 +61,7 @@ static seL4_CPtr first_arm_iospace;
 static seL4_UserContext global_user_context;
 
 extern char _capdl_archive[];
+extern char _capdl_archive_end[];
 
 /* This symbol is provided by the GNU linker and points at the start/end of our
  * ELF image.
@@ -366,7 +367,8 @@ elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
                 seL4_BootInfo *bootinfo)
 {
     unsigned long elf_size;
-    void *elf_file = cpio_get_file(_capdl_archive, elf_name, &elf_size);
+    unsigned long cpio_size = _capdl_archive_end - _capdl_archive;
+    void *elf_file = cpio_get_file(_capdl_archive, cpio_size, elf_name, &elf_size);
 
     if (elf_file == NULL) {
         ZF_LOGF("ELF file %s not found", elf_name);
@@ -1245,7 +1247,8 @@ init_elfs(CDL_Model *spec, seL4_BootInfo *bootinfo)
     for (int j = 0; ; j++) {
         const char *name = NULL;
         unsigned long size;
-        void *ptr = cpio_get_entry(_capdl_archive, j, &name, &size);
+        unsigned long cpio_size = _capdl_archive_end - _capdl_archive;
+        void *ptr = cpio_get_entry(_capdl_archive, cpio_size, j, &name, &size);
         if (ptr == NULL) {
             break;
         }
