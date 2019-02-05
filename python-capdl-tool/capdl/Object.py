@@ -68,12 +68,14 @@ class ObjectType(Enum):
     seL4_AARCH64_LargePageObject = 41
     seL4_AARCH64_SmallPageObject = 42
 
+
 class ObjectRights(Enum):
     seL4_CanRead = 1
     seL4_CanWrite = 2
     seL4_CanGrant = 4
     seL4_CanGrantReply = 8
     seL4_AllRights = seL4_CanRead|seL4_CanWrite|seL4_CanGrant|seL4_CanGrantReply
+
 
 class Object(object):
     """
@@ -84,6 +86,7 @@ class Object(object):
 
     def is_container(self):
         return False
+
 
 class ContainerObject(Object):
     """
@@ -130,12 +133,14 @@ class ContainerObject(Object):
     def __iter__(self):
         return self.slots.__iter__()
 
+
 # Hex does not produce porcelain output across architectures due to
 # difference between Int and Long types and tacking an L on the end in
 # such cases. We do not want a distinguishing letter at the end since
 # we have asked for a hex value
 def reliable_hex(val) :
     return hex(val).rstrip('L')
+
 
 class Frame(Object):
     def __init__(self, name, size=4096, paddr=None, fill='', **_):
@@ -161,36 +166,45 @@ class Frame(Object):
             'maybefill':(', fill: {%s}' % self.fill) if self.fill != '' else '',
         }
 
+
 class PageTable(ContainerObject):
     def __repr__(self):
         return '%s = pt' % self.name
+
 
 class PageDirectory(ContainerObject):
     def __repr__(self):
         return '%s = pd' % self.name
 
+
 class PDPT(ContainerObject):
     def __repr__(self):
         return '%s = pdpt' % self.name
+
 
 class PML4(ContainerObject):
     def __repr__(self):
         return '%s = pml4' % self.name
 
+
 class PUD(ContainerObject):
     def __repr__(self):
         return '%s = pud' % self.name
+
 
 class PGD(ContainerObject):
     def __repr__(self):
         return '%s = pgd' % self.name
 
+
 class ASIDPool(ContainerObject):
     def __repr__(self):
         return '%s = asid_pool' % self.name
 
+
 def calculate_cnode_size(max_slot):
     return int(math.floor(math.log(max(max_slot, 2), 2)) + 1)
+
 
 def calculate_size(cnode):
     max_slot = None
@@ -199,6 +213,7 @@ def calculate_size(cnode):
     except ValueError as e:
         max_slot = 0
     return calculate_cnode_size(max_slot)
+
 
 class CNode(ContainerObject):
     def __init__(self, name, size_bits='auto'):
@@ -222,13 +237,16 @@ class CNode(ContainerObject):
             size_bits = self.size_bits
         return '%s = cnode (%s bits)' % (self.name, size_bits)
 
+
 class Endpoint(Object):
     def __repr__(self):
         return '%s = ep' % self.name
 
+
 class Notification(Object):
     def __repr__(self):
         return '%s = notification' % self.name
+
 
 class TCB(ContainerObject):
     def __init__(self, name, ipc_buffer_vaddr=0x0, ip=0x0, sp=0x0, elf=None,
@@ -273,6 +291,7 @@ class TCB(ContainerObject):
                 fault_ep += " (badge: %d)" % badge
             self.__setitem__("fault_ep_slot", fault_ep)
 
+
 class Untyped(Object):
     def __init__(self, name, size_bits=12, paddr=None):
         super(Untyped, self).__init__(name)
@@ -285,6 +304,7 @@ class Untyped(Object):
             'size_bits': self.size_bits,
             'maybepaddr':(', paddr: %s' % reliable_hex(self.paddr)) if self.paddr is not None else '',
         }
+
 
 class IOPorts(Object):
     # In the implementation there is no such thing as an IO port object, but it is
@@ -300,6 +320,7 @@ class IOPorts(Object):
              'start':self.start_port,
              'end':self.end_port - 1}
 
+
 class IODevice(Object):
     def __init__(self, name, domainID, bus, dev, fun):
         super(IODevice, self).__init__(name)
@@ -311,6 +332,7 @@ class IODevice(Object):
     def __repr__(self):
         return '%s = io_device (domainID: %d, 0x%x:%d.%d)' % (self.name, self.domainID, self.bus, self.dev, self.fun)
 
+
 class  ARMIODevice(Object):
     def __init__(self, name, iospace):
         super(ARMIODevice, self).__init__(name)
@@ -318,6 +340,7 @@ class  ARMIODevice(Object):
 
     def __repr__(self):
         return '%s = arm_io_device (iospace: %d)' % (self.name, self.iospace)
+
 
 class IOPageTable(ContainerObject):
     def __init__(self, name, level=1):
@@ -327,6 +350,7 @@ class IOPageTable(ContainerObject):
 
     def __repr__(self):
         return '%(name)s = io_pt (level: %(level)s)' % self.__dict__
+
 
 class IRQ(ContainerObject):
     # In the implementation there is no such thing as an IRQ object, but it is
@@ -343,6 +367,7 @@ class IRQ(ContainerObject):
         # Note, in CapDL this is actually represented as a 0-sized CNode.
         return '%s = irq' % self.name
 
+
 class IOAPICIRQ(IRQ):
     def __init__(self, name, vector=None, ioapic=None, pin=None, level=None, polarity=None):
         super(IOAPICIRQ, self).__init__(name, number=vector)
@@ -354,6 +379,7 @@ class IOAPICIRQ(IRQ):
     def __repr__(self):
         return '%s = ioapic_irq (ioapic_num:%d, ioapic_pin:%d, ioapic_level:%d, ioapic_polarity:%d)' % (self.name, \
             self.ioapic, self.pin, self.level, self.polarity)
+
 
 class MSIIRQ(IRQ):
     def __init__(self, name, vector=None, handle=None, bus=None, dev=None, fun=None):
@@ -367,9 +393,11 @@ class MSIIRQ(IRQ):
         return '%s = msi_irq (msi_handle:%d, msi_pci_bus:%d, msi_pci_dev:%d, msi_pci_fun:%d)' % (self.name, \
             self.handle, self.bus, self.dev, self.fun)
 
+
 class VCPU(Object):
     def __repr__(self):
         return '%s = vcpu' % self.name
+
 
 class SC(Object):
     def __init__(self, name, period=10000, budget=10000, data=0x0, size_bits='auto'):
@@ -405,6 +433,7 @@ class SchedControl(Object):
         # no object representation for a sched control
         s = ""
         return s
+
 
 class RTReply(Object):
     def __init__(self, name):
