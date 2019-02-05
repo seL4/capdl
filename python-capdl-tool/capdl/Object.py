@@ -18,63 +18,65 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
 import math, six
-from enum import Enum, unique
+from aenum import Enum, Flag, unique, auto
 
 
 @unique
 class ObjectType(Enum):
-    seL4_UntypedObject = 0
-    seL4_TCBObject = 1
-    seL4_EndpointObject = 2
-    seL4_NotificationObject = 3
-    seL4_CapTableObject = 4
+    seL4_UntypedObject = auto()
+    seL4_TCBObject = auto()
+    seL4_EndpointObject = auto()
+    seL4_NotificationObject = auto()
+    seL4_CapTableObject = auto()
 
-    seL4_ARM_SmallPageObject = 5
-    seL4_ARM_LargePageObject = 6
-    seL4_ARM_SectionObject = 7
-    seL4_ARM_SuperSectionObject = 8
-    seL4_ARM_PageTableObject = 9
-    seL4_ARM_PageDirectoryObject = 10
+    seL4_ARM_SmallPageObject = auto()
+    seL4_ARM_LargePageObject = auto()
+    seL4_ARM_SectionObject = auto()
+    seL4_ARM_SuperSectionObject = auto()
+    seL4_ARM_PageTableObject = auto()
+    seL4_ARM_PageDirectoryObject = auto()
 
-    seL4_IA32_4K = 15
-    seL4_IA32_2M = 16
-    seL4_IA32_4M = 17
-    seL4_X64_1G = 18
-    seL4_IA32_PageTableObject = 19
-    seL4_IA32_PageDirectoryObject = 20
-    seL4_X64_PDPT = 21
-    seL4_X64_PML4 = 22
-    seL4_IA32_IOPageTableObject = 23
-    seL4_IA32_IOPort = 24
-    seL4_IA32_IOSpace = 25
-    seL4_IA32_VCPU = 26
+    seL4_IA32_4K = auto()
+    seL4_IA32_2M = auto()
+    seL4_IA32_4M = auto()
+    seL4_X64_1G = auto()
+    seL4_IA32_PageTableObject = auto()
+    seL4_IA32_PageDirectoryObject = auto()
+    seL4_X64_PDPT = auto()
+    seL4_X64_PML4 = auto()
+    seL4_IA32_IOPageTableObject = auto()
+    seL4_IA32_IOPort = auto()
+    seL4_IA32_IOSpace = auto()
+    seL4_IA32_VCPU = auto()
 
-    seL4_FrameObject = 27
-    seL4_IRQControl = 28
-    seL4_IRQHandler = 29
+    seL4_FrameObject = auto()
+    seL4_IRQControl = auto()
+    seL4_IRQHandler = auto()
 
-    seL4_PageDirectoryObject = 30
-    seL4_ASID_Pool = 31
+    seL4_PageDirectoryObject = auto()
+    seL4_ASID_Pool = auto()
 
-    seL4_SchedContextObject = 32
-    seL4_SchedControl = 33
-    seL4_RTReplyObject = 34
-    seL4_ARM_IOSpace = 35
+    seL4_SchedContextObject = auto()
+    seL4_SchedControl = auto()
+    seL4_RTReplyObject = auto()
+    seL4_ARM_IOSpace = auto()
 
-    seL4_AARCH64_PGD = 36
-    seL4_AARCH64_PUD = 37
-    seL4_AARCH64_PageDirectoryObject = 38
-    seL4_AARCH64_PageTableObject = 39
-    seL4_AARCH64_HugePageObject = 40
-    seL4_AARCH64_LargePageObject = 41
-    seL4_AARCH64_SmallPageObject = 42
+    seL4_AARCH64_PGD = auto()
+    seL4_AARCH64_PUD = auto()
+    seL4_AARCH64_PageDirectoryObject = auto()
+    seL4_AARCH64_PageTableObject = auto()
+    seL4_AARCH64_HugePageObject = auto()
+    seL4_AARCH64_LargePageObject = auto()
+    seL4_AARCH64_SmallPageObject = auto()
 
 
-class ObjectRights(Enum):
-    seL4_CanRead = 1
-    seL4_CanWrite = 2
-    seL4_CanGrant = 4
-    seL4_CanGrantReply = 8
+class ObjectRights(Flag):
+    _order_ = 'seL4_NoRights seL4_CanRead seL4_CanWrite seL4_CanGrant seL4_CanGrantReply seL4_AllRights'
+    seL4_NoRights = 0
+    seL4_CanRead = auto()
+    seL4_CanWrite = auto()
+    seL4_CanGrant = auto()
+    seL4_CanGrantReply = auto()
     seL4_AllRights = seL4_CanRead|seL4_CanWrite|seL4_CanGrant|seL4_CanGrantReply
 
 
