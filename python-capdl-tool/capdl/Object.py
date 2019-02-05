@@ -18,9 +18,10 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
 import math, six
-from enum import Enum
+from enum import Enum, unique
 
 
+@unique
 class ObjectType(Enum):
     seL4_UntypedObject = 0
     seL4_TCBObject = 1
