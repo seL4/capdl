@@ -29,19 +29,13 @@ class ObjectType(Enum):
     seL4_NotificationObject = auto()
     seL4_CapTableObject = auto()
 
-    seL4_ARM_SmallPageObject = auto()
-    seL4_ARM_LargePageObject = auto()
+    seL4_SmallPageObject = auto()
+    seL4_LargePageObject = auto()
     seL4_ARM_SectionObject = auto()
     seL4_ARM_SuperSectionObject = auto()
-    seL4_ARM_PageTableObject = auto()
-    seL4_ARM_PageDirectoryObject = auto()
+    seL4_PageTableObject = auto()
+    seL4_PageDirectoryObject = auto()
 
-    seL4_IA32_4K = auto()
-    seL4_IA32_2M = auto()
-    seL4_IA32_4M = auto()
-    seL4_X64_1G = auto()
-    seL4_IA32_PageTableObject = auto()
-    seL4_IA32_PageDirectoryObject = auto()
     seL4_X64_PDPT = auto()
     seL4_X64_PML4 = auto()
     seL4_IA32_IOPageTableObject = auto()
@@ -53,7 +47,6 @@ class ObjectType(Enum):
     seL4_IRQControl = auto()
     seL4_IRQHandler = auto()
 
-    seL4_PageDirectoryObject = auto()
     seL4_ASID_Pool = auto()
 
     seL4_SchedContextObject = auto()
@@ -63,11 +56,6 @@ class ObjectType(Enum):
 
     seL4_AARCH64_PGD = auto()
     seL4_AARCH64_PUD = auto()
-    seL4_AARCH64_PageDirectoryObject = auto()
-    seL4_AARCH64_PageTableObject = auto()
-    seL4_AARCH64_HugePageObject = auto()
-    seL4_AARCH64_LargePageObject = auto()
-    seL4_AARCH64_SmallPageObject = auto()
 
 
 class ObjectRights(Flag):

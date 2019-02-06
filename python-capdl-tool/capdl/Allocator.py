@@ -76,7 +76,7 @@ class ObjectAllocator(object):
             if 'size' not in kwargs:
                 kwargs['size'] = 4096
             o = Frame(name, **kwargs)
-        elif type == ObjectType.seL4_IA32_PageTableObject or type == ObjectType.seL4_ARM_PageTableObject:
+        elif type == ObjectType.seL4_PageTableObject:
             o = PageTable(name)
         elif type == self.spec.arch.vspace().object:
             o = self.spec.arch.vspace().make_object(name)

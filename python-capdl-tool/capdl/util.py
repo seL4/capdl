@@ -109,8 +109,8 @@ class IA32Arch(Arch):
         return "ia32"
     def vspace(self):
         return make_levels([
-            Level(SIZE_4GB, [Frame(SIZE_4M, ObjectType.seL4_IA32_4M)], ObjectType.seL4_IA32_PageDirectoryObject, PageDirectory, "pd"),
-            Level(SIZE_4M, [Frame(PAGE_SIZE, ObjectType.seL4_IA32_4K)], ObjectType.seL4_IA32_PageTableObject, PageTable, "pt"),
+            Level(SIZE_4GB, [Frame(SIZE_4M, ObjectType.seL4_LargePageObject)], ObjectType.seL4_PageDirectoryObject, PageDirectory, "pd"),
+            Level(SIZE_4M, [Frame(PAGE_SIZE, ObjectType.seL4_SmallPageObject)], ObjectType.seL4_PageTableObject, PageTable, "pt"),
         ])
     def word_size_bits(self):
         return 32
@@ -122,10 +122,10 @@ class X64Arch(Arch):
         return "x86_64"
     def vspace(self):
         return make_levels([
-            Level(2 ** 48, [], ObjectType.seL4_X64_PML4, PML4, "pml4"),
-            Level(2 ** 39, [Frame(SIZE_1GB, ObjectType.seL4_X64_1G)], ObjectType.seL4_X64_PDPT, PDPT, "pdpt"),
-            Level(2 ** 30, [Frame(SIZE_2M, ObjectType.seL4_IA32_2M)], ObjectType.seL4_IA32_PageDirectoryObject, PageDirectory, "pd"),
-            Level(2 ** 21, [Frame(PAGE_SIZE, ObjectType.seL4_IA32_4K)], ObjectType.seL4_IA32_PageTableObject, PageTable, "pt"),
+            Level(2 ** 48, [], ObjectType.seL4_PML4Object, PML4, "pml4"),
+            Level(2 ** 39, [Frame(SIZE_1GB, ObjectType.seL4_HugePageObject)], ObjectType.seL4_X64_PDPT, PDPT, "pdpt"),
+            Level(2 ** 30, [Frame(SIZE_2M, ObjectType.seL4_LargePageObject)], ObjectType.seL4_PageDirectoryObject, PageDirectory, "pd"),
+            Level(2 ** 21, [Frame(PAGE_SIZE, ObjectType.seL4_SmallPageObject)], ObjectType.seL4_PageTableObject, PageTable, "pt"),
         ])
     def word_size_bits(self):
         return 64
@@ -137,8 +137,8 @@ class ARM32Arch(Arch):
         return "arm11"
     def vspace(self):
         return make_levels([
-            Level(SIZE_4GB, [Frame(SIZE_1M, ObjectType.seL4_ARM_SectionObject), Frame(SIZE_16M, ObjectType.seL4_ARM_SuperSectionObject)], ObjectType.seL4_ARM_PageDirectoryObject, PageDirectory, "pd"),
-            Level(SIZE_1M, [Frame(PAGE_SIZE, ObjectType.seL4_ARM_SmallPageObject), Frame(SIZE_64K, ObjectType.seL4_ARM_LargePageObject)], ObjectType.seL4_ARM_PageTableObject, PageTable, "pt"),
+            Level(SIZE_4GB, [Frame(SIZE_1M, ObjectType.seL4_ARM_SectionObject), Frame(SIZE_16M, ObjectType.seL4_ARM_SuperSectionObject)], ObjectType.seL4_PageDirectoryObject, PageDirectory, "pd"),
+            Level(SIZE_1M, [Frame(PAGE_SIZE, ObjectType.seL4_SmallPageObject), Frame(SIZE_64K, ObjectType.seL4_LargePageObject)], ObjectType.seL4_PageTableObject, PageTable, "pt"),
         ])
     def word_size_bits(self):
         return 32
@@ -150,10 +150,10 @@ class AARCH64Arch(Arch):
         return "aarch64"
     def vspace(self):
         return make_levels([
-            Level(2 ** 48, [], ObjectType.seL4_AARCH64_PGD, PGD, "pgd"),
-            Level(2 ** 39, [Frame(SIZE_1GB, ObjectType.seL4_AARCH64_HugePageObject)], ObjectType.seL4_AARCH64_PUD, PUD, "pud"),
-            Level(2 ** 30, [Frame(SIZE_2M, ObjectType.seL4_AARCH64_LargePageObject)], ObjectType.seL4_AARCH64_PageDirectoryObject, PageDirectory, "pd"),
-            Level(2 ** 21, [Frame(PAGE_SIZE, ObjectType.seL4_AARCH64_SmallPageObject)], ObjectType.seL4_AARCH64_PageTableObject, PageTable, "pt"),
+            Level(2 ** 48, [], ObjectType.seL4_PGDObject, PGD, "pgd"),
+            Level(2 ** 39, [Frame(SIZE_1GB, ObjectType.seL4_HugePageObject)], ObjectType.seL4_AARCH64_PUD, PUD, "pud"),
+            Level(2 ** 30, [Frame(SIZE_2M, ObjectType.seL4_LargePageObject)], ObjectType.seL4_PageDirectoryObject, PageDirectory, "pd"),
+            Level(2 ** 21, [Frame(PAGE_SIZE, ObjectType.seL4_SmallPageObject)], ObjectType.seL4_PageTableObject, PageTable, "pt"),
         ])
     def word_size_bits(self):
         return 64
@@ -165,8 +165,8 @@ class ARMHypArch(Arch):
         return "arm11"
     def vspace(self):
         return make_levels([
-            Level(SIZE_4GB, [Frame(SIZE_2M, ObjectType.seL4_ARM_SectionObject), Frame(SIZE_32M, ObjectType.seL4_ARM_SuperSectionObject)], ObjectType.seL4_ARM_PageDirectoryObject, PageDirectory, "pd"),
-            Level(SIZE_2M, [Frame(PAGE_SIZE, ObjectType.seL4_ARM_SmallPageObject), Frame(SIZE_64K, ObjectType.seL4_ARM_LargePageObject)], ObjectType.seL4_ARM_PageTableObject, PageTable, "pt"),
+            Level(SIZE_4GB, [Frame(SIZE_2M, ObjectType.seL4_ARM_SectionObject), Frame(SIZE_32M, ObjectType.seL4_ARM_SuperSectionObject)], ObjectType.seL4_PageDirectoryObject, PageDirectory, "pd"),
+            Level(SIZE_2M, [Frame(PAGE_SIZE, ObjectType.seL4_SmallPageObject), Frame(SIZE_64K, ObjectType.seL4_LargePageObject)], ObjectType.seL4_PageTableObject, PageTable, "pt"),
         ])
     def word_size_bits(self):
         return 32
