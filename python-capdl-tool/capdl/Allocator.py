@@ -19,7 +19,7 @@ from .Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
     ObjectRights, IOAPICIRQ, MSIIRQ, IRQControl, get_object_size
 from .Spec import Spec
 from .Cap import Cap
-import collections, os
+import collections
 
 class ObjectAllocator(object):
     '''
