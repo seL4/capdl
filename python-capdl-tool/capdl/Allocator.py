@@ -82,7 +82,7 @@ class ObjectAllocator(object):
             o = self.spec.arch.vspace().make_object(name)
         elif type == ObjectType.seL4_PageDirectoryObject:
             o = PageDirectory(name)
-        elif type == ObjectType.seL4_IA32_IOPageTableObject:
+        elif type == ObjectType.seL4_IOPageTableObject:
             o = IOPageTable(name)
         elif type == ObjectType.seL4_IA32_IOPort:
             # There is only one IOPort object in the system, which describes the entire
@@ -95,7 +95,7 @@ class ObjectAllocator(object):
             o = IODevice(name, **kwargs)
         elif type == ObjectType.seL4_ARM_IOSpace:
             o = ARMIODevice(name, **kwargs)
-        elif type == ObjectType.seL4_IA32_VCPU:
+        elif type == ObjectType.seL4_VCPU:
             o = VCPU(name)
         elif type == ObjectType.seL4_IRQHandler:
             if 'number' in kwargs:

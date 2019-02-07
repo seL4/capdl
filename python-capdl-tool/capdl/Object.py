@@ -38,10 +38,10 @@ class ObjectType(Enum):
 
     seL4_X64_PDPT = auto()
     seL4_X64_PML4 = auto()
-    seL4_IA32_IOPageTableObject = auto()
+    seL4_IOPageTableObject = auto()
     seL4_IA32_IOPort = auto()
     seL4_IA32_IOSpace = auto()
-    seL4_IA32_VCPU = auto()
+    seL4_VCPU = auto()
 
     seL4_FrameObject = auto()
     seL4_IRQControl = auto()
