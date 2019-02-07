@@ -222,15 +222,16 @@ showObjectFields _ _ Notification _ _ _ = ".type = CDL_Notification,"
 showObjectFields objs obj_id (TCB slots faultEndpoint info domain argv) _ _ _ =
     ".type = CDL_TCB," +++
     ".tcb_extra = {" +++
-    "#if (" ++ show ipcbuffer_addr ++ " & ((1 << 9) - 1)) != 0" +++
-    "#    error \"IPC buffer not 512-byte aligned\"" +++
+    "#if (" ++ hex ipcbuffer_addr ++ " & ((1 << seL4_IPCBufferSizeBits) - 1)) != 0" +++
+    "#    error \"IPC buffer not correctly aligned\"" +++
     "#endif" +++
-    ".ipcbuffer_addr_upper_bits = " ++ show ipcbuffer_addr ++ " >> 9," +++
+    ".ipcbuffer_addr_upper_bits = " ++ hex ipcbuffer_addr ++
+            " >> seL4_IPCBufferSizeBits," +++
     ".priority = " ++ show priority ++ "," +++
     ".max_priority = " ++ show max_priority ++ "," +++
     ".affinity = " ++ show affinity ++ "," +++
-    ".pc = " ++ show pc ++ "," +++
-    ".sp = " ++ show stack ++ "," +++
+    ".pc = " ++ hex pc ++ "," +++
+    ".sp = " ++ hex stack ++ "," +++
     ".elf_name = " ++ show elf_name ++ "," +++
     ".init = (const seL4_Word[])" ++ printInit argv ++ "," +++
     ".init_sz = " ++ show (length argv) ++ "," +++
@@ -354,9 +355,9 @@ showObjects objs counter (x:xs) irqNode cdt ms =
     "[" ++ show counter ++ "] = " ++ showObject objs x irqNode cdt ms ++ "," +++
     showObjects objs (counter + 1) xs irqNode cdt ms
 
-memberObjects ::  Map ObjID Int -> Arch -> [(ObjID, KernelObject Word)] -> IRQMap -> CDT ->
+memberObjects ::  Map ObjID Int -> [(ObjID, KernelObject Word)] -> IRQMap -> CDT ->
                   ObjMap Word -> String
-memberObjects obj_ids _ objs irqNode cdt objs' =
+memberObjects obj_ids objs irqNode cdt objs' =
     ".objects = (CDL_Object[]) {" +++
     showObjects obj_ids 0 objs irqNode cdt objs' +++
     "},"
@@ -404,6 +405,7 @@ printC (Model arch objs irqNode cdt _) _ _ maxIrqs =
     "/* Generated file. Your changes will be overwritten. */" +++
     "" +++
     "#include <capdl.h>" +++
+    "#include <sel4/sel4.h>" +++
     "" +++
     "#ifndef INVALID_SLOT" +++
     "#define INVALID_SLOT (-1)" +++
@@ -415,7 +417,7 @@ printC (Model arch objs irqNode cdt _) _ _ maxIrqs =
     memberArch arch +++
     memberNum objs_sz +++
     memberIRQs obj_ids irqNode arch maxIrqs +++
-    memberObjects obj_ids arch objs' irqNode cdt objs +++
+    memberObjects obj_ids objs' irqNode cdt objs +++
     extraFrameInfos obj_ids objs' +++
     "};"
     where
