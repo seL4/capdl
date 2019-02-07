@@ -122,12 +122,15 @@ class X64Arch(Arch):
         return 1024
 
 class ARM32Arch(Arch):
+    def __init__(self, hyp=False):
+        self.hyp = hyp
+
     def capdl_name(self):
         return "arm11"
     def vspace(self):
         return make_levels([
             Level(SIZE_4GB, [ObjectType.seL4_ARM_SectionObject, ObjectType.seL4_ARM_SuperSectionObject], ObjectType.seL4_PageDirectoryObject, PageDirectory, "pd"),
-            Level(SIZE_1M, [ObjectType.seL4_SmallPageObject, ObjectType.seL4_LargePageObject], ObjectType.seL4_PageTableObject, PageTable, "pt"),
+            Level(SIZE_2M if self.hyp else SIZE_1M, [ObjectType.seL4_SmallPageObject, ObjectType.seL4_LargePageObject], ObjectType.seL4_PageTableObject, PageTable, "pt"),
         ])
     def word_size_bits(self):
         return 32
@@ -149,19 +152,6 @@ class AARCH64Arch(Arch):
     def ipc_buffer_size(self):
         return 1024
 
-class ARMHypArch(Arch):
-    def capdl_name(self):
-        return "arm11"
-    def vspace(self):
-        return make_levels([
-            Level(SIZE_4GB, [ObjectType.seL4_ARM_SectionObject, ObjectType.seL4_ARM_SuperSectionObject], ObjectType.seL4_PageDirectoryObject, PageDirectory, "pd"),
-            Level(SIZE_2M, [ObjectType.seL4_SmallPageObject, ObjectType.seL4_LargePageObject], ObjectType.seL4_PageTableObject, PageTable, "pt"),
-        ])
-    def word_size_bits(self):
-        return 32
-    def ipc_buffer_size(self):
-        return 512
-
 def lookup_architecture(arch):
     normalise = {
         'aarch32':'aarch32',
@@ -176,7 +166,7 @@ def lookup_architecture(arch):
     arch_map = {
         'aarch32': ARM32Arch(),
         'aarch64': AARCH64Arch(),
-        'arm_hyp': ARMHypArch(),
+        'arm_hyp': ARM32Arch(hyp=True),
         'ia32': IA32Arch(),
         'x86_64': X64Arch()
     }
