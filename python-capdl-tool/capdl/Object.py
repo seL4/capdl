@@ -111,7 +111,7 @@ class ContainerObject(Object):
             if index is None:
                 return ''
             elif isinstance(index, six.integer_types):
-                return '%s: ' % reliable_hex(index)
+                return '0x%x: ' % index
             else:
                 assert isinstance(index, six.string_types), \
                         "Slot index is of type %s. Slots indices must be either strings or integers."
@@ -137,14 +137,6 @@ class ContainerObject(Object):
         return self.slots.__iter__()
 
 
-# Hex does not produce porcelain output across architectures due to
-# difference between Int and Long types and tacking an L on the end in
-# such cases. We do not want a distinguishing letter at the end since
-# we have asked for a hex value
-def reliable_hex(val) :
-    return hex(val).rstrip('L')
-
-
 class Frame(Object):
     def __init__(self, name, size=4096, paddr=None, fill='', **_):
         super(Frame, self).__init__(name)
@@ -165,7 +157,7 @@ class Frame(Object):
         return '%(name)s = frame (%(size)s%(maybepaddr)s%(maybefill)s)' % {
             'name':self.name,
             'size':size,
-            'maybepaddr':(', paddr: %s' % reliable_hex(self.paddr)) if self.paddr is not None else '',
+            'maybepaddr':(', paddr: 0x%x' % self.paddr) if self.paddr is not None else '',
             'maybefill':(', fill: {%s}' % self.fill) if self.fill != '' else '',
         }
 
@@ -305,7 +297,7 @@ class Untyped(Object):
         return '%(name)s = ut (%(size_bits)s bits%(maybepaddr)s)' % {
             'name': self.name,
             'size_bits': self.size_bits,
-            'maybepaddr':(', paddr: %s' % reliable_hex(self.paddr)) if self.paddr is not None else '',
+            'maybepaddr':(', paddr: 0x%x' % self.paddr) if self.paddr is not None else '',
         }
 
 
