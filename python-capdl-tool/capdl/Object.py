@@ -386,7 +386,7 @@ class IODevice(Object):
     def get_size_bits(self):
         return None
 
-class  ARMIODevice(Object):
+class ARMIODevice(Object):
     def __init__(self, name, iospace):
         super(ARMIODevice, self).__init__(name)
         self.iospace = iospace
