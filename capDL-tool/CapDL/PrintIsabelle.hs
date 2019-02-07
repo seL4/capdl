@@ -482,9 +482,7 @@ printFooter :: Doc
 printFooter = text "end"
 
 printIsabelle :: String -> Model Word -> Doc
-printIsabelle _ (Model IA32 _ _ _ _) =
-    error "Currently only the ARM11 architecture is supported when parsing to Isabelle"
-printIsabelle name (Model arch ms irqNode cdt untypedCovers) =
+printIsabelle name (Model (arch@ARM11) ms irqNode cdt untypedCovers) =
     printHeader name $+$ text "" $+$
     printObjIDs arch ms' irqNode $+$
     printObjs arch ms' irqNode untypedCovers $+$
@@ -496,3 +494,5 @@ printIsabelle name (Model arch ms irqNode cdt untypedCovers) =
     printSimps arch ms' $+$ text "" $+$
     printFooter
     where ms' = Map.filter notUntyped ms
+printIsabelle _ (Model _ _ _ _ _) =
+    error "Currently only the ARM11 architecture is supported when parsing to Isabelle"
