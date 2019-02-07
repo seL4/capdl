@@ -54,6 +54,7 @@ class ObjectType(Enum):
 
     seL4_SmallPageObject = auto()
     seL4_LargePageObject = auto()
+    seL4_HugePageObject = auto()
     seL4_ARM_SectionObject = auto()
     seL4_ARM_SuperSectionObject = auto()
     seL4_PageTableObject = auto()

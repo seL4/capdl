@@ -16,7 +16,7 @@ from __future__ import absolute_import, division, print_function, \
 from .Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
     Notification, TCB, Untyped, IOPageTable, Object, IRQ, IOPorts, IODevice, \
     ARMIODevice, VCPU, ASIDPool, SC, SchedControl, RTReply, ObjectType, \
-    ObjectRights, IOAPICIRQ, MSIIRQ, PML4, IRQControl
+    ObjectRights, IOAPICIRQ, MSIIRQ, IRQControl, get_object_size
 from .Spec import Spec
 from .Cap import Cap
 import collections, os
@@ -58,7 +58,7 @@ class ObjectAllocator(object):
             return o
 
         self.counter += 1
-        frame_type = [page for page in self.spec.arch.get_pages() if page.object == type]
+        frame_type = [page for page in self.spec.arch.get_pages() if page == type]
         if type == ObjectType.seL4_UntypedObject:
             size_bits = kwargs.get('size_bits', 12)
             paddr = kwargs.get('paddr', None)
@@ -119,7 +119,7 @@ class ObjectAllocator(object):
         elif type == ObjectType.seL4_ASID_Pool:
             o = ASIDPool(name)
         elif len(frame_type) == 1:
-            o = Frame(name, frame_type[0].size, **kwargs)
+            o = Frame(name, get_object_size(frame_type[0]), **kwargs)
         elif type == ObjectType.seL4_SchedContextObject:
             o = SC(name)
         elif type == ObjectType.seL4_SchedControl:
