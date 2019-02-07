@@ -302,7 +302,7 @@ showObjectFields objs obj_id (PGD slots) _ _ _ =
     memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
 showObjectFields _ _ (Frame size paddr _) _ _ _ =
     ".type = CDL_Frame," +++
-    ".size_bits = " ++ show (round $ logBase 2 $ fromIntegral size) ++ "," +++
+    ".size_bits = " ++ show size ++ "," +++
     ".paddr = " ++ pointerOfPAddr paddr ++ ","
 showObjectFields _ _ (IOPorts (start, end)) _ _ _ =
     ".type = CDL_IOPorts," +++

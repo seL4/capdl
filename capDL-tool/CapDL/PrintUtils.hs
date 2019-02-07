@@ -44,11 +44,6 @@ instance Printing [Word] where
 hex :: Word -> String
 hex x = "0x" ++ showHex x ""
 
---Horrible hack for integral log base 2.
-logBase2 :: Word -> Int -> Int
-logBase2 1 i = i
-logBase2 n i = logBase2 (n `div` 2) (i+1)
-
 showID :: ObjID -> String
 showID (name, Nothing) = name
 showID (name, Just num) = name ++ "[" ++ show num ++ "]"

@@ -25,6 +25,7 @@ import Data.List.Compat
 import Data.Either as Either
 import Data.Data
 import Data.Word
+import Data.Bits
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Control.Monad.State as ST
@@ -409,6 +410,10 @@ validObjPars (Obj MSIIrqSlot_T ps []) =
   subsetConstrs ps (replicate (numConstrs (Addr undefined)) (MSIIRQExtraParam undefined))
 validObjPars obj = null (params obj)
 
+-- For converting frame sizes to size bits
+wordLog2 :: Word -> Int
+wordLog2 w = finiteBitSize w - 1 - countLeadingZeros w
+
 objectOf :: Name -> KO -> KernelObject Word
 objectOf n obj =
     if validObjPars obj
@@ -426,7 +431,12 @@ objectOf n obj =
         Obj PDPT_T _ [] -> PDPT Map.empty
         Obj PUD_T _ [] -> PUD Map.empty
         Obj PGD_T _ [] -> PGD Map.empty
-        Obj Frame_T ps [] -> Frame (getVMSize n ps) (getMaybePaddr ps) (getMaybeFill ps)
+        Obj Frame_T ps [] ->
+            let size = getVMSize n ps
+                bits = wordLog2 size
+            in if bits < 0 || 2^bits /= size
+               then error $ "Frame size not power of 2: " ++ n ++ " = " ++ show obj
+               else Frame (fromIntegral bits) (getMaybePaddr ps) (getMaybeFill ps)
         Obj IOPT_T ps [] -> IOPT Map.empty (getLevel n ps)
         Obj IOPorts_T ps [] -> IOPorts (getPorts n ps)
         Obj IODevice_T ps [] -> IODevice Map.empty (getDomainID n ps) (getPCIDevice n ps)

@@ -13,7 +13,7 @@
 module CapDL.PrintIsabelle where
 
 import CapDL.Model
-import CapDL.PrintUtils (logBase2, printAsid, sortObjects)
+import CapDL.PrintUtils (printAsid, sortObjects)
 
 import Text.PrettyPrint
 import Data.List.Compat
@@ -118,13 +118,10 @@ printRights r =
 getObject :: ObjID -> ObjMap Word -> Maybe (KernelObject Word)
 getObject = Map.lookup
 
-bitsToPageBits :: Word -> Int
-bitsToPageBits sz = logBase2 sz 0
-
 printSize :: ObjID -> ObjMap Word -> Doc
 printSize id ms =
     let Just (Frame sz _ _) = getObject id ms
-    in num $ bitsToPageBits sz
+    in num sz
 
 printCoverSet :: ObjMap Word -> Maybe ObjSet -> Doc
 printCoverSet _ Nothing = printSet []
@@ -271,9 +268,9 @@ printObj' _ id (PT _) = text "PageTable" <+>
 printObj' _ id (PD _) = text "PageDirectory" <+>
     record (fsep $ punctuate comma $ map text
     ["cdl_page_directory_caps = " ++ capsName id])
-printObj' _ _ (Frame vmSz _ _) = text "Frame" <+>
+printObj' _ _ (Frame vmSzBits _ _) = text "Frame" <+>
     record (fsep $ punctuate comma $ map text
-    ["cdl_frame_size_bits = " ++ show (bitsToPageBits vmSz)])
+    ["cdl_frame_size_bits = " ++ show vmSzBits])
 printObj' _ _ _ = error "Untyped and IO objs unsupported"
 
 printLemmaObjectSlots :: ObjID -> Doc
