@@ -40,6 +40,11 @@ s1 +++ s2 = s1 ++ "\n" ++ s2
 hex :: Word -> String
 hex x = "0x" ++ showHex x ""
 
+-- This prints paddrs in hex, except that Nothing (no fixed address)
+-- is simply "0" for clarity.
+pointerOfPAddr :: Maybe Word -> String
+pointerOfPAddr p = "((void*)" ++ fromMaybe "0" (hex <$> p) ++ ")"
+
 maxObjects :: Int -> String
 maxObjects count = "#define MAX_OBJECTS " ++ show count
 
@@ -274,7 +279,7 @@ showObjectFields objs obj_id (MSIIrq slots handle bus dev fun) irqNode cdt ms =
 showObjectFields _ _ (Untyped size_bits paddr) _ _ _ =
     ".type = CDL_Untyped," +++
     ".size_bits = " ++ show sizeBits ++ "," +++
-    ".paddr = (void*)" ++ hex (fromMaybe 0 paddr) ++ ","
+    ".paddr = " ++ pointerOfPAddr paddr ++ ","
     where
         sizeBits = case size_bits of {Just s -> s; _ -> -1}
 showObjectFields objs obj_id (PT slots) _ _ _ =
@@ -297,8 +302,8 @@ showObjectFields objs obj_id (PGD slots) _ _ _ =
     memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
 showObjectFields _ _ (Frame size paddr _) _ _ _ =
     ".type = CDL_Frame," +++
-    ".size_bits = " ++ show (logBase 2 $ fromIntegral size) ++ "," +++
-    ".paddr = (void*)" ++ hex (fromMaybe 0 paddr) ++ ","
+    ".size_bits = " ++ show (round $ logBase 2 $ fromIntegral size) ++ "," +++
+    ".paddr = " ++ pointerOfPAddr paddr ++ ","
 showObjectFields _ _ (IOPorts (start, end)) _ _ _ =
     ".type = CDL_IOPorts," +++
     ".start = " ++ show start ++ "," ++
