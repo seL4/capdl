@@ -39,24 +39,24 @@ class TestElf(unittest.TestCase):
         register_object_sizes(test_object_sizes)
 
     def test_elf(self):
-        elf = ELF('arm-hello.bin')
+        elf = ELF('resources/arm-hello.bin')
         assert elf.get_arch() in [40, 'EM_ARM', 'ARM']
         elf.get_spec()
 
     def test_ia32_elf(self):
-        elf = ELF('ia32-hello.bin')
+        elf = ELF('resources/ia32-hello.bin')
         assert elf.get_arch() == 'x86'
 
         elf.get_spec()
 
     def test_symbol_lookup(self):
-        elf = ELF('unstripped.bin')
+        elf = ELF('resources/unstripped.bin')
         assert elf.get_arch() == 'x86'
 
         # Confirm that the address concurs with the one we get from objdump.
         assert elf.get_symbol_vaddr('_start') == 0x08048d48
 
-        elf = ELF('stripped.bin')
+        elf = ELF('resources/stripped.bin')
         assert elf.get_arch() == 'x86'
 
         # We shouldn't be able to get the symbol from the stripped binary.
