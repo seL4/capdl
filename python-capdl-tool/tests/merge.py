@@ -14,12 +14,10 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-import unittest
-
 import capdl
+from tests import CapdlTestCase
 
-
-class TestSpec(unittest.TestCase):
+class TestSpec(CapdlTestCase):
 
     def test_merge(self):
         a = capdl.TCB('foo')
