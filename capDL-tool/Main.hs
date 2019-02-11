@@ -39,7 +39,8 @@ data Options = Options {
     optOutputHeader :: Maybe String,
     optCodeMaxIRQs :: Word,
     optOutputText :: Maybe String,
-    optOutputAnalysis :: Maybe String
+    optOutputAnalysis :: Maybe String,
+    optDumpAST :: Maybe String
     }
 
 -- Default options.
@@ -51,7 +52,8 @@ defaultOptions = Options {
     optOutputHeader = Nothing,
     optCodeMaxIRQs = 256,
     optOutputText = Nothing,
-    optOutputAnalysis = Nothing
+    optOutputAnalysis = Nothing,
+    optDumpAST = Nothing
     }
 
 --
@@ -84,7 +86,11 @@ options = [
 
     Option ['a'] ["analysis"]
         (ReqArg (\arg o -> o {optOutputAnalysis = Just arg }) "FILE")
-        "perform analysis and output cap leak and info flow .dot files and capDL text"
+        "perform analysis and output cap leak and info flow .dot files and capDL text",
+
+    Option [] ["dump-ast"]
+        (ReqArg (\arg o -> o {optDumpAST = Just arg}) "FILE")
+        "dump internal AST"
   ]
 
 --
@@ -140,19 +146,24 @@ main = do
         Right t -> return t
     let (m, i, c) = makeModel res
 
+    let writeFile' "-" = putStr
+        writeFile' f = writeFile f
+
     let (valid, log) = runWriter (checkModel m)
     if valid
      then do
         -- Output model in any requested format.
-        let optActions = [(optOutputIsabelle, \f -> writeFile f $ show $ printIsabelle f m),
-                          (optOutputXml,      \f -> writeFile f $ show $ printXml inputFile m),
-                          (optOutputDot,      \f -> writeFile f $ show $ printDot inputFile m),
-                          (optOutputHeader,   \f -> writeFile f $ show $ printC m i c (optCodeMaxIRQs opt)),
-                          (optOutputText,     \f -> writeFile f $ show $ pretty m),
+        let optActions = [(optOutputIsabelle, \f -> writeFile' f $ show $ printIsabelle f m),
+                          (optOutputXml,      \f -> writeFile' f $ show $ printXml inputFile m),
+                          (optOutputDot,      \f -> writeFile' f $ show $ printDot inputFile m),
+                          (optOutputHeader,   \f -> writeFile' f $ show $ printC m i c (optCodeMaxIRQs opt)),
+                          (optOutputText,     \f -> writeFile' f $ show $ pretty m),
                           (optOutputAnalysis, \f -> do (leakDot, flowDot, newM) <- leakMatrix m
                                                        writeFile (f ++ "-leak.dot") leakDot
                                                        writeFile (f ++ "-flow.dot") flowDot
-                                                       writeFile (f ++ "-saturation.txt") $ show $ pretty newM)]
+                                                       writeFile (f ++ "-saturation.txt") $ show $ pretty newM),
+
+                          (optDumpAST,        \f -> writeFile' f $ show m)]
             condDoOpt (projection, action) = maybe (return ()) action (projection opt)
         mapM_ condDoOpt optActions
      else do
