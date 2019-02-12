@@ -64,11 +64,11 @@ prettyMBits mbits =
 
 prettyLevel l = text "level" <> colon <+> num l
 
---Is there a better way to do this?
-prettyVMSize vmSz =
-    if vmSz >= 2^20
-    then num (vmSz `div` (2^20)) <> text "M"
-    else num (vmSz `div` (2^10)) <> text "k"
+prettyVMSize vmSzBits =
+    -- NB: capDL syntax only uses these two units
+    if vmSzBits >= 20
+    then num (2^(vmSzBits - 20) :: Word) <> text "M"
+    else num (2^(vmSzBits - 10) :: Word) <> text "k"
 
 prettyPaddr :: Maybe Word -> Doc
 prettyPaddr Nothing = empty
@@ -195,7 +195,7 @@ prettyObjParams obj = case obj of
     PDPT {} -> text "pdpt"
     PUD {} -> text "pud"
     PGD {} -> text "pgd"
-    Frame vmSz paddr fill -> text "frame" <+> maybeParensList [prettyVMSize vmSz, prettyPaddr paddr, prettyFill fill]
+    Frame vmSzBits paddr fill -> text "frame" <+> maybeParensList [prettyVMSize vmSzBits, prettyPaddr paddr, prettyFill fill]
 
     IOPT _ level -> text "io_pt" <+> maybeParensList [prettyLevel level]
     IOPorts ports -> text "io_ports" <+> maybeParensList [prettyPorts ports]
