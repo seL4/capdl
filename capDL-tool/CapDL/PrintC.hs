@@ -225,8 +225,7 @@ showObjectFields objs obj_id (TCB slots faultEndpoint info domain argv) _ _ _ =
     "#if (" ++ hex ipcbuffer_addr ++ " & ((1 << seL4_IPCBufferSizeBits) - 1)) != 0" +++
     "#    error \"IPC buffer not correctly aligned\"" +++
     "#endif" +++
-    ".ipcbuffer_addr_upper_bits = " ++ hex ipcbuffer_addr ++
-            " >> seL4_IPCBufferSizeBits," +++
+    ".ipcbuffer_addr = " ++ hex ipcbuffer_addr ++ "," +++
     ".priority = " ++ show priority ++ "," +++
     ".max_priority = " ++ show max_priority ++ "," +++
     ".affinity = " ++ show affinity ++ "," +++

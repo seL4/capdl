@@ -230,8 +230,7 @@ typedef struct {
     const seL4_Word *init;
     seL4_Word init_sz;
     seL4_CPtr fault_ep;
-    /* The IPC buffer is at least 512-byte aligned, so we can drop the low 9 bits. */
-    seL4_Word ipcbuffer_addr_upper_bits: seL4_WordBits - 9;
+    seL4_Word ipcbuffer_addr;
     uint8_t domain;
 } CDL_TCBExtraInfo;
 
@@ -405,7 +404,7 @@ CDL_Obj_GetSlot(CDL_Object *obj, seL4_Word i)
 static inline seL4_Word
 CDL_TCB_IPCBuffer_Addr(CDL_Object *obj)
 {
-    return ((seL4_Word)obj->tcb_extra.ipcbuffer_addr_upper_bits) << 9;
+    return obj->tcb_extra.ipcbuffer_addr;
 }
 
 static inline uint8_t
