@@ -17,9 +17,32 @@ Definitions of kernel objects.
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
+import abc
 import math, six
-from aenum import Enum, Flag, unique, auto
 
+from aenum import Enum, Flag, unique, auto
+import logging
+
+# dict of all object sizes, must be registered before using any Object in this file.
+# this dict is indexed by strings matching ObjectType.name
+object_sizes = {}
+
+def register_object_sizes(sizes):
+    """Register the object sizes to be used when creating objects in this class"""
+    global object_sizes
+    object_sizes = sizes
+
+def get_object_size_bits(object_type):
+    try:
+        global object_sizes
+        return object_sizes[object_type.name]
+    except ValueError:
+        if object_sizes.is_empty():
+            logging.fatal("No object sizes registered!")
+        logging.fatal("No size for object {}".format(object_type.name))
+
+def get_object_size(object_type):
+    return 1 << get_object_size_bits(object_type)
 
 @unique
 class ObjectType(Enum):
@@ -57,6 +80,8 @@ class ObjectType(Enum):
     seL4_AARCH64_PGD = auto()
     seL4_AARCH64_PUD = auto()
 
+    seL4_Slot = auto()
+
 
 class ObjectRights(Flag):
     _order_ = 'seL4_NoRights seL4_CanRead seL4_CanWrite seL4_CanGrant seL4_CanGrantReply seL4_AllRights'
@@ -68,18 +93,24 @@ class ObjectRights(Flag):
     seL4_AllRights = seL4_CanRead|seL4_CanWrite|seL4_CanGrant|seL4_CanGrantReply
 
 
-class Object(object):
+class Object(six.with_metaclass(abc.ABCMeta, object)):
     """
-    Parent of all kernel objects. This class is not expected to be instantiated.
+    Parent of all kernel objects.
     """
     def __init__(self, name):
         self.name = name
 
+    @abc.abstractmethod
+    def get_size_bits(self):
+        pass
+
+    def get_size(self):
+        return 1 << self.get_size_bits()
+
     def is_container(self):
         return False
 
-
-class ContainerObject(Object):
+class ContainerObject(six.with_metaclass(abc.ABCMeta, Object)):
     """
     Common functionality for all objects that are cap containers, in the sense
     that they may have child caps.
@@ -131,9 +162,14 @@ class Frame(Object):
         self.size = size
         self.paddr = paddr
         self.fill = fill
+        # check the size is aligned to a power of 2
+        assert(self.size == (1 << self.get_size_bits()))
 
     def set_fill(self, fill):
         self.fill = fill
+
+    def get_size_bits(self):
+        return self.size.bit_length() - 1
 
     def __repr__(self):
         if self.size % (1024 * 1024) == 0:
@@ -154,36 +190,52 @@ class PageTable(ContainerObject):
     def __repr__(self):
         return '%s = pt' % self.name
 
+    def get_size_bits(self):
+        return get_object_size_bits(ObjectType.seL4_PageTableObject)
 
 class PageDirectory(ContainerObject):
     def __repr__(self):
         return '%s = pd' % self.name
 
+    def get_size_bits(self):
+        return get_object_size_bits(ObjectType.seL4_PageDirectoryObject)
 
 class PDPT(ContainerObject):
     def __repr__(self):
         return '%s = pdpt' % self.name
 
+    def get_size_bits(self):
+        return get_object_size_bits(ObjectType.seL4_X64_PDPT)
 
 class PML4(ContainerObject):
     def __repr__(self):
         return '%s = pml4' % self.name
 
+    def get_size_bits(self):
+        return get_object_size_bits(ObjectType.seL4_X64_PML4)
 
 class PUD(ContainerObject):
     def __repr__(self):
         return '%s = pud' % self.name
+
+    def get_size_bits(self):
+        return get_object_size_bits(ObjectType.seL4_AARCH64_PUD)
 
 
 class PGD(ContainerObject):
     def __repr__(self):
         return '%s = pgd' % self.name
 
+    def get_size_bits(self):
+        return get_object_size_bits(ObjectType.seL4_AARCH64_PGD)
+
 
 class ASIDPool(ContainerObject):
     def __repr__(self):
         return '%s = asid_pool' % self.name
 
+    def get_size_bits(self):
+        return get_object_size_bits(ObjectType.seL4_ASID_Pool)
 
 def calculate_cnode_size(max_slot):
     return int(math.floor(math.log(max(max_slot, 2), 2)) + 1)
@@ -213,23 +265,32 @@ class CNode(ContainerObject):
                 for x in self.update_guard_size_caps:
                     x.set_guard_size(arch.word_size_bits() - self.size_bits)
 
-    def __repr__(self):
+    def get_slot_bits(self):
         if self.size_bits == 'auto':
             size_bits = calculate_size(self)
         else:
             size_bits = self.size_bits
-        return '%s = cnode (%s bits)' % (self.name, size_bits)
+        return size_bits
 
+    def __repr__(self):
+        return '%s = cnode (%s bits)' % (self.name, self.get_slot_bits())
+
+    def get_size_bits(self):
+        return self.get_slot_bits() + get_object_size_bits(ObjectType.seL4_Slot)
 
 class Endpoint(Object):
     def __repr__(self):
         return '%s = ep' % self.name
 
+    def get_size_bits(self):
+        return get_object_size_bits(ObjectType.seL4_EndpointObject)
 
 class Notification(Object):
     def __repr__(self):
         return '%s = notification' % self.name
 
+    def get_size_bits(self):
+        return get_object_size_bits(ObjectType.seL4_NotificationObject)
 
 class TCB(ContainerObject):
     def __init__(self, name, ipc_buffer_vaddr=0x0, ip=0x0, sp=0x0, elf=None,
@@ -274,6 +335,8 @@ class TCB(ContainerObject):
                 fault_ep += " (badge: %d)" % badge
             self.__setitem__("fault_ep_slot", fault_ep)
 
+    def get_size_bits(self):
+        return get_object_size_bits(ObjectType.seL4_TCBObject)
 
 class Untyped(Object):
     def __init__(self, name, size_bits=12, paddr=None):
@@ -288,6 +351,8 @@ class Untyped(Object):
             'maybepaddr':(', paddr: 0x%x' % self.paddr) if self.paddr is not None else '',
         }
 
+    def get_size_bits(self):
+        return self.size_bits
 
 class IOPorts(Object):
     # In the implementation there is no such thing as an IO port object, but it is
@@ -303,6 +368,8 @@ class IOPorts(Object):
              'start':self.start_port,
              'end':self.end_port - 1}
 
+    def get_size_bits(self):
+        return None
 
 class IODevice(Object):
     def __init__(self, name, domainID, bus, dev, fun):
@@ -315,6 +382,8 @@ class IODevice(Object):
     def __repr__(self):
         return '%s = io_device (domainID: %d, 0x%x:%d.%d)' % (self.name, self.domainID, self.bus, self.dev, self.fun)
 
+    def get_size_bits(self):
+        return None
 
 class  ARMIODevice(Object):
     def __init__(self, name, iospace):
@@ -323,6 +392,9 @@ class  ARMIODevice(Object):
 
     def __repr__(self):
         return '%s = arm_io_device (iospace: %d)' % (self.name, self.iospace)
+
+    def get_size_bits(self):
+        return None
 
 
 class IOPageTable(ContainerObject):
@@ -334,6 +406,8 @@ class IOPageTable(ContainerObject):
     def __repr__(self):
         return '%(name)s = io_pt (level: %(level)s)' % self.__dict__
 
+    def get_size_bits(self):
+        return get_object_size_bits(ObjectType.seL4_IOPageTableObject)
 
 class IRQ(ContainerObject):
     # In the implementation there is no such thing as an IRQ object, but it is
@@ -345,6 +419,9 @@ class IRQ(ContainerObject):
     def set_notification(self, notification_cap):
         assert isinstance(notification_cap.referent, Notification)
         self[0] = notification_cap
+
+    def get_size_bits(self):
+        return None
 
     def __repr__(self):
         # Note, in CapDL this is actually represented as a 0-sized CNode.
@@ -381,6 +458,8 @@ class VCPU(Object):
     def __repr__(self):
         return '%s = vcpu' % self.name
 
+    def get_size_bits(self):
+        return get_object_size_bits(ObjectType.seL4_VCPU)
 
 class SC(Object):
     def __init__(self, name, period=10000, budget=10000, data=0x0, size_bits='auto'):
@@ -389,12 +468,15 @@ class SC(Object):
         self.budget = budget
         self.data = data
         if size_bits == 'auto':
-            size_bits = 8
+            size_bits = get_object_size_bits(ObjectType.seL4_SchedContextObject)
         self.size_bits = size_bits
 
     def __repr__(self):
         s = '%(name)s = sc (period: %(period)s, budget: %(budget)s, data: %(data)s, %(size_bits)s bits)' % self.__dict__
         return s
+
+    def get_size_bits(self):
+        return self.size_bits
 
 
 class IRQControl(Object):
@@ -405,6 +487,9 @@ class IRQControl(Object):
         # no object representation for an IRQControl
         s = ""
         return s
+
+    def get_size_bits(self):
+        return None
 
 
 class SchedControl(Object):
@@ -417,6 +502,9 @@ class SchedControl(Object):
         s = ""
         return s
 
+    def get_size_bits(self):
+        return None
+
 
 class RTReply(Object):
     def __init__(self, name):
@@ -425,3 +513,6 @@ class RTReply(Object):
     def __repr__(self):
         return '%s = rtreply' % self.name
         return s
+
+    def get_size_bits(self):
+        return get_object_size_bits(ObjectType.seL4_RTReplyObject)
