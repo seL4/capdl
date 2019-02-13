@@ -18,11 +18,13 @@ import logging
 import os
 import tempfile
 import pkg_resources
+import yaml
 import six
 pkg_resources.require("jinja2>=2.10")
 from jinja2 import Environment, BaseLoader, FileSystemLoader
 
 from capdl import ELF, lookup_architecture
+from capdl.Object import register_object_sizes
 
 CSPACE_TEMPLATE_FILE = os.path.join(os.path.dirname(__file__), "templates/cspace.template.c")
 
@@ -75,6 +77,7 @@ def main():
     parser.add_argument('--architecture', '--arch', default='aarch32',
         type=lambda x: type('')(x).lower(), choices=('aarch32', 'arm_hyp', 'ia32', 'x86_64', 'aarch64'),
         help='Target architecture.')
+    parser.add_argument('--object-sizes', required=True, type=argparse.FileType('r'))
     subparsers = parser.add_subparsers()
     parser_a = subparsers.add_parser('build_cnode')
     parser_a.add_argument('--ccspace', nargs='+', type=argparse.FileType('w'), action='append')
@@ -87,6 +90,7 @@ def main():
     parser_b.add_argument('--manifest-in', type=argparse.FileType('rb'))
     parser_b.add_argument('--elffile', nargs='+', action='append')
     args = parser.parse_args()
+    register_object_sizes(yaml.load(args.object_sizes))
 
     (objects, cspaces, addr_spaces, cap_symbols, region_symbols, elfs) = pickle.load(args.manifest_in)
     if args.which is "build_cnode":
