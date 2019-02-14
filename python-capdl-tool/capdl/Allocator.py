@@ -13,13 +13,21 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
+import abc
+import collections
+import logging
+
+import six
+from sortedcontainers import SortedList, SortedDict
+
+from capdl.util import ctz, is_aligned
+from .Cap import Cap
 from .Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
     Notification, TCB, Untyped, IOPageTable, Object, IRQ, IOPorts, IODevice, \
     ARMIODevice, VCPU, ASIDPool, SC, SchedControl, RTReply, ObjectType, \
     ObjectRights, IOAPICIRQ, MSIIRQ, IRQControl, get_object_size
 from .Spec import Spec
-from .Cap import Cap
-import collections
+
 
 class ObjectAllocator(object):
     '''
@@ -284,3 +292,216 @@ class AddressSpaceAllocator(object):
         regions = self._regions
         self._regions = None
         return regions
+
+class AllocatorException(Exception):
+    pass
+
+class UntypedAllocator(six.with_metaclass(abc.ABCMeta, object)):
+    """
+    An allocation interface for assigning objects to specific untypeds.
+    Each untyped allocator implements its own policy.
+    """
+
+    @abc.abstractmethod
+    def add_untyped(self, u, device=False):
+        pass
+
+    def add_device_untyped(self, u):
+        self.add_untyped(u, True)
+
+    @abc.abstractmethod
+    def allocate(self):
+        pass
+
+class AllocQueue:
+
+    def __init__(self, s):
+        assert(isinstance(s, Spec))
+        # dict of unfungible objects, sorted by paddr.
+        self.unfun_objects = SortedDict(lambda x: -x)
+        # dict of lists of fungible objects, indexed by size_bits
+        self.objects = {}
+        self.sizes = SortedList()
+        for o in s.objs:
+            if hasattr(o, 'paddr') and o.paddr:
+                self._push_unfun_obj(o)
+            elif o.get_size_bits():
+                self._push_fun(o)
+
+    def _push_fun(self, o):
+        size_bits = o.get_size_bits()
+        if size_bits in self.objects:
+            self.objects[size_bits].append(o)
+        else:
+            self.objects[size_bits] = collections.deque([o])
+            self.sizes.add(size_bits)
+
+    def pop_fun(self, size_bits):
+        if size_bits in self.objects:
+            popped = self.objects[size_bits].pop()
+            if not len(self.objects[size_bits]):
+                self.sizes.remove(size_bits)
+                del self.objects[size_bits]
+        return popped
+
+    def _push_unfun_obj(self, o):
+        if o.paddr in self.unfun_objects:
+            raise AllocatorException("Duplicate paddr %x" % o.paddr)
+        self.unfun_objects[o.paddr] = o
+
+    def pop_unfun(self):
+        if self.unfun_objects:
+            (paddr, obj) = self.unfun_objects.popitem()
+            return obj
+        return None
+
+    def max_size(self):
+        return self.sizes[len(self.sizes) - 1]
+
+    def min_size(self):
+        return self.sizes[0]
+
+    def more_unfun(self):
+        return len(self.unfun_objects) > 0
+
+    def more_fun(self, size_bits=0):
+        if size_bits:
+            return size_bits in self.objects and len(self.objects[size_bits])
+        return len(self.objects) > 0
+
+class BestFitAllocator(UntypedAllocator):
+
+    def __init__(self):
+        self.untyped = SortedList()
+
+    @staticmethod
+    def _overlap(before, after):
+        assert isinstance(before, Untyped)
+        assert isinstance(after, Untyped)
+        assert(before.paddr <= after.paddr)
+        return not (before.paddr < after.paddr and ((before.paddr + before.get_size()) < (after.paddr + after.get_size())))
+
+    @staticmethod
+    def _overlap_exception(u, overlap):
+        assert isinstance(u, Untyped)
+        assert isinstance(overlap, Untyped)
+        raise AllocatorException("New untyped (%x <--> %x) would overlap with existing (%x <--> %x)",
+                                 u.paddr, u.paddr + u.get_size(),
+                                 overlap.paddr, overlap.paddr + overlap.get_size())
+
+    def add_untyped(self, u, device=False):
+        """
+        Add an untyped object to the allocator. Throw an error if the untyped overlaps with existing untypeds, is
+        missing a paddr, or does not have a paddr aligned to its size.
+        """
+        assert isinstance(u, Untyped)
+        if u.paddr is None:
+            raise AllocatorException("Untyped has no defined paddr")
+        if not is_aligned(u.paddr, u.get_size_bits()):
+            raise AllocatorException("Untyped at %x is not aligned", u.paddr)
+
+        # check overlap
+        index = self.untyped.bisect_right((u, device))
+        if index > 0 and self._overlap(self.untyped[index - 1][0], u):
+            self._overlap_exception(u, self.untyped[index - 1][0])
+        if index < len(self.untyped) and self._overlap(u, self.untyped[index][0]):
+            self._overlap_exception(u, self.untyped[index][0])
+
+        self.untyped.add((u, device))
+
+    def _fill_from_objects(self, objects, untyped, size_bits):
+        if not objects.more_fun() or size_bits < objects.min_size():
+            return size_bits
+        if objects.more_fun(size_bits):
+            # we found an object of size_bits that needs allocating, allocate it!
+            untyped.add_child(objects.pop_fun(size_bits))
+            return 0
+        else:
+            # no objects of the size we were looking for -- try for two of a smaller size
+            first = self._fill_from_objects(objects, untyped, size_bits - 1)
+            second = self._fill_from_objects(objects, untyped, size_bits - 1)
+            assert(first == 0 or first == size_bits - 1)
+            assert(second == 0 or second == size_bits - 1)
+            if first == second:
+                if first == 0:
+                    # we successfully allocated all of the space
+                    return 0
+                elif first == size_bits - 1:
+                    # we didn't allocate either successfully, return that amount for potential
+                    # munging into a larger untyped
+                    return size_bits
+            else:
+                # we only managed to allocate one of the smaller objects. Create a
+                # place holder untyped to retain alignment
+                untyped.add_placeholder(size_bits - 1)
+                return 0
+
+    def _use_untyped(self, objects, untyped, size_bytes, is_device):
+        assert(untyped.remaining() >= size_bytes)
+
+        while size_bytes:
+            size_bits = ctz(size_bytes)
+            if is_device:
+                untyped.add_placeholder(size_bits)
+            else:
+                res = self._fill_from_objects(objects, untyped, size_bits)
+                if res == size_bits:
+                    # we failed to fill from objects at all
+                    untyped.add_placeholder(size_bits)
+            size_bytes -= (1 << size_bits)
+            assert(size_bytes >= 0)
+
+    def _next_ut(self):
+        try:
+            return self.untyped.pop()
+        except IndexError:
+            raise AllocatorException("Out of untyped memory to allocate from")
+
+    def allocate(self, s):
+        assert(isinstance(s, Spec))
+
+        if not len(s.objs):
+            # nothing to do
+            logging.warn("No objects to allocate")
+            return
+
+        # put the objects from spec into the order we need to complete allocation
+        objects = AllocQueue(s)
+        (ut, is_device) = self._next_ut()
+
+        # allocate all of the unfun objects
+        while objects.more_unfun():
+            paddr, unfun = objects.unfun_objects.peekitem()
+
+            if ut.remaining() == 0:
+                s.add_object(ut)
+                (ut, is_device) = self._next_ut()
+
+            if paddr < ut.watermark_paddr():
+                # we've gone past the paddr and didn't find a ut!
+                raise AllocatorException("No untyped for paddr {0}".format(paddr))
+            elif paddr >= ut.watermark_paddr() and \
+                    (paddr + unfun.get_size()) <= (ut.paddr + ut.get_size()):
+                # the object we want is in this untyped!
+                self._use_untyped(objects, ut, paddr - ut.watermark_paddr(), is_device)
+                ut.add_child(unfun, paddr)
+                objects.unfun_objects.popitem()
+            elif objects.more_fun():
+                # no objects we want in this untyped, fill it up
+                self._use_untyped(objects, ut, ut.remaining(), is_device)
+            else:
+                (ut, is_device) = self._next_ut()
+
+        # we don't allocate device untyped from this point, so
+        # if the last untyped we used was a device and has some children, add it to the new objects,
+        if is_device and len(ut.children):
+            s.add_object(ut)
+        elif ut.remaining() > 0:
+            self.untyped.add((ut, is_device))
+
+        # now allocate the rest of the objects
+        while objects.more_fun():
+            (ut, is_device) = self._next_ut()
+            if not is_device:
+                self._use_untyped(objects, ut, ut.remaining(), False)
+                s.add_object(ut)
