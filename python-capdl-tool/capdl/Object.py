@@ -125,22 +125,19 @@ class ContainerObject(six.with_metaclass(abc.ABCMeta, Object)):
         return True
 
     def print_contents(self):
-        def slot_index(index):
-            """
-            Print a slot index in a sensible way.
-            """
-            if index is None:
-                return ''
-            elif isinstance(index, six.integer_types):
-                return '0x%x: ' % index
-            else:
-                assert isinstance(index, six.string_types), \
-                        "Slot index is of type %s. Slots indices must be either strings or integers."
-                return '%s: ' % index
+        keys = self.slots.keys()
+        if all(isinstance(k, six.integer_types) for k in keys):
+            print_slot_index = lambda index: '0x%x' % index
+        elif all(isinstance(k, six.string_types) for k in keys):
+            print_slot_index = lambda index: index
+        else:
+            raise RuntimeError(
+                "Object %s: slot indexes must be either all strings or all integers" % self.name)
 
         return '%s {\n%s\n}' % (self.name,
-            '\n'.join(sorted('%s%s' % (slot_index(x[0]), x[1])
-                for x in self.slots.items() if x[1] is not None)))
+            '\n'.join('%s: %s' % (print_slot_index(index), val)
+                      for index, val in sorted(self.slots.items())
+                      if val is not None))
 
     def __contains__(self, key):
         return key in self.slots
