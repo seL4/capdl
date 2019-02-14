@@ -646,6 +646,10 @@ retype_untyped(seL4_CPtr free_slot, seL4_CPtr free_untyped,
 
     int no_objects = 1;
 
+    ZF_LOGF_IF(object_type >= seL4_ObjectTypeCount,
+               "Invalid object type %zu size %zu\n",
+               (size_t) object_type, (size_t) object_size);
+
     int err = seL4_Untyped_Retype(free_untyped, object_type, object_size,
                                   root, node_index, node_depth, node_offset, no_objects);
 
@@ -682,9 +686,6 @@ create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_BootInfo *inf
         obj_type = (seL4_ArchObjectType) CDL_Obj_Type(obj);
     }
 
-    ZF_LOGF_IF(obj_type >= seL4_ObjectTypeCount,
-               "Invalid object type, %lu derived from %lu, size %lu\n",
-               obj_type, CDL_Obj_Type(obj), obj_size);
     if (CDL_Obj_Type(obj) == CDL_CNode) {
         ZF_LOGD(" (CNode of size %d bits)", obj_size);
     }
