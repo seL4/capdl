@@ -22,22 +22,26 @@ class Cap(object):
     def __init__(self, referent, **kwargs):
         assert isinstance(referent, Object.Object)
         self.referent = referent
-        self.read = kwargs.get('read', False)
-        self.write = kwargs.get('write', False)
-        self.grant = kwargs.get('grant', False)
-        self.grantreply = kwargs.get('grantreply', False)
-        self.guard = kwargs.get('guard', 0)
-        self.guard_size = kwargs.get('guard_size', 0)
-        self.badge = kwargs.get('badge', None)
-        self.cached = kwargs.get('cached', True)
-        self.ports = kwargs.get('ports', None)
-        self.mapping_container = kwargs.get('mapping_container', None)
-        self.mapping_slot = kwargs.get('mapping_slot', None)
+        fields = {
+            'read': False,
+            'write': False,
+            'grant': False,
+            'grantreply': False,
+            'guard': 0,
+            'guard_size': 0,
+            'badge': None,
+            'cached': True,
+            'ports': None,
+            'mapping_container': None,
+            'mapping_slot': None,
+        }
+        for k, default in fields.items():
+            setattr(self, k, kwargs.get(k, default))
 
     def set_guard(self, guard):
         assert isinstance(self.referent, Object.CNode)
         assert isinstance(guard, int)
-        assert guard & 0x3ffff == guard, 'guards can be a maximum of 18 bits'
+        assert guard % 2**18 == guard, 'guards can be a maximum of 18 bits'
         self.guard = guard
 
     def set_guard_size(self, guard_size):
@@ -49,7 +53,7 @@ class Cap(object):
         # Only endpoint caps can be badged.
         assert isinstance(self.referent, Object.Endpoint) or \
             isinstance(self.referent, Object.Notification)
-        assert badge & 0xfffffff == badge, 'badges can be a maximum of 28 bits'
+        assert badge % 2**28 == badge, 'badges can be a maximum of 28 bits'
         self.badge = badge
 
     def set_cached(self, cached):
@@ -67,21 +71,24 @@ class Cap(object):
         if isinstance(self.referent, Object.SchedControl):
             return "sched_control (core: %d)" % self.referent.core
 
-        if isinstance(self.referent, Object.Frame) or \
-           isinstance(self.referent, Object.Endpoint) or \
-           isinstance(self.referent, Object.Notification):
-            extra.append('%s%s%s%s' %
-                ('R' if self.read else '',
-                 'W' if self.write else '',
-                 'X' if self.grant else '',
-                 'P' if self.grantreply else ''))
+        if isinstance(self.referent,
+                      (Object.Frame, Object.Endpoint, Object.Notification)):
+            is_frame = isinstance(self.referent, Object.Frame)
+            rights = [ sym for sym, flag in
+                       [ ('R', self.read),
+                         ('W', self.write),
+                         ('X', is_frame and self.grant),
+                         ('G', not is_frame and self.grant),
+                         ('P', self.grantreply) ]
+                       if flag ]
+            extra.append(''.join(rights))
+
         if isinstance(self.referent, Object.Frame) and not self.cached:
             extra.append('uncached')
         if isinstance(self.referent, Object.Frame) and \
             self.mapping_container is not None:
             extra.append('mapping: (%s, %d)' % (self.mapping_container.name, self.mapping_slot))
-        if (isinstance(self.referent, Object.Endpoint) or
-            isinstance(self.referent, Object.Notification)) and \
+        if isinstance(self.referent, (Object.Endpoint, Object.Notification)) and \
            self.badge is not None:
             extra.append('badge: %d' % self.badge)
         if isinstance(self.referent, Object.CNode):
