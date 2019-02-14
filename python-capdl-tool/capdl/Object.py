@@ -19,6 +19,7 @@ from __future__ import absolute_import, division, print_function, \
 
 import abc
 import math, six
+from functools import total_ordering
 
 from aenum import Enum, Flag, unique, auto
 import logging
@@ -339,6 +340,9 @@ class TCB(ContainerObject):
     def get_size_bits(self):
         return get_object_size_bits(ObjectType.seL4_TCBObject)
 
+# untypeds are ordered by their paddr, then size, then name, which makes allocation of objects from an
+# untyped at specific addresses easier.
+@total_ordering
 class Untyped(Object):
     def __init__(self, name, size_bits=12, paddr=None):
         super(Untyped, self).__init__(name)
@@ -354,6 +358,15 @@ class Untyped(Object):
 
     def get_size_bits(self):
         return self.size_bits
+
+    def __eq__(self, other):
+        return self.size_bits == other.size_bits and self.paddr == other.paddr and self.name == other.name
+
+    def __lt__(self, other):
+        return (self.paddr, self.size_bits, self.name) < (other.paddr, other.size_bits, other.name)
+
+    def __hash__(self):
+        return hash((self.paddr, self.size_bits, self.name))
 
 class IOPorts(Object):
     # In the implementation there is no such thing as an IO port object, but it is
