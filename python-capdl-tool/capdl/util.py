@@ -17,6 +17,7 @@ Various internal utility functions. Pay no mind to this file.
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
+import six
 from six.moves import range
 
 from .Object import ObjectType, PageTable, PageDirectory, PML4, PDPT, PGD, PUD, get_object_size
@@ -184,6 +185,12 @@ def round_down(n, alignment=FRAME_SIZE):
     """
     return n // alignment * alignment
 
+def round_up(n, alignment):
+    """
+    Round a number up to 'alignment'
+    """
+    return round_down(n + alignment-1, alignment)
+
 def last_level(level):
     while level.child is not None:
         level = level.child
@@ -227,3 +234,23 @@ def page_vaddr(vaddr):
     location within that page.
     """
     return vaddr // PAGE_SIZE * PAGE_SIZE
+
+def ctz(size_bytes):
+    """
+    Count trailing zeros in a python integer.
+    The value must be greater than 0.
+    """
+    assert(size_bytes > 0)
+    assert(isinstance(size_bytes, six.integer_types))
+    low = size_bytes & -size_bytes
+    low_bit = -1
+    while low:
+        low = low >> 1
+        low_bit += 1
+    return low_bit
+
+def is_aligned(value, size_bits):
+    """
+    Return true if value is aligned to the provided alignment
+    """
+    return (value % (1 << size_bits)) == 0
