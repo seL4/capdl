@@ -344,42 +344,16 @@ class TCB(ContainerObject):
 # untyped at specific addresses easier.
 @total_ordering
 class Untyped(Object):
-    def __init__(self, name, size_bits=12, paddr=0):
+    def __init__(self, name, size_bits=12, paddr=None):
         super(Untyped, self).__init__(name)
         self.size_bits = size_bits
         self.paddr = paddr
-        self.watermark = 0
-        self.children = []
-
-    def add_child(self, child, paddr=None):
-        """Add a child to this untyped. The child *must* align with the current
-        watermark, and must fit into the untyped"""
-        assert isinstance(child, Object)
-        assert(self.remaining() >= child.get_size())
-        if paddr:
-            assert(self.watermark_paddr() == paddr)
-        self.children.append(child)
-        self.watermark += child.get_size()
-        return self.remaining()
-
-    def add_placeholder(self, size_bits):
-        name = "place_holder_0x%x".format(self.watermark_paddr())
-        self.add_child(Untyped(name, size_bits, self.watermark_paddr()), self.watermark_paddr())
-
-    def remaining(self):
-        """Return the amount of space left that can be retyped in this untyped"""
-        return self.get_size() - self.watermark
-
-    def watermark_paddr(self):
-        """Return the current paddr watermark"""
-        return self.watermark + self.paddr
 
     def __repr__(self):
-        return '%(name)s = ut (%(size_bits)s bits%(maybepaddr)s) { %(kids)s }' % {
+        return '%(name)s = ut (%(size_bits)s bits%(maybepaddr)s)' % {
             'name': self.name,
             'size_bits': self.size_bits,
             'maybepaddr':(', paddr: 0x%x' % self.paddr) if self.paddr is not None else '',
-            'kids':  ('\n'.join([k.name for k in self.children])) if self.children else ''
         }
 
     def get_size_bits(self):
