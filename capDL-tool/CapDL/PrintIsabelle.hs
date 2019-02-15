@@ -120,10 +120,10 @@ printSize id ms =
     let Just (Frame sz _ _) = Map.lookup id ms
     in num sz
 
-printCoverSet :: ObjMap Word -> Maybe ObjSet -> Doc
+printCoverSet :: ObjMap Word -> Maybe [ObjID] -> Doc
 printCoverSet _ Nothing = printSet []
-printCoverSet ms (Just objs) = printSet $ map printID $ Set.toList objs'
-    where objs' = Set.filter (\id -> isJust $ Map.lookup id ms) objs
+printCoverSet ms (Just objs) = printSet $ map printID objs'
+    where objs' = filter (\id -> isJust $ Map.lookup id ms) objs
 
 printMaybeAsid :: Maybe Asid -> Doc
 printMaybeAsid Nothing = text "None"

@@ -216,9 +216,9 @@ printCovered objs =
     xmlSurround "covered" [] ids
     where ids = vcat $ map text $ map (\obj -> emptyTag "id" [("id", showID obj)]) objs
 
-printCover :: (ObjID, ObjSet) -> Doc
+printCover :: (ObjID, [ObjID]) -> Doc
 printCover (untyped, cover) =
-    xmlSurround "cover" [("untyped", showID untyped)] $ printCovered (Set.toList cover)
+    xmlSurround "cover" [("untyped", showID untyped)] $ printCovered cover
 
 printUntypedCovers :: CoverMap -> Doc
 printUntypedCovers untypedCovers =

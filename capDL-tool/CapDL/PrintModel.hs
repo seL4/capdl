@@ -20,7 +20,6 @@ import Data.List.Compat
 import Prelude ()
 import Prelude.Compat
 import qualified Data.Map as Map
-import qualified Data.Set as Set
 
 indent = 2
 
@@ -60,19 +59,19 @@ prettyCovered list@(id:_) =
     prettyNameRefr same:prettyCovered (drop (length same) list)
     where same = takeWhile (sameName id) list
 
-getCover :: ObjID -> CoverMap -> ObjSet
+getCover :: ObjID -> CoverMap -> [ObjID]
 getCover ut covers =
     case Map.lookup ut covers of
-        Nothing -> Set.empty
+        Nothing -> []
         Just cover -> cover
 
 prettyIndexedUntyped :: CoverMap -> [(ObjID, KernelObject a)] -> Doc
 prettyIndexedUntyped _ [] = empty
 prettyIndexedUntyped covers ((name, obj@(Untyped _ _)):xs) =
-    if Set.null cover
+    if null cover
     then prettyIndexedUntyped covers xs
     else prettyNameRefr [name] <+> equals <+> prettyObjParams obj <+>
-        braces (fsep $ punctuate comma $ prettyCovered $ Set.toList cover) $+$
+        braces (fsep $ punctuate comma $ prettyCovered cover) $+$
         prettyIndexedUntyped covers xs
     where cover = getCover name covers
 prettyIndexedUntyped _ _ = error "Untyped only"
@@ -81,9 +80,9 @@ prettyUntyped :: CoverMap -> [(ObjID, KernelObject a)] -> Doc
 prettyUntyped covers list@((name, obj@(Untyped _ _)):_) =
     if snd name == Nothing
     then prettyNameDecl name len <+> prettyObjParams obj <+>
-        if Set.null cover
+        if null cover
         then empty
-        else braces (fsep $ punctuate comma $ prettyCovered $ Set.toList cover)
+        else braces (fsep $ punctuate comma $ prettyCovered cover)
     else prettyNameDecl name len <+> prettyObjParams obj $+$
          prettyIndexedUntyped covers list
     where len = length list

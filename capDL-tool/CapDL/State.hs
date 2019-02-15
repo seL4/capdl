@@ -58,13 +58,13 @@ slotsOfMaybe = maybe Map.empty objSlots
 slotsOf :: ObjID -> Model Word -> CapMap Word
 slotsOf ref = slotsOfMaybe . maybeObject ref
 
-getCovered :: ObjID -> Model Word -> ObjSet
+getCovered :: ObjID -> Model Word -> [ObjID]
 getCovered ut_ref (Model _ _ _ _ covers) =
     case Map.lookup ut_ref covers of
-        Nothing -> Set.empty
+        Nothing -> []
         Just cov -> cov
 
-setCovered :: ObjID -> ObjSet -> Kernel ()
+setCovered :: ObjID -> [ObjID] -> Kernel ()
 setCovered ut_ref covers = do
     covMap <- gets untypedCovers
     let covMap' = Map.insert ut_ref covers covMap
@@ -525,16 +525,17 @@ checkObjs arch m = do
     let objs = allObjs m
     allM (checkObj arch m) objs
 
-allCovers :: Model Word -> [Set.Set ObjID]
+allCovers :: Model Word -> [[ObjID]]
 allCovers (Model _ _ _ _ covMap) =
     let covers = map snd (Map.toList covMap)
-    in filter (not . Set.null) covers
+    in filter (not . null) covers
 
 nullIntersections :: Ord a => [Set.Set a] -> Bool
 nullIntersections [] = True
-nullIntersections [_] = True
-nullIntersections (x:xs) = Set.null (Set.intersection x (Set.unions xs)) &&
-                           nullIntersections xs
+nullIntersections (x:xs) = check x xs
+  where check _    []     = True
+        check seen (x:xs) =
+          Set.null (x `Set.intersection` seen) && check (Set.union x seen) xs
 
 checkUntyped :: Model Word -> ObjID -> Logger Bool
 checkUntyped m ref = do
@@ -559,13 +560,12 @@ checkUntypedCover m (id, objs) = do
     return valid
 
 checkUntypedCovers :: Model Word -> Logger Bool
-checkUntypedCovers m@(Model _ _ _ _ covMap) = do
-    let covers = map (\(id, objs) -> (id, Set.toList objs)) (Map.toList covMap)
-    allM (checkUntypedCover m) covers
+checkUntypedCovers m@(Model _ _ _ _ covMap) =
+    allM (checkUntypedCover m) (Map.toList covMap)
 
 checkCovers :: Model Word -> Logger Bool
 checkCovers m = do
-    let valid = nullIntersections $ allCovers m
+    let valid = nullIntersections $ map Set.fromList $ allCovers m
     unless valid (tell $ text $
                                "At least two untypeds have intersecting covers\n")
     untypeds <- checkUntypeds m

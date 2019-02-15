@@ -260,9 +260,14 @@ type ObjMap a = Map ObjID (KernelObject a)
 
 type IRQMap = Map Word ObjID
 
-type ObjSet = Set ObjID
-
-type CoverMap = Map ObjID ObjSet
+-- Map from untypeds to the lists of objects they cover.
+-- Note that we use lists to preserve ordering. The Python capDL
+-- allocator uses ordering to describe where objects are to be allocated
+-- within each untyped.
+--
+-- This list may contain duplicate IDs while parsing; see
+-- 'CapDL.MakeModel.dedupCoverIDs'.
+type CoverMap = Map ObjID [ObjID]
 
 type CDT = Map CapRef CapRef
 

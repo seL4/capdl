@@ -23,16 +23,16 @@ objects {
   y[5] = ep
   z = ep
 
-  name = ut (8 bits) {a, b, name2, y[0..2], z}
+  name = ut (8 bits) {y[0..2], z, a, b, name2}
   name2 = ut {name3}
   name3 = ut {x}
   name_b = ut (10 bits) {name}
-  rm_ut = ut {control, frame_nic1[0..63], frame_nic2[0..63],
-              frame_nic3[0..3], linux_pd, rm_ap, rm_pd, rm_tcb, rm_ut_big[0..99],
-              rm_ut_small[0..49], something, test[0..4], timer}
+  rm_ut = ut {rm_tcb, something, rm_pd, rm_ap, linux_pd,
+              rm_ut_small[0..49], rm_ut_big[0..99], frame_nic1[0..63],
+              frame_nic2[0..63], frame_nic3[0..3], timer, control, test[0..4]}
   rm_ut_big[100] = ut (20 bits)
   rm_ut_small[50] = ut (12 bits)
-  rm_ut_small[0] = ut (12 bits) {g, name_b}
+  rm_ut_small[0] = ut (12 bits) {name_b, g}
   something = ut (8 bits) {rm_cn}
 
 } caps {

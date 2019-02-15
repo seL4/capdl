@@ -95,17 +95,14 @@ makeIDs name (Just num) = zip (repeat name) (map Just [0..(num - 1)])
 members :: Ord k => [k] -> Map.Map k a -> Bool
 members names objs = all (flip Map.member objs) names
 
-addCovered :: ObjMap Word -> [ObjID] -> ObjSet -> ObjSet
+addCovered :: ObjMap Word -> [ObjID] -> [ObjID] -> [ObjID]
 addCovered objs names cov =
     if members names objs
-    then foldl' (flip Set.insert) cov names
+    then cov ++ names -- FIXME: needed to preserve order, but inefficient
     else error ("At least one object reference is unknown: " ++ show names)
 
-getUTCov :: CoverMap -> ObjID -> ObjSet
-getUTCov covers ut =
-    case Map.lookup ut covers of
-        Nothing -> Set.empty
-        Just cov -> cov
+getUTCov :: CoverMap -> ObjID -> [ObjID]
+getUTCov covers ut = Map.findWithDefault [] ut covers
 
 addUTCover :: ObjMap Word -> CoverMap -> [ObjID] -> ObjID -> CoverMap
 addUTCover objs covers names ut =
@@ -145,6 +142,15 @@ getUntypedCover _ _ covers _ = covers
 getUntypedCovers :: [NameRef] -> ObjMap Word -> CoverMap -> [Decl] -> CoverMap
 getUntypedCovers ns objs =
     foldl' (getUntypedCover ns objs)
+
+-- A child of an untyped may be mentioned multiple times in the spec.
+-- When parsing, this creates multiple entries in the cover list.
+-- We normalise the untyped cover by removing duplicates.
+dedupCoverIDs :: CoverMap -> CoverMap
+dedupCoverIDs = Map.map (fastNub Set.empty)
+  where fastNub _ [] = []
+        fastNub seen (x:xs) | Set.member x seen = fastNub seen xs
+                            | otherwise = x : fastNub (Set.insert x seen) xs
 
 emptyUntyped :: KernelObject Word
 emptyUntyped = Untyped Nothing Nothing
@@ -954,7 +960,7 @@ makeModel (Module arch decls) =
         ids = capIdents objs' decls
         refs = capCopyGraph objs' ids decls
         copies = getCapCopyDecls ids objs' decls
-        covers = getUntypedCovers [] objs' Map.empty decls
+        covers = dedupCoverIDs $ getUntypedCovers [] objs' Map.empty decls
         cdt = getCDTDecls ids decls
         cdt' = addCDTCapDecls objs' ids cdt decls
     in (flip (addCapCopyDecls ids refs) decls .

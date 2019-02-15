@@ -21,7 +21,6 @@ import Data.List.Compat
 import Prelude ()
 import Prelude.Compat
 import qualified Data.Map as Map
-import qualified Data.Set as Set
 
 indent = 2
 
@@ -65,7 +64,7 @@ hasCover :: ObjID -> CoverMap -> Bool
 hasCover ut covers =
     case Map.lookup ut covers of
         Nothing -> False
-        Just cover -> not $ Set.null cover
+        Just cover -> not $ null cover
 
 dotCovered :: NodeMap -> ObjMap a -> CoverMap -> [ObjID] -> [Doc]
 dotCovered _ _ _ [] = []
@@ -89,21 +88,21 @@ dotCluster names ms covers n _ cover =
             <+> text "[style = filled];") <> semi <+>
             hsep (dotCovered names ms covers cover)) <> semi
 
-getCover :: ObjID -> CoverMap -> ObjSet
+getCover :: ObjID -> CoverMap -> [ObjID]
 getCover ut covers =
     case Map.lookup ut covers of
-        Nothing -> Set.empty
+        Nothing -> []
         Just cover -> cover
 
 dotUntyped :: NodeMap -> ObjMap a -> CoverMap -> [ObjID] -> ObjID ->
               [Maybe Word] -> KernelObject a -> Doc
 dotUntyped names ms covers cov id@(n, _) range obj@(Untyped {}) =
     if id `notElem` cov
-    then if Set.null cover
+    then if null cover
     then (doubleQuotes.text) (getName id names) <+> brackets (text "label ="
         <+> doubleQuotes (braces (angles "name" <+> text n
         <> prettyBrackets range <> dotObjParams obj))) <> semi
-    else dotCluster names ms covers id range (Set.toList cover)
+    else dotCluster names ms covers id range cover
     else empty
     where cover = getCover id covers
 dotUntyped _ _ _ _ _ _ _ = empty
@@ -203,18 +202,16 @@ getCovered ms covers (x:xs)
 getCovUntyped :: ObjMap a -> CoverMap -> [ObjID]
 getCovUntyped ms covers =
     concat $ Map.elems $
-                  Map.map (\set -> getCovered ms covers (Set.toList set)) covers
+                  Map.map (\cover -> getCovered ms covers cover) covers
 
 initCovNamesGroup :: NodeMap -> [ObjID] -> NodeMap
 initCovNamesGroup names list =
     foldl (\map id -> Map.insert id ("cov_" ++ showID (head list)) map)
           names list
 
-initCovNamesCovered :: NodeMap -> ObjSet -> NodeMap
+initCovNamesCovered :: NodeMap -> [ObjID] -> NodeMap
 initCovNamesCovered names cover =
-    let list = Set.toList cover
-    in foldl initCovNamesGroup names
-                                                (groupBy (sameNode names) list)
+    foldl initCovNamesGroup names $ groupBy (sameNode names) cover
 
 initCovNames :: NodeMap -> CoverMap -> NodeMap
 initCovNames names covers =
