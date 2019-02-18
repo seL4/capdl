@@ -329,11 +329,22 @@ typedef struct {
 
 } PACKED CDL_Object;
 
+typedef struct {
+    /* The untyped that the children should be derived from */
+    CDL_ObjID untyped;
+    /* Number of children to derive from this untyped */
+    seL4_Word num;
+    /* Children to derive from this untyped */
+    CDL_ObjID *children;
+} CDL_UntypedDerivation;
+
 /* CapDLModel: is described by a map from ObjectIDs (array index) to Objects */
 typedef struct {
     seL4_Word num;
     CDL_Object *objects;
     CDL_ObjID irqs[CONFIG_CAPDL_LOADER_MAX_IRQS];
+    seL4_Word num_untyped;
+    CDL_UntypedDerivation *untyped;
 } CDL_Model;
 
 /* helper functions ---------------------------------------------------------------------------- */

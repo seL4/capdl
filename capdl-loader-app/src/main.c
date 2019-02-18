@@ -54,7 +54,6 @@ static seL4_CPtr capdl_to_sel4_orig[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 static seL4_CPtr capdl_to_sel4_copy[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 static seL4_CPtr capdl_to_sel4_irq[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 static seL4_CPtr capdl_to_sched_ctrl[CONFIG_MAX_NUM_NODES];
-// List of untyped cptrs, sorted from largest to smallest.
 static seL4_CPtr untyped_cptrs[CONFIG_MAX_NUM_BOOTINFO_UNTYPED_CAPS];
 
 static seL4_CPtr free_slot_start, free_slot_end;
@@ -540,7 +539,7 @@ static void sort_untypeds(seL4_BootInfo *bootinfo)
 
 }
 
-static void parse_bootinfo(seL4_BootInfo *bootinfo)
+static void parse_bootinfo(seL4_BootInfo *bootinfo, CDL_Model *spec)
 {
     ZF_LOGD("Parsing bootinfo...\n");
 
@@ -564,6 +563,34 @@ static void parse_bootinfo(seL4_BootInfo *bootinfo)
 
     ZF_LOGD("  %ld free cap slots, from %ld to %ld\n", (long)(free_slot_end - free_slot_start), (long)free_slot_start,
             (long)free_slot_end);
+
+    /*
+     * Make sure the untypeds in the model correspond to what we got
+     * from bootinfo.
+     */
+    int bi_start = 0;
+    for (int u = 0; u < spec->num_untyped; u++) {
+        bool found = false;
+        int num_untyped = bootinfo->untyped.end - bootinfo->untyped.start;
+        CDL_Object *ut = &spec->objects[spec->untyped[u].untyped];
+        assert(CDL_Obj_Type(ut) == CDL_Untyped);
+
+        for (int i = bi_start; i < num_untyped; i++) {
+            seL4_Word ut_paddr = bootinfo->untypedList[i].paddr;
+            if (bootinfo->untypedList[i].paddr == ut->paddr) {
+                seL4_Uint8 ut_size = bootinfo->untypedList[i].sizeBits;
+                ZF_LOGF_IF(ut_size != ut->size_bits,
+                           "Ut at %p in incorrect size, expected %u got %u\n",
+                           ut->paddr, ut->size_bits, ut_size);
+                untyped_cptrs[u] = bootinfo->untyped.start + i;
+                found = true;
+                if (i == bi_start) {
+                    bi_start++;
+                }
+            }
+        }
+        ZF_LOGF_IF(!found, "Failed to find ut for %p\n", ut->paddr);
+    }
 
 #if CONFIG_CAPDL_LOADER_PRINT_UNTYPEDS
     int num_untyped = bootinfo->untyped.end - bootinfo->untyped.start;
@@ -760,28 +787,32 @@ static void create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
 
     unsigned int obj_id_index = 0;
     unsigned int free_slot_index = 0;
-    unsigned int ut_index = 0;
 
-    // Each time through the loop either:
-    //  - we successfully create an object, and move to the next object to create
-    //    OR
-    //  - we fail to create an object, and move to the next untyped object
-
-    while (obj_id_index < spec->num && ut_index < (bootinfo->untyped.end - bootinfo->untyped.start)) {
-        CDL_ObjID obj_id = obj_id_index;
-        seL4_CPtr free_slot = free_slot_start + free_slot_index;
+    for (int ut_index = 0; ut_index < spec->num_untyped; ut_index++) {
+        CDL_UntypedDerivation *ud = &spec->untyped[ut_index];
         seL4_CPtr untyped_cptr = untyped_cptrs[ut_index];
-        CDL_Object *obj = &spec->objects[obj_id_index];
-        CDL_ObjectType capdl_obj_type = CDL_Obj_Type(obj);
+        for (int child = 0; child < ud->num; child++) {
+            CDL_ObjID obj_id = ud->children[child];
+            seL4_CPtr free_slot = free_slot_start + free_slot_index;
+            CDL_Object *obj = &spec->objects[obj_id];
+            CDL_ObjectType capdl_obj_type = CDL_Obj_Type(obj);
 
-        ZF_LOGV("Creating object %s in slot %ld, from untyped %lx...\n", CDL_Obj_Name(obj), (long)free_slot,
-                (long)untyped_cptr);
+            ZF_LOGV("Creating object %s in slot %ld, from untyped %lx...\n",
+                     CDL_Obj_Name(obj), (long)free_slot, (long)untyped_cptr);
 
-        if (requires_creation(capdl_obj_type)) {
-            /* at this point we are definately creating an object - figure out what it is */
-            seL4_Error err = create_object(spec, obj, obj_id, bootinfo, untyped_cptr, free_slot);
-            if (err == seL4_NoError) {
-                if (capdl_obj_type == CDL_ASIDPool) {
+            if (requires_creation(capdl_obj_type)) {
+                seL4_Error err = create_object(spec, obj, obj_id, bootinfo, untyped_cptr, free_slot);
+                if (err == seL4_NoError) {
+                    if (capdl_obj_type == CDL_ASIDPool) {
+                        free_slot_index++;
+                        seL4_CPtr asid_slot = free_slot_start + free_slot_index;
+                        err = seL4_ARCH_ASIDControl_MakePool(seL4_CapASIDControl, free_slot,
+                                                             seL4_CapInitThreadCNode, asid_slot,
+                                                             CONFIG_WORD_SIZE);
+                        free_slot = asid_slot;
+                        ZF_LOGF_IFERR(err, "Failed to create asid pool");
+                    }
+                    add_sel4_cap(obj_id, ORIG, free_slot);
                     free_slot_index++;
                     seL4_CPtr asid_slot = free_slot_start + free_slot_index;
                     err = seL4_ARCH_ASIDControl_MakePool(seL4_CapASIDControl, free_slot,
@@ -1946,7 +1977,7 @@ static void init_system(CDL_Model *spec)
 
     init_copy_frame(bootinfo);
 
-    parse_bootinfo(bootinfo);
+    parse_bootinfo(bootinfo, spec);
     sort_untypeds(bootinfo);
 
     create_objects(spec, bootinfo);
