@@ -546,8 +546,9 @@ class BestFitAllocator(UntypedAllocator):
 
         # we don't allocate device untyped from this point, so
         # if the last untyped we used was a device and has some children, add it to the new objects,
-        if is_device and len(ut.children):
-            s.add_object(ut)
+        if is_device:
+            if ut.children:
+                s.add_object(ut)
         elif ut.remaining() > 0:
             self._use_untyped(objects, ut, ut.remaining(), is_device, s)
 

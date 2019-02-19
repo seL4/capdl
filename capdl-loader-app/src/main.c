@@ -750,17 +750,7 @@ unsigned int create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_
     }
 #endif
 
-    if (isDeviceObject(obj)) {
-        seL4_Word paddr = CDL_Obj_Paddr(obj);
-        ZF_LOGE(" device frame/untyped, paddr = %p, size = %d bits\n", (void *) paddr, obj_size);
-
-        /* This is a device object. Look for it in bootinfo. */
-        err = find_device_object(paddr, obj_type, obj_size, free_slot, id, info, spec);
-        ZF_LOGF_IF(err != seL4_NoError, "Failed to find device frame/untyped at paddr = %p\n", (void *) paddr);
-        return seL4_NoError;
-    } else {
-        return retype_untyped(free_slot, untyped_slot, obj_type, obj_size);
-    }
+    return retype_untyped(free_slot, untyped_slot, obj_type, obj_size);
 }
 
 static int requires_creation(CDL_ObjectType type)
@@ -785,7 +775,6 @@ static void create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
 {
     ZF_LOGD("Creating objects...\n");
 
-    unsigned int obj_id_index = 0;
     unsigned int free_slot_index = 0;
 
     for (int ut_index = 0; ut_index < spec->num_untyped; ut_index++) {
@@ -814,33 +803,15 @@ static void create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
                     }
                     add_sel4_cap(obj_id, ORIG, free_slot);
                     free_slot_index++;
-                    seL4_CPtr asid_slot = free_slot_start + free_slot_index;
-                    err = seL4_ARCH_ASIDControl_MakePool(seL4_CapASIDControl, free_slot,
-                                                         seL4_CapInitThreadCNode, asid_slot, CONFIG_WORD_SIZE);
-                    free_slot = asid_slot;
-                    ZF_LOGF_IFERR(err, "Failed to create asid pool");
+                } else {
+                    /* Exit with failure. */
+                    ZF_LOGF_IFERR(err, "Untyped retype failed with unexpected error");
                 }
-                add_sel4_cap(obj_id, ORIG, free_slot);
-                free_slot_index++;
-            } else if (err == seL4_NotEnoughMemory) {
-                /* go to the next untyped to allocate objects - this one is empty */
-                ut_index++;
-                /* we failed to process the current object, go back 1 */
-                obj_id_index--;
-            } else {
-                /* Exit with failure. */
-                ZF_LOGF_IFERR(err, "Untyped retype failed with unexpected error");
             }
         }
-        obj_id_index++;
     }
     // Update the free slot to go past all the objects we just made.
     free_slot_start += free_slot_index;
-
-    if (obj_id_index != spec->num) {
-        /* We didn't iterate through all the objects. */
-        ZF_LOGF("Ran out of untyped memory while creating objects.");
-    }
 }
 
 static void create_irq_cap(CDL_IRQ irq, CDL_Object *obj, seL4_CPtr free_slot)
