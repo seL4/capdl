@@ -712,6 +712,23 @@ create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_BootInfo *inf
     }
 }
 
+static int requires_creation(CDL_ObjectType type)
+{
+    switch (type) {
+    case CDL_Interrupt:
+#ifdef CONFIG_ARCH_X86
+    case CDL_IODevice:
+    case CDL_IOAPICInterrupt:
+    case CDL_MSIInterrupt:
+#else
+    case CDL_ARMIODevice:
+#endif
+        return false;
+    default:
+        return true;
+    }
+}
+
 static void
 create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
 {
@@ -736,18 +753,7 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
         ZF_LOGV("Creating object %s in slot %ld, from untyped %lx...\n", CDL_Obj_Name(obj), (long)free_slot,
                 (long)untyped_cptr);
 
-        switch (capdl_obj_type) {
-        case CDL_Interrupt:
-#ifdef CONFIG_ARCH_X86
-        case CDL_IODevice:
-        case CDL_IOAPICInterrupt:
-        case CDL_MSIInterrupt:
-#else
-        case CDL_ARMIODevice:
-#endif
-            // Never create Interrupt objects here
-            break;
-        default: {
+        if (requires_creation(capdl_obj_type)) {
             /* at this point we are definately creating an object - figure out what it is */
             seL4_Error err = create_object(spec, obj, obj_id, bootinfo, untyped_cptr, free_slot);
             if (err == seL4_NoError) {
@@ -770,7 +776,6 @@ create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
                 /* Exit with failure. */
                 ZF_LOGF_IFERR(err, "Untyped retype failed with unexpected error");
             }
-        }
         }
         obj_id_index++;
     }
