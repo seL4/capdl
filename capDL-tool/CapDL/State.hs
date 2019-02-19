@@ -702,3 +702,22 @@ checkModel m = do
     mapped_frame_caps <- checkMappedFrameCaps m
     tell $ text ""
     return $ objs && covers && mappings && irq && mapped_frame_caps
+
+-- Utils for getting object sizes
+lookupSizeMap :: KOType -> ObjectSizeMap -> Word
+lookupSizeMap k objSizeMap = case Map.lookup k objSizeMap of
+    Just v -> v
+    Nothing -> error $ "missing size info for type: " ++ show k
+
+objSizeBits :: ObjectSizeMap -> KernelObject Word -> Word
+-- 0-size CNodes are actually IRQ slots, and have no allocation size
+objSizeBits _          (CNode { sizeBits = 0}) = 0
+-- variable sized objects
+objSizeBits _          (Untyped { maybeSizeBits = Just b }) = b
+objSizeBits _          (Frame { vmSizeBits = b }) = b
+objSizeBits objSizeMap (CNode { sizeBits = b }) =
+    b + lookupSizeMap CNode_T objSizeMap
+objSizeBits _          (SC { maybeSizeBits = Just b }) = b
+-- everything else
+objSizeBits objSizeMap ko =
+    lookupSizeMap (koType ko) objSizeMap

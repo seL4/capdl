@@ -36,7 +36,7 @@ executable parse-capDL
                        split >=0.2 && <0.3, array >=0.5 && <0.6,
                        MissingH >=1.4 && <1.5, pretty >=1.1 && <1.2,
                        filepath >=1.4 && <1.5, base-compat >= 0.9 && <0.10,
-                       unix >=2.7
+                       unix >=2.7, yaml >=0.8 && <0.12
 
   other-modules:       CapDL.AST, CapDL.DumpParser, CapDL.MakeModel,
                        CapDL.Matrix, CapDL.Model, CapDL.Parser,

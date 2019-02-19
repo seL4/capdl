@@ -15,6 +15,7 @@ module Main where
 import CapDL.Parser
 import CapDL.DumpParser
 import CapDL.ParserUtils (emptyMaps)
+import CapDL.Model
 import CapDL.MakeModel
 import CapDL.PrintModel
 import CapDL.State
@@ -34,6 +35,8 @@ import Control.Monad
 import Control.Monad.Writer
 import System.Console.GetOpt
 import Data.String.Utils
+import qualified Data.Map as Map
+import qualified Data.Yaml as Yaml
 import qualified Text.PrettyPrint as PP
 
 data Options = Options {
@@ -44,7 +47,8 @@ data Options = Options {
     optCodeMaxIRQs :: Word,
     optOutputText :: Maybe String,
     optOutputAnalysis :: Maybe String,
-    optDumpAST :: Maybe String
+    optDumpAST :: Maybe String,
+    optObjectSizeFile :: Maybe String
     }
 
 -- Default options.
@@ -57,7 +61,8 @@ defaultOptions = Options {
     optCodeMaxIRQs = 256,
     optOutputText = Nothing,
     optOutputAnalysis = Nothing,
-    optDumpAST = Nothing
+    optDumpAST = Nothing,
+    optObjectSizeFile = Nothing
     }
 
 --
@@ -94,7 +99,11 @@ options = [
 
     Option [] ["dump-ast"]
         (ReqArg (\arg o -> o {optDumpAST = Just arg}) "FILE")
-        "dump internal AST"
+        "dump internal AST",
+
+    Option [] ["object-sizes"]
+        (ReqArg (\arg o -> o {optObjectSizeFile = Just arg}) "FILE")
+        "YAML file containing kernel object sizes."
   ]
 
 --
@@ -125,6 +134,28 @@ isDump fname = do
      then return True
      else return False
 
+genObjectSizeMap :: Map.Map String Word -> ObjectSizeMap
+genObjectSizeMap m =
+    Map.fromList [ (koType, sz)
+                 | (n, sz) <- Map.toList m, Just koType <- [Map.lookup n names] ]
+    where names = Map.fromList
+                      [ ("seL4_Slot",                CNode_T)
+                      , ("seL4_TCBObject",           TCB_T)
+                      , ("seL4_EndpointObject",      Endpoint_T)
+                      , ("seL4_NotificationObject",  Notification_T)
+                      , ("seL4_ASID_Pool",           ASIDPool_T)
+                      , ("seL4_RTReplyObject",       RTReply_T)
+                      , ("seL4_VCPU",                VCPU_T)
+                      , ("seL4_PageTableObject",     PT_T)
+                      , ("seL4_PageDirectoryObject", PD_T)
+                      , ("seL4_AARCH64_PGDObject",   PGD_T)
+                      , ("seL4_AARCH64_PUDObject",   PUD_T)
+                      , ("seL4_IOPageTableObject",   IOPT_T)
+                      , ("seL4_X64_PDPTObject",      PDPT_T)
+                      , ("seL4_X64_PML4Object",      PML4_T)
+                      , ("seL4_SchedContextObject",  SC_T)
+                      ]
+
 main = do
     -- Parse command line arguments.
     args <- getArgs
@@ -143,6 +174,15 @@ main = do
     res <- if dump
              then genparseFromFile capDLDumpModule emptyMaps inputFile
              else genparseFromFile capDLModule emptyMaps inputFile
+
+    -- Parse object sizes file, if available.
+    _ <- case optObjectSizeFile opt of
+        Nothing -> return Map.empty
+        Just f -> do yParse <- Yaml.decodeFileEither f
+                     case yParse of
+                         Left err -> error $ "failed to parse object sizes file " ++ show f ++ "\n"
+                                             ++ show err
+                         Right m -> return $ genObjectSizeMap m
 
     -- Get the parse result (or show an error if it failed).
     res <- case res of

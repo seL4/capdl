@@ -242,7 +242,10 @@ data KOType
     | VCPU_T
     | SC_T
     | RTReply_T
-    deriving (Show, Eq, Enum)
+    deriving (Show, Eq, Ord, Enum)
+
+-- Lookup table of object sizes, to be passed in externally.
+type ObjectSizeMap = Map KOType Word
 
 --
 -- A reference to a capability.
