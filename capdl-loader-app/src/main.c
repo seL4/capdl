@@ -685,9 +685,7 @@ create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_BootInfo *inf
         obj_type = (seL4_ArchObjectType) CDL_Obj_Type(obj);
     }
 
-    if (CDL_Obj_Type(obj) == CDL_CNode) {
-        ZF_LOGD(" (CNode of size %d bits)", obj_size);
-    }
+    ZF_LOGD_IF(CDL_Obj_Type(obj) == CDL_CNode," (CNode of size %d bits)", obj_size);
 
     seL4_Error err = seL4_NoError;
 
