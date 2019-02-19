@@ -650,10 +650,9 @@ retype_untyped(seL4_CPtr free_slot, seL4_CPtr free_untyped,
                "Invalid object type %zu size %zu\n",
                (size_t) object_type, (size_t) object_size);
 
-    int err = seL4_Untyped_Retype(free_untyped, object_type, object_size,
-                                  root, node_index, node_depth, node_offset, no_objects);
+    return seL4_Untyped_Retype(free_untyped, object_type, object_size,
+                               root, node_index, node_depth, node_offset, no_objects);
 
-    return err;
 }
 
 bool isDeviceObject(CDL_Object *obj)
