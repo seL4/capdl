@@ -720,9 +720,10 @@ static int requires_creation(CDL_ObjectType type)
     case CDL_IODevice:
     case CDL_IOAPICInterrupt:
     case CDL_MSIInterrupt:
-#else
+#endif /* CONFIG_ARCH_X86 */
+#ifdef CONFIG_ARCH_ARM
     case CDL_ARMIODevice:
-#endif
+#endif /* CONFIG_ARCH_ARM */
         return false;
     default:
         return true;
