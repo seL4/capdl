@@ -272,10 +272,7 @@ typedef struct {
             seL4_Word end;
         };
     };
-    /* The following member has a more specific type, CDL_ObjectType, but by forcing it into a
-     * uint8_t we can reduce the size of this struct.
-     */
-    /* CDL_ObjectType */ uint8_t type;
+    CDL_ObjectType type;
     /* The configuration for IO ports on x86 is currently overloaded into the
      * size_bits parameter. */
     uint32_t size_bits;
