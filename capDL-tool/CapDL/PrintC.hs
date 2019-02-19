@@ -43,7 +43,7 @@ hex x = "0x" ++ showHex x ""
 -- This prints paddrs in hex, except that Nothing (no fixed address)
 -- is simply "0" for clarity.
 pointerOfPAddr :: Maybe Word -> String
-pointerOfPAddr p = "((void*)" ++ fromMaybe "0" (hex <$> p) ++ ")"
+pointerOfPAddr p = fromMaybe "0" (hex <$> p)
 
 maxObjects :: Int -> String
 maxObjects count = "#define MAX_OBJECTS " ++ show count

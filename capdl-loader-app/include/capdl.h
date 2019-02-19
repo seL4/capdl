@@ -265,7 +265,7 @@ typedef struct {
         CDL_SCExtraInfo sc_extra;
         CDL_IOAPICIRQExtraInfo ioapicirq_extra;
         CDL_MSIIRQExtraInfo msiirq_extra;
-        void *paddr; /* Physical address; only relevant for frames and untyped objects. */
+        seL4_Word paddr; /* Physical address; only relevant for frames and untyped objects. */
         CDL_Core core; /* core for sched control */
         struct {
             seL4_Word start;

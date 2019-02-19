@@ -556,7 +556,7 @@ parse_bootinfo(seL4_BootInfo *bootinfo)
     first_arm_iospace = bootinfo->ioSpaceCaps.start;
 }
 
-static int find_device_object(void *paddr, seL4_Word type, int size_bits, seL4_CPtr free_slot,
+static int find_device_object(seL4_Word paddr, seL4_Word type, int size_bits, seL4_CPtr free_slot,
                               CDL_ObjID obj_id, seL4_BootInfo *bootinfo, CDL_Model *spec)
 {
     int error;
@@ -658,7 +658,7 @@ retype_untyped(seL4_CPtr free_slot, seL4_CPtr free_untyped,
 
 bool isDeviceObject(CDL_Object *obj)
 {
-    return (obj->paddr != NULL && (CDL_Obj_Type(obj) == CDL_Frame || CDL_Obj_Type(obj) == CDL_Untyped));
+    return (obj->paddr != 0 && (CDL_Obj_Type(obj) == CDL_Frame || CDL_Obj_Type(obj) == CDL_Untyped));
 }
 
 unsigned int
@@ -1407,7 +1407,7 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
          * unify the mapping here, flushing the cached data from the kernel's
          * mapping.
          */
-        if (!(vm_attribs & seL4_ARM_PageCacheable) && spec->objects[page].paddr == NULL) {
+        if (!(vm_attribs & seL4_ARM_PageCacheable) && spec->objects[page].paddr == 0) {
             seL4_Word size_bits = spec->objects[page].size_bits;
             assert(size_bits <= sizeof(uintptr_t) * CHAR_BIT - 1 && "illegal object size");
             error = seL4_ARM_Page_CleanInvalidate_Data(sel4_page, 0, BIT(size_bits));
