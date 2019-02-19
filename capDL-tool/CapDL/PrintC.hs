@@ -26,8 +26,9 @@ import Data.List.Utils
 import Data.Maybe (fromJust, fromMaybe)
 import Prelude ()
 import Prelude.Compat
-import Data.Map as Map
-import Data.Set as Set
+import qualified Data.Map as Map
+import Data.Map (Map)
+import qualified Data.Set as Set
 import Data.Bits
 import Numeric (showHex)
 import Text.PrettyPrint
@@ -84,7 +85,7 @@ showPCI domainID (pciBus, pciDev, pciFun) =
 
 -- Lookup-by-value on a dictionary. I feel like I need a shower.
 lookupByValue :: (a -> Bool) -> Map k a -> k
-lookupByValue f m = head $ keys $ Map.filter f m
+lookupByValue f m = head $ Map.keys $ Map.filter f m
 
 showCap :: Map ObjID Int -> Cap -> IRQMap -> String -> ObjMap Word -> String
 showCap _ NullCap _ _ _ = "{.type = CDL_NullCap}"
@@ -387,8 +388,27 @@ memberIRQs objs irqNode _ maxIrqs =
         _ -> -1) [0..(maxIrqs - 1)]) +++
     "},"
 
+showUntypedDerivation :: Map ObjID Int -> ObjID -> [ObjID] -> String
+showUntypedDerivation objs utID utChildren =
+    "{" +++
+    "  .untyped = " ++ showObjID objs utID ++ "," +++
+    "  .num = " ++ show (length utChildren) ++ "," +++
+    "  .children = (CDL_ObjID[]){" +++
+    Data.List.Utils.join ",\n"
+        ["    " ++ showObjID objs childID | childID <- utChildren] +++
+    "  }" +++
+    "}"
+
+showUntypedDerivations :: Map ObjID Int -> CoverMap -> String
+showUntypedDerivations objs untypedCovers =
+    ".num_untyped = " ++ show (Map.size untypedCovers) ++ "," +++
+    ".untyped = (CDL_UntypedDerivation[]){" +++
+    Data.List.Utils.join ",\n" (map (uncurry (showUntypedDerivation objs)) $
+                                Map.toList untypedCovers) +++
+    "},"
+
 printC :: Model Word -> Idents CapName -> CopyMap -> Word -> Doc
-printC (Model arch objs irqNode cdt _) _ _ maxIrqs =
+printC (Model arch objs irqNode cdt untypedCovers) _ _ maxIrqs =
     text $
     "/* Generated file. Your changes will be overwritten. */" +++
     "" +++
@@ -406,6 +426,7 @@ printC (Model arch objs irqNode cdt _) _ _ maxIrqs =
     memberNum objs_sz +++
     memberIRQs obj_ids irqNode arch maxIrqs +++
     memberObjects obj_ids objs' irqNode cdt objs +++
+    showUntypedDerivations obj_ids untypedCovers +++
     "};"
     where
         objs_sz = length $ Map.toList objs
