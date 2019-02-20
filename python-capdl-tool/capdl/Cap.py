@@ -82,8 +82,6 @@ class Cap(object):
                          ('P', self.grantreply) ]
                        if flag ]
             extra.append(''.join(rights))
-        else:
-            assert not any((self.read, self.write, self.grant, self.grantreply))
 
         if isinstance(self.referent, Object.Frame) and not self.cached:
             extra.append('uncached')
