@@ -115,12 +115,9 @@ printRights :: CapRights -> Doc
 printRights r =
     printSet $ printRightsList $ Set.toList r
 
-getObject :: ObjID -> ObjMap Word -> Maybe (KernelObject Word)
-getObject = Map.lookup
-
 printSize :: ObjID -> ObjMap Word -> Doc
 printSize id ms =
-    let Just (Frame sz _ _) = getObject id ms
+    let Just (Frame sz _ _) = Map.lookup id ms
     in num sz
 
 printCoverSet :: ObjMap Word -> Maybe ObjSet -> Doc
