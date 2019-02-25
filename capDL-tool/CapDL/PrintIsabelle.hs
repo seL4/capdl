@@ -13,17 +13,29 @@
 module CapDL.PrintIsabelle where
 
 import CapDL.Model
-import CapDL.PrintUtils (printAsid, sortObjects)
+import CapDL.State (koType, lookupSizeMap, objSizeBits)
+import CapDL.PrintUtils (printAsid, objPaddr)
 
 import Text.PrettyPrint
+import Numeric (showHex)
 import Data.List.Compat
+import Data.Ord (comparing)
 import Prelude ()
 import Prelude.Compat
+import Control.Monad (when)
+import Control.Monad.State.Strict (StateT (..))
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.Maybe
 import Data.Bits
 import System.FilePath.Posix
+
+-- This lifts `mapAccumL` over a monad
+mapAccumM :: (Monad m, Traversable t) =>
+             (a -> b -> m (a, c)) -> a -> t b -> m (a, t c)
+mapAccumM f z xs = swap <$> runStateT (traverse (StateT . f') xs) z
+  where swap (a, b) = (b, a)
+        f' x z = swap <$> f z x
 
 lookupElem :: (Eq a) => a -> Map.Map k a -> Maybe k
 lookupElem x m =
@@ -40,9 +52,14 @@ indent = 2
 
 num n = int (fromIntegral n)
 
+hex :: Word -> String
+hex x = "0x" ++ showHex x ""
+
 equiv = text "\\<equiv>"
 
 lambda = text "\\<lambda>"
+
+isaComment x = "\\<comment> \\<open>" ++ x ++ "\\<close>"
 
 showID :: ObjID -> String
 showID (name, Nothing) = name
@@ -77,26 +94,93 @@ printSet ls = braces $ hsep $ punctuate comma ls
 filterEmpty :: [Doc] -> [Doc]
 filterEmpty = filter (not . isEmpty)
 
-notUntyped Untyped {} = False
+-- Untypeds are not kernel objects in the Isabelle models.
+notUntyped :: KernelObject a -> Bool
+notUntyped Untyped{} = False
 notUntyped _ = True
 
+{- HACK: fake location for IRQ nodes.
+ - IRQ CNodes are model-level objects, so we need to invent a physical
+ - presence for them even if the capDL input doesn't mention them.
+ - Suitably aligned for 1024 irqs. DSpec probably doesn't care, though. -}
+irq_node_paddr__hack :: Word
+irq_node_paddr__hack = 0x10000
+
 {-
- - Assign objects to contiguous ascending cdl_object_ids, starting
- - from 0. IRQ objects are allocated in a separate range according to
- - their IRQ slot numbers.
- -
- - FIXME: this algorithm traverses the mapping repeatedly, we should
- - do it more efficiently at some point.
+ - Helper that recovers memory layout from a single untypedCover.
  -}
-getID :: ObjectSizeMap -> ObjMap Word -> IRQMap -> ObjID -> Doc
-getID objSizeMap ms irqNode id =
+
+-- Check that we allocate objects consistently with their paddrs.
+checkEqPaddr :: KernelObject Word -> Word -> Bool
+checkEqPaddr obj p = maybe True (p ==) (objPaddr obj)
+
+untypedCoverToPaddrs ::
+    ObjectSizeMap -> ObjMap Word -> ObjID -> KernelObject Word -> [ObjID]
+    -> Either (String, [ObjID]) (Map.Map ObjID Word)
+untypedCoverToPaddrs sizeMap objs
+      utID (Untyped { maybePaddr = Just utPaddr, maybeSizeBits = Just utSizeBits })
+      cover =
+    do
+       let getObject id =
+               case Map.lookup id objs of
+                   Just o -> return o
+                   _      -> Left ("Object in untyped but not in objects list", [id, utID])
+           utSize = 2^utSizeBits
+           utEnd = utPaddr + utSize
+           alloc1 addr objID =
+               do obj <- getObject objID
+                  let objSize = 2^objSizeBits sizeMap obj
+                  when (not $ checkEqPaddr obj addr) $
+                      Left ("Object addr doesn't match untyped's current addr (" ++
+                            hex addr ++ ")", [utID, objID])
+                  let addr' = addr + objSize
+                  when (addr `mod` objSize /= 0) $
+                      Left ("Can't place obj at unaligned addr (addr=" ++
+                            hex addr ++ ", obj size=" ++
+                            hex objSize ++ ")", [utID, objID])
+                  when (addr' > utEnd) $
+                      Left ("Can't place obj at addr outside untyped (addr=" ++
+                            hex addr ++ ", ut end=" ++ hex utEnd ++ ", obj size=" ++
+                            hex objSize ++ ")", [utID, objID])
+                  return (addr', (objID, addr))
+       Map.fromList . snd <$> mapAccumM alloc1 utPaddr cover
+-- unused, or child untyped; no-op
+untypedCoverToPaddrs _ _ _ Untyped{} [] = return Map.empty
+untypedCoverToPaddrs _ _ utID Untyped{} (:){} =
+    Left ("Untyped has children but is missing paddr or size", [utID])
+untypedCoverToPaddrs _ _ koID _ _ =
+    error $ "internal error in untypedCoverToPaddrs: not an untyped: " ++ show koID
+
+{-
+ - Determine the memory address (i.e. cdl_object_id) for each object.
+ - This only works for capDL specs that have been pre-allocated, i.e.,
+ - every object belongs to an untypedCover that has a physical address.
+ -}
+getPhysAddrs :: ObjectSizeMap -> ObjMap Word -> CoverMap
+                -> Either (String, [ObjID]) (Map.Map ObjID Word)
+getPhysAddrs objSizeMap objs untypedCovers =
+    Map.unions <$>
+    sequence [
+        Map.insert utID utPaddr <$> -- add untyped's own addr
+            untypedCoverToPaddrs objSizeMap objs utID ut cover
+        | (utID, cover) <- Map.toList untypedCovers,
+          let ut@Untyped{ maybePaddr = Just utPaddr } = objs Map.! utID ]
+
+{-
+ - Look up object locations that have been computed by getPhysAddrs.
+ - Also invent locations for IRQ nodes.
+ -}
+getAddr :: ObjectSizeMap -> Map.Map ObjID Word -> IRQMap -> ObjID -> Word
+getAddr objSizeMap objAddrs irqNode id =
     case lookupElem id irqNode of
-        Just irq -> int (Map.size ms' + fromIntegral irq)
-        Nothing ->
-            maybe empty int $
-            findIndex (\(i, _) -> i == id) contiguousObjs
-    where ms' = Map.filterWithKey (\id _ -> not (mapElem id irqNode)) ms
-          contiguousObjs = sortObjects objSizeMap $ Map.toList ms'
+        Just irq -> irq_node_paddr__hack + irq * slotSize
+        Nothing -> case Map.lookup id objAddrs of
+                       Just addr -> addr
+                       Nothing -> error $ "getID: no address for object: " ++ showID id
+    where slotSize = 2^lookupSizeMap CNode_T objSizeMap
+
+getID :: ObjectSizeMap -> Map.Map ObjID Word -> IRQMap -> ObjID -> Doc
+getID objSizeMap objAddrs irqNode id = text $ hex $ getAddr objSizeMap objAddrs irqNode id
 
 printID :: ObjID -> Doc
 printID id = text (showID id ++ "_id")
@@ -115,8 +199,8 @@ printRights :: CapRights -> Doc
 printRights r =
     printSet $ printRightsList $ Set.toList r
 
-printSize :: ObjID -> ObjMap Word -> Doc
-printSize id ms =
+printFrameSize :: ObjID -> ObjMap Word -> Doc
+printFrameSize id ms =
     let Just (Frame sz _ _) = Map.lookup id ms
     in num sz
 
@@ -138,13 +222,21 @@ printCNodeSize ms id =
     let (CNode _ sz) = fromJust $ Map.lookup id ms
     in num sz
 
+-- FIXME: missing capDL attribute
+untypedIsDev :: KernelObject Word -> Bool
+untypedIsDev Untyped{} = False -- lies
+untypedIsDev obj = error $ "untypedIsDev: got " ++ show (koType obj)
+
 -- The bool represents whether the cap is a real cap;
 -- i.e. if it is not in a PT or PD
 printCap :: ObjMap Word -> IRQMap -> CoverMap -> Bool -> Cap -> Doc
 printCap _ _ _ _ NullCap = text "NullCap"
-printCap ms _ covers _ (UntypedCap id) =
-    text "UntypedCap" <+> printCoverSet ms (Map.lookup id covers) <+>
-    printSet []
+printCap ms _ _ _ (UntypedCap id) =
+    text "UntypedCap" <+> text (show $ untypedIsDev (ms Map.! id)) <+>
+    parens (text "ptr_range" <+> printID id <+> num utSize) <+>
+    printSet [] -- TODO: check implied free range (or assert ut is empty)
+    where Just Untyped{ maybeSizeBits = Just utSize } =
+              Map.lookup id ms
 printCap _ _ _ _ (EndpointCap id badge rights) = text "EndpointCap" <+>
     printID id <+> num badge <+> printRights rights
 printCap _ _ _ _ (NotificationCap id badge rights) = text "NotificationCap" <+>
@@ -163,9 +255,9 @@ printCap _ _ _ _ DomainCap = text "DomainCap"
 printCap ms _ _ real (FrameCap id rights asid cached _) = text "FrameCap" <+>
     -- is_device flag, assumed always false. FIXME: add to model?
     text "False" <+>
-    printID id <+> printRights rights <+> printSize id ms <+>
+    printID id <+> printRights rights <+> printFrameSize id ms <+>
     printReal real <+> printMaybeAsid asid <+>
-    text (if cached then "" else "(* uncached *)")
+    text (if cached then "" else isaComment "uncached")
 printCap _ _ _ real (PTCap id asid) =
     text "PageTableCap" <+> printID id <+> printReal real <+>
     printMaybeAsid asid
@@ -175,7 +267,7 @@ printCap _ _ _ real  (PDCap id asid) =
 printCap _ _ _ _ ASIDControlCap = text "AsidControlCap"
 printCap _ _ _ _ (ASIDPoolCap id asid) =
     text "AsidPoolCap" <+> printID id <+> printAsid asid
-printCap _ _ _ _ cap = text $ "undefined (* unsupported cap: " ++ show cap ++ " *)"
+printCap _ _ _ _ cap = text $ "undefined " ++ isaComment ("unsupported cap: " ++ show cap)
 
 printCapMapping :: ObjMap Word -> IRQMap -> CoverMap -> Bool -> (Word, Cap) -> Doc
 printCapMapping ms irqNode covers real (slot, cap) =
@@ -229,17 +321,17 @@ hasFaultEndpoint fault =
         Just _ -> "True"
         Nothing -> "False"
 
-printObjID :: ObjectSizeMap -> ObjMap Word -> IRQMap -> (ObjID, KernelObject Word) -> Doc
-printObjID objSizeMap ms irqNode (id, _) =
+printObjID :: ObjectSizeMap -> Map.Map ObjID Word -> IRQMap -> (ObjID, KernelObject Word) -> Doc
+printObjID objSizeMap objAddrs irqNode (id, _) =
     constdefs name "cdl_object_id" $+$
     doubleQuotes (printID id <+> equiv <+> obj_id)
     $+$ text ""
     where name = showID id ++ "_id"
-          obj_id = getID objSizeMap ms irqNode id
+          obj_id = getID objSizeMap objAddrs irqNode id
 
-printObjIDs :: ObjectSizeMap -> ObjMap Word -> IRQMap -> Doc
-printObjIDs objSizeMap ms irqs =
-  vcat (map (printObjID objSizeMap ms irqs) (sortObjects objSizeMap $ Map.toList ms))
+printObjIDs :: ObjectSizeMap -> Map.Map ObjID Word -> ObjMap Word -> IRQMap -> Doc
+printObjIDs objSizeMap objAddrs ms irqs =
+  vcat (map (printObjID objSizeMap objAddrs irqs) (Map.toList ms))
   $+$ text ""
 
 printObj' :: ObjMap Word -> ObjID -> KernelObject Word -> Doc
@@ -268,7 +360,7 @@ printObj' _ id (PD _) = text "PageDirectory" <+>
 printObj' _ _ (Frame vmSzBits _ _) = text "Frame" <+>
     record (fsep $ punctuate comma $ map text
     ["cdl_frame_size_bits = " ++ show vmSzBits])
-printObj' _ _ obj = text $ "undefined (* unsupported obj: " ++ show obj ++ " *)"
+printObj' _ _ obj = text $ "undefined " ++ isaComment ("unsupported obj: " ++ show obj)
 
 printLemmaObjectSlots :: ObjID -> Doc
 printLemmaObjectSlots id =
@@ -286,17 +378,9 @@ printObj ms irqNode covers (id, obj) = printCaps ms id irqNode covers obj $+$
     (if hasSlots obj then printLemmaObjectSlots id $+$ text "" else text "")
     where name = showID id
 
--- This will cause a problem if an actual object is called empty_irq_node
-printEmptyIrqNode :: Doc
-printEmptyIrqNode = constdefs "empty_irq_node" "cdl_object" $+$
-    doubleQuotes (text "empty_irq_node"  <+> equiv <+> text "Types_D.CNode" <+>
-    record (fsep $ punctuate comma $
-                map text ["cdl_cnode_caps = Map.empty", "cdl_cnode_size_bits = 0"]))
-
-printObjs :: ObjectSizeMap -> ObjMap Word -> IRQMap -> CoverMap -> Doc
-printObjs objSizeMap ms irqNode covers =
-  vcat (map (printObj ms irqNode covers) (sortObjects objSizeMap $ Map.toList ms)) $+$
-  printEmptyIrqNode $+$ text ""
+printObjs :: ObjMap Word -> IRQMap -> CoverMap -> [(ObjID, KernelObject Word)] -> Doc
+printObjs ms irqNode covers isaCdlObjects =
+  vcat (map (printObj ms irqNode covers) isaCdlObjects)
 
 printObjMapping :: (ObjID, KernelObject Word) -> Doc
 printObjMapping (id, _) = printID id <+> text ("\\<mapsto> " ++ showID id)
@@ -304,51 +388,48 @@ printObjMapping (id, _) = printID id <+> text ("\\<mapsto> " ++ showID id)
 numberOfIRQs :: Int
 numberOfIRQs = 2^10
 
-printEmptyIrqObjMapping :: ObjMap Word -> IRQMap -> Doc
-printEmptyIrqObjMapping ms irqNode =
-    parens (lambda <> text ("obj_id. if " ++ start ++ " \\<le> obj_id \\<and> obj_id \\<le> " ++ end) <+>
-        text "then (Some empty_irq_node)" <+> text "else None")
-    where ms' = Map.filterWithKey (\id _ -> not (mapElem id irqNode)) ms
-          start = show $ Map.size ms
-          end = show $ Map.size ms' + numberOfIRQs - 1
-
-printEmptyIrqObjMap :: ObjMap Word -> IRQMap -> Doc
-printEmptyIrqObjMap ms irqNode =
-    constdefs "empty_irq_objects" "cdl_object_id \\<Rightarrow> cdl_object option" $+$
-    doubleQuotes (text "empty_irq_objects" <+> equiv <+> printEmptyIrqObjMapping ms irqNode)
-
-printObjMap :: ObjectSizeMap -> ObjMap Word -> IRQMap -> Doc
-printObjMap objSizeMap ms _ = text "empty_irq_objects ++" $+$
-    case map printObjMapping (sortObjects objSizeMap $ Map.toList ms) of
+printObjMap :: ObjMap Word -> [(ObjID, KernelObject Word)] -> Doc
+printObjMap _ isaCdlObjects =
+    case map printObjMapping isaCdlObjects of
         [] -> text "Map.empty"
         xs -> brackets $ fsep $ punctuate comma xs
 
-printObjects :: ObjectSizeMap -> ObjMap Word -> IRQMap -> Doc
-printObjects objSizeMap ms irqNode =
-    printEmptyIrqObjMap ms irqNode $+$ text "" $+$
-    constdefs "objects" "cdl_object_id \\<Rightarrow> cdl_object option" $+$
-    doubleQuotes (text "objects" <+> equiv <+> printObjMap objSizeMap ms irqNode)
+-- Map of all objects. We use the FastMap builder for scalability.
+printObjects :: [(ObjID, KernelObject Word)] -> Doc
+printObjects isaCdlObjects =
+    text "local_setup {*" $+$
+    text "FastMap.define_map (FastMap.name_opts_default \"objects\")" $+$
+    nest 2 (
+         nest 2 (brackets (vcat $ punctuate comma $ map binding isaCdlObjects)) $+$
+         text "@{term \"id :: cdl_object_id \\<Rightarrow> cdl_object_id\"}" $+$
+         text "@{thms ids}" $+$
+         text "false"
+         ) $+$
+    text "*}"
+    where binding (id, _) = text $ "(@{term \"" ++ showID id ++ "_id\"}, " ++
+                                   "@{term \"" ++ showID id ++ "\"})"
 
-printIrqMapping :: (Int, Doc) -> Doc
+printIrqMapping :: (Word, Doc) -> Doc
 printIrqMapping (irqID, id) =
-    int irqID <+> text ":=" <+> id
+    text (hex irqID) <+> text ":=" <+> id
 
-{- The capDL formal model requires all possible IRQ numbers to be assigned.
- - Hence we define a default mapping, baseIrqs, which auto-assigns IDs
- - beyond the maximum cdl_object_id in ms. Then we update this mapping with
- - the IRQ slots actually defined by the input model.
+{- The capDL formal model doesn't use a partial mapping for
+ - irqs, which is nonsensical: no platform has all possible
+ - "cdl_irq" values. This is a bug to be fixed.
+ - For now, we just use "undefined" as the default mapping, and
+ - add IRQs from our input model on top of that.
  -}
+
+-- Map each known IRQ to its IRQ node address.
 printIRQsMap :: ObjMap Word -> IRQMap -> Doc
-printIRQsMap ms irqNode =
+printIRQsMap _ irqNode =
     let irqs = Map.map printID irqNode
-        irqs' = Map.toList $ Map.mapKeys fromIntegral irqs
-        firstBaseIrqId = Map.size ms'
-        irqMap = parens $ fsep $ punctuate comma $ map printIrqMapping irqs'
-        baseIrqs = parens $ lambda <> text ("x. ucast x + " ++ show firstBaseIrqId)
-        allIrqs | null irqs' = baseIrqs -- irqMap would be "()"
+        irqMap = parens $ fsep $ punctuate comma $ map printIrqMapping $
+                 Map.toList irqs
+        baseIrqs = text "undefined"
+        allIrqs | Map.null irqs = baseIrqs -- irqMap would be "()"
                 | otherwise = baseIrqs <+> irqMap
     in allIrqs
-    where ms' = Map.filterWithKey (\id _ -> not (mapElem id irqNode)) ms
 
 printIRQs :: ObjMap Word -> IRQMap -> Doc
 printIRQs ms irqNode =
@@ -405,58 +486,15 @@ printCDLState arch =
         "cdl_current_thread = undefined", "cdl_irq_node = irqs",
         "cdl_asid_table = asid_table", "cdl_current_domain = undefined"]
 
-deriveObjectSimps :: [(ObjID, KernelObject Word)] -> Doc
-deriveObjectSimps obj_list =
-    text "(* Use the FastMap package to define an objects_alt with efficient" $+$
-    text " * lookup proofs, then prove that it is equivalent to objects *)" $+$
-    defineObjectsAlt $+$
-    text "" $+$
-    proveObjectsAltEquiv $+$
-    text "" $+$
-    proveObjectLookups
-    where objects (id, _) = "objects " ++ showID id ++ "_id = Some " ++ showID id
-
-          binding (id, _) = text $ "(@{term \"" ++ showID id ++ "_id\"}, " ++
-                                   "@{term \"" ++ showID id ++ "\"})"
-          defineObjectsAlt =
-              text "local_setup {*" $+$
-              text "FastMap.define_map (FastMap.name_opts_default \"objects_alt\")" $+$
-              nest 2 (
-                   nest 2 (brackets (vcat $ punctuate comma $ map binding obj_list)) $+$
-                   text "@{term \"id :: cdl_object_id \\<Rightarrow> cdl_object_id\"}" $+$
-                   text "@{thms ids}" $+$
-                   text "false"
-                   ) $+$
-              text "*}"
-
-          proveObjectsAltEquiv =
-              lemma "objects_alt_equiv"
-                "objects = empty_irq_objects ++ objects_alt"
-                [ "apply (simp only: objects_def objects_alt_to_lookup_list)"
-                , "apply (rule arg_cong[where f = \"\\<lambda>x. empty_irq_objects ++ x\"])"
-                , "apply (subst FastMap.map_of_rev[symmetric])"
-                , " apply (rule objects_alt_keys_distinct)"
-                , "apply (simp only: rev.simps append.simps) (* FIXME: quadratic time *)"
-                , "apply (simp only: map_of.simps prod.sel)"
-                , "done"
-                ]
-
-          proveObjectLookups =
-              lemmas "objects"
-                (map objects obj_list)
-                ["by (auto simp: objects_alt_equiv map_add_def objects_alt_lookups)"]
-
-printSimps :: ObjectSizeMap -> ObjMap Word -> Doc
-printSimps objSizeMap ms =
-    text "lemmas ids = "      $+$ vcat (map obj_ids obj_list) $+$ text "" $+$
-    text "lemmas cap_defs = " $+$ vcat (map caps objs_with_caps) $+$ text "" $+$
-    text "lemmas obj_defs = " $+$ vcat (map objs obj_list) $+$ text "" $+$
-    deriveObjectSimps obj_list
-    where obj_ids (id, _) = printID id <> text "_def"
-          caps (id, _) = text (capsName id) <> text "_def"
-          objs (id, _) = text (showID id) <> text "_def"
-          obj_list = sortObjects objSizeMap $ Map.toList ms
-          objs_with_caps = filter (\(_, obj) -> hasSlots obj) obj_list
+printSimps :: ObjMap Word -> [(ObjID, KernelObject Word)] -> Doc
+printSimps ms isaCdlObjects =
+    text "lemmas ids = "      $+$ vcat (map objIDDef $ Map.toList ms) $+$ text "" $+$
+    text "lemmas cap_defs = " $+$ vcat (map capsDef objsWithCaps) $+$ text "" $+$
+    text "lemmas obj_defs = " $+$ vcat (map objDef isaCdlObjects) $+$ text ""
+    where objIDDef (id, _) = printID id <> text "_def"
+          capsDef (id, _) = text (capsName id) <> text "_def"
+          objDef (id, _) = text (showID id) <> text "_def"
+          objsWithCaps = filter (\(_, obj) -> hasSlots obj) isaCdlObjects
 
 printState :: Arch -> Doc
 printState arch = constdefs "state" "cdl_state" $+$
@@ -469,7 +507,8 @@ printHeader :: String -> Doc
 printHeader name =
     text "theory" <+> doubleQuotes (printFileName name) $+$ text "imports" $+$
     nest 2 (text "\"DSpec.Types_D\"" $+$
-            text "\"Lib.FastMap\"") $+$
+            text "\"Lib.FastMap\"" $+$
+            text ("\"DPolicy.Dpolicy\" " ++ isaComment "@{const ptr_range}")) $+$
     text "begin"
 
 printFooter :: Doc
@@ -478,15 +517,30 @@ printFooter = text "end"
 printIsabelle :: String -> ObjectSizeMap -> Model Word -> Doc
 printIsabelle name objSizeMap (Model (arch@ARM11) ms irqNode cdt untypedCovers) =
     printHeader name $+$ text "" $+$
-    printObjIDs objSizeMap ms' irqNode $+$
-    printObjs objSizeMap ms' irqNode untypedCovers $+$
-    printObjects objSizeMap ms' irqNode $+$ text "" $+$
-    printIRQs ms' irqNode $+$ text "" $+$
-    printASIDTable ms' irqNode untypedCovers $+$ text "" $+$
+
+    printObjIDs objSizeMap objAddrs ms irqNode $+$
+    printObjs ms irqNode untypedCovers isaCdlObjects $+$
+    text "" $+$
+    printSimps ms isaCdlObjects $+$ text "" $+$
+
+    printObjects isaCdlObjects $+$ text "" $+$
+    printIRQs ms irqNode $+$ text "" $+$
+    printASIDTable ms irqNode untypedCovers $+$ text "" $+$
     printCDT cdt $+$ text "" $+$
     printState arch $+$ text "" $+$
-    printSimps objSizeMap ms' $+$ text "" $+$
+
     printFooter
-    where ms' = Map.filter notUntyped ms
+    where objAddrs = case getPhysAddrs objSizeMap ms untypedCovers of
+                         Left (msg, ids) ->
+                             error $ "Failed to allocate objects from untypeds: " ++
+                                     msg ++ " (" ++ intercalate ", " (map show ids) ++ ")"
+                         Right x -> x
+          getAddr' = getAddr objSizeMap objAddrs irqNode
+          -- Isabelle capDL objects. These are sorted by id because the
+          -- FastMap builder expects a sorted list as input.
+          isaCdlObjects = sortBy (comparing $ getAddr' . fst) $
+                          filter (notUntyped . snd) $
+                          Map.toList ms
+
 printIsabelle _ _ (Model _ _ _ _ _) =
     error "Currently only the ARM11 architecture is supported when parsing to Isabelle"
