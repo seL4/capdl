@@ -175,7 +175,7 @@ printCap _ _ _ real  (PDCap id asid) =
 printCap _ _ _ _ ASIDControlCap = text "AsidControlCap"
 printCap _ _ _ _ (ASIDPoolCap id asid) =
     text "AsidPoolCap" <+> printID id <+> printAsid asid
-printCap _ _ _ _ _ = error "IO caps unsupported"
+printCap _ _ _ _ cap = text $ "undefined (* unsupported cap: " ++ show cap ++ " *)"
 
 printCapMapping :: ObjMap Word -> IRQMap -> CoverMap -> Bool -> (Word, Cap) -> Doc
 printCapMapping ms irqNode covers real (slot, cap) =
@@ -268,7 +268,7 @@ printObj' _ id (PD _) = text "PageDirectory" <+>
 printObj' _ _ (Frame vmSzBits _ _) = text "Frame" <+>
     record (fsep $ punctuate comma $ map text
     ["cdl_frame_size_bits = " ++ show vmSzBits])
-printObj' _ _ _ = error "Untyped and IO objs unsupported"
+printObj' _ _ obj = text $ "undefined (* unsupported obj: " ++ show obj ++ " *)"
 
 printLemmaObjectSlots :: ObjID -> Doc
 printLemmaObjectSlots id =
