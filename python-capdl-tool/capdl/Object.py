@@ -261,9 +261,9 @@ class CNode(ContainerObject):
             # Minimum CNode size is 1 bit. Maximum size (28 bits) is not
             # checked.
             self.size_bits = calculate_size(self)
-            if arch:
-                for x in self.update_guard_size_caps:
-                    x.set_guard_size(arch.word_size_bits() - self.size_bits)
+        if arch:
+            for x in self.update_guard_size_caps:
+                x.set_guard_size(arch.word_size_bits() - self.size_bits)
 
     def get_slot_bits(self):
         if self.size_bits == 'auto':
