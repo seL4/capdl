@@ -442,29 +442,12 @@ printIRQs ms irqNode =
     constdefs "irqs" "cdl_irq \\<Rightarrow> cdl_object_id" $+$
     doubleQuotes (text "irqs" <+> equiv <+> printIRQsMap ms irqNode)
 
-addToASIDTable' :: ObjMap Word -> CapMap Word -> Cap -> CapMap Word
-addToASIDTable' ms asidTable cap = case cap of
-    ASIDPoolCap obj ->
-        case Map.lookup obj ms of
-            Just (ASIDPool _ (Just asidHigh)) ->
-                case Map.lookup asidHigh asidTable of
-                    Nothing -> Map.insert asidHigh (ASIDPoolCap obj) asidTable
-                    Just (ASIDPoolCap obj') ->
-                        if obj == obj'
-                        then asidTable
-                        else error $ "Multiple ASIDPools mapped to " ++ show asidHigh
-                    _ -> error "inconceivable: not an ASIDPoolCap"
-            Just (ASIDPool {}) -> error $ "ASIDPool has no asid_high: " ++ show obj
-            _ -> error $ "dangling ASIDPoolCap ID: " ++ show obj
-    _ -> asidTable
-
-addToASIDTable :: ObjMap Word -> CapMap Word -> KernelObject Word -> CapMap Word
-addToASIDTable ms asidTable obj
-    | hasSlots obj = foldl' (addToASIDTable' ms) asidTable (map snd $ Map.toList $ slots obj)
-    | otherwise = asidTable
-
 makeASIDTable :: ObjMap Word -> CapMap Word
-makeASIDTable ms = foldl' (addToASIDTable ms) Map.empty (map snd $ Map.toList ms)
+makeASIDTable ms = foldl' addToASIDTable Map.empty (Map.toList ms)
+  where addToASIDTable asidTable (objID, ASIDPool _ (Just asidHigh)) =
+                Map.insert asidHigh (ASIDPoolCap objID) asidTable
+        addToASIDTable asidTable _ = asidTable
+
 
 printASIDTable :: ObjMap Word -> IRQMap -> CoverMap -> Doc
 printASIDTable ms irqs covers =
