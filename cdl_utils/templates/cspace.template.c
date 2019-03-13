@@ -16,8 +16,8 @@
 {% raw %}
 #define DECLARE_IPCBUFFER_SYMBOL(symbol) \
 extern char symbol[]; \
-void CONSTRUCTOR(199) setUserData(void) { \
-	seL4_SetUserData((seL4_Word)symbol); \
+void CONSTRUCTOR(199) setIPCBuffer(void) { \
+    __sel4_ipc_buffer = (seL4_IPCBuffer *) symbol;\
 }
 {% endraw %}
 
