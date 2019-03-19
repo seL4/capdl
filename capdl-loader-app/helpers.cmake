@@ -25,14 +25,14 @@ function(BuildCapDLApplication)
         message(FATAL_ERROR "OUTPUT is required argument to BuildCapDLApplication")
     endif()
     # Build a CPIO archive out of the provided ELF files
-    MakeCPIO(archive.o "${CAPDL_BUILD_APP_ELF}"
+    MakeCPIO(${CAPDL_BUILD_APP_OUTPUT}_archive.o "${CAPDL_BUILD_APP_ELF}"
         CPIO_SYMBOL _capdl_archive
     )
     # Build the application
     add_executable("${CAPDL_BUILD_APP_OUTPUT}" EXCLUDE_FROM_ALL
         $<TARGET_PROPERTY:capdl_app_properties,C_FILES>
         ${CAPDL_LOADER_APP_C_FILES}
-        archive.o
+        ${CAPDL_BUILD_APP_OUTPUT}_archive.o
         ${CAPDL_BUILD_APP_C_SPEC}
     )
     add_dependencies("${CAPDL_BUILD_APP_OUTPUT}" ${CAPDL_BUILD_APP_DEPENDS})
