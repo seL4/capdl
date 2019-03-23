@@ -22,6 +22,14 @@ from .Spec import Spec
 from .Cap import Cap
 import collections
 
+class AllocatorState():
+    def __init__(self, obj_space, cspaces={}, pds={}, addr_spaces={}):
+        self.obj_space = obj_space
+        self.cspaces = cspaces
+        self.pds = pds
+        self.addr_spaces = addr_spaces
+
+
 class ObjectAllocator(object):
     '''
     An offline object allocator. This can be useful for incrementally
