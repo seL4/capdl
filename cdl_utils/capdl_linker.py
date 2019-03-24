@@ -44,20 +44,20 @@ def manifest(cap_symbols, region_symbols, architecture, targets):
             data = template.render({'slots': cap_symbols[name], 'symbols': region_symbols[name], 'progname': name, 'ipc_buffer_symbol': "mainIpcBuffer"})
             ccspace.write(data)
 
-def final_spec(cspaces, obj_space, addr_spaces, elf_files, architecture):
+def final_spec(args, obj_space, cspaces, addr_spaces, targets, architecture):
     """
     Generates a final CapDL spec file that can be given to a capdl loader application
     """
     arch = lookup_architecture(architecture)
 
-    for e in [item for sublist in elf_files for item in sublist]:
+    for (e, key) in targets:
         name = os.path.basename(e)
         elf = ELF(e, name, architecture)
-        cspace = cspaces[name]
+        cspace = cspaces[key]
 
         # Avoid inferring a TCB as we've already created our own.
-        elf_spec = elf.get_spec(infer_tcb=False, infer_asid=False,pd=addr_spaces[name].vspace_root, addr_space=addr_spaces[name])
-        obj_space.merge(elf_spec)
+        elf_spec = elf.get_spec(infer_tcb=False, infer_asid=False,pd=addr_spaces[key].vspace_root, addr_space=addr_spaces[key])
+        obj_space.merge(elf_spec, label=key)
         for (slot, tcb) in [(k, v.referent) for (k, v) in cspace.cnode.slots.items()
                 if v is not None and isinstance(v.referent, TCB)]:
             funcs = {"get_vaddr": lambda x: elf.get_symbol_vaddr(x)}
@@ -89,6 +89,8 @@ def main():
     parser_b.set_defaults(which="gen_cdl")
     parser_b.add_argument('--manifest-in', type=argparse.FileType('rb'))
     parser_b.add_argument('--elffile', nargs='+', action='append')
+    parser_b.add_argument('--keys', nargs='+', action='append')
+
     args = parser.parse_args()
     register_object_sizes(yaml.load(args.object_sizes))
 
@@ -103,7 +105,11 @@ def main():
 
     if args.which is "gen_cdl":
         allocator_state = pickle.load(args.manifest_in)
-        obj_space = final_spec(allocator_state.cspaces, allocator_state.obj_space, allocator_state.addr_spaces, args.elffile, args.architecture)
+        elfs = [item for sublist in args.elffile for item in sublist]
+        keys = [item for sublist in args.keys for item in sublist]
+        targets = zip(elfs, keys)
+        obj_space = final_spec(args, allocator_state.obj_space, allocator_state.cspaces, allocator_state.addr_spaces, targets, args.architecture)
+
         args.outfile.write(repr(obj_space.spec))
 
     return 0
