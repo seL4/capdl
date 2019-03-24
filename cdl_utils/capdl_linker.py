@@ -23,8 +23,9 @@ import six
 pkg_resources.require("jinja2>=2.10")
 from jinja2 import Environment, BaseLoader, FileSystemLoader
 
-from capdl import ELF, lookup_architecture
+from capdl import ELF, lookup_architecture, TCB
 from capdl.Object import register_object_sizes
+from simpleeval import EvalWithCompoundTypes
 
 CSPACE_TEMPLATE_FILE = os.path.join(os.path.dirname(__file__), "templates/cspace.template.c")
 
@@ -57,17 +58,16 @@ def final_spec(cspaces, obj_space, addr_spaces, elf_files, architecture):
         # Avoid inferring a TCB as we've already created our own.
         elf_spec = elf.get_spec(infer_tcb=False, infer_asid=False,pd=addr_spaces[name].vspace_root, addr_space=addr_spaces[name])
         obj_space.merge(elf_spec)
-        cspace.cnode.finalise_size(arch)
-
-        # Fill in TCB object information.
-        # TODO: This should be generalised with what is in the Camkes filters
-        tcb = obj_space["tcb_%s" % name]
-        progsymbol = elf.get_symbol_vaddr("progname")
-        vsyscall = elf.get_symbol_vaddr("sel4_vsyscall")
-        tcb.init = [0,0,0,0,2,progsymbol,1,0,0,32,vsyscall,0,0]
-        tcb.addr = elf.get_symbol_vaddr("mainIpcBuffer");
-        tcb.sp = elf.get_symbol_vaddr("stack")+elf.get_symbol_size("stack");
-        tcb.ip = elf.get_entry_point()
+        for (slot, tcb) in [(k, v.referent) for (k, v) in cspace.cnode.slots.items()
+                if v is not None and isinstance(v.referent, TCB)]:
+            funcs = {"get_vaddr": lambda x: elf.get_symbol_vaddr(x)}
+            s = EvalWithCompoundTypes(functions=funcs)
+            tcb.ip = s.eval(str(tcb.ip))
+            tcb.sp = s.eval(str(tcb.sp))
+            tcb.addr = s.eval(str(tcb.addr))
+            tcb.init = s.eval(str(tcb.init))
+            tcb.elf = name
+        cspace.cnode.finalise_size(arch=arch)
 
     return obj_space
 
