@@ -92,7 +92,7 @@ def main():
     args = parser.parse_args()
     register_object_sizes(yaml.load(args.object_sizes))
 
-    (objects, cspaces, addr_spaces, cap_symbols, region_symbols, elfs) = pickle.load(args.manifest_in)
+    (objects, cspaces, addr_spaces, cap_symbols, region_symbols) = pickle.load(args.manifest_in)
     if args.which is "build_cnode":
         elfs = [item for sublist in args.elffile for item in sublist]
         cspaces = [item for sublist in args.ccspace for item in sublist]
