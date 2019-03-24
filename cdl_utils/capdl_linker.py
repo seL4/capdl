@@ -98,6 +98,7 @@ def main():
     parser_b.add_argument('--fno-provide-tcb-caps', action='store_false',
         dest='fprovide_tcb_caps', help='Do not hand out TCB caps, causing '
         'components to fault on exiting.')
+    parser_b.add_argument('--save-object-state', type=argparse.FileType('w'))
 
     args = parser.parse_args()
     register_object_sizes(yaml.load(args.object_sizes))
@@ -119,6 +120,8 @@ def main():
         obj_space = final_spec(args, allocator_state.obj_space, allocator_state.cspaces, allocator_state.addr_spaces, targets, args.architecture)
 
         args.outfile.write(repr(obj_space.spec))
+        if args.save_object_state:
+            pickle.dump(allocator_state, args.save_object_state)
 
     return 0
 
