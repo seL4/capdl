@@ -92,16 +92,18 @@ def main():
     args = parser.parse_args()
     register_object_sizes(yaml.load(args.object_sizes))
 
-    (objects, cspaces, addr_spaces, cap_symbols, region_symbols) = pickle.load(args.manifest_in)
     if args.which is "build_cnode":
+        data = yaml.load(args.manifest_in)
+        assert 'cap_symbols' in data and 'region_symbols' in data, "Invalid file format"
         elfs = [item for sublist in args.elffile for item in sublist]
         cspaces = [item for sublist in args.ccspace for item in sublist]
         targets = zip(elfs, cspaces)
-        manifest(cap_symbols, region_symbols, args.architecture, targets)
+        manifest(data['cap_symbols'], data['region_symbols'], args.architecture, targets)
         return 0
 
     if args.which is "gen_cdl":
-        obj_space = final_spec(cspaces, objects, addr_spaces, args.elffile, args.architecture)
+        allocator_state = pickle.load(args.manifest_in)
+        obj_space = final_spec(allocator_state.cspaces, allocator_state.obj_space, allocator_state.addr_spaces, args.elffile, args.architecture)
         args.outfile.write(repr(obj_space.spec))
 
     return 0
