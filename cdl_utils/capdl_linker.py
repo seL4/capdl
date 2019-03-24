@@ -67,6 +67,8 @@ def final_spec(args, obj_space, cspaces, addr_spaces, targets, architecture):
             tcb.addr = s.eval(str(tcb.addr))
             tcb.init = s.eval(str(tcb.init))
             tcb.elf = name
+            if not args.fprovide_tcb_caps:
+                del space.cnode[slot]
         cspace.cnode.finalise_size(arch=arch)
 
     return obj_space
@@ -90,6 +92,12 @@ def main():
     parser_b.add_argument('--manifest-in', type=argparse.FileType('rb'))
     parser_b.add_argument('--elffile', nargs='+', action='append')
     parser_b.add_argument('--keys', nargs='+', action='append')
+    parser_b.add_argument('--fprovide-tcb-caps', action='store_true',
+        default=True, help='Hand out TCB caps to components, allowing them to '
+        'exit cleanly.')
+    parser_b.add_argument('--fno-provide-tcb-caps', action='store_false',
+        dest='fprovide_tcb_caps', help='Do not hand out TCB caps, causing '
+        'components to fault on exiting.')
 
     args = parser.parse_args()
     register_object_sizes(yaml.load(args.object_sizes))
