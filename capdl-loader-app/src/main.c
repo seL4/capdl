@@ -1680,6 +1680,16 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
     case CDL_SchedControlCap:
         src_index = sched_ctrl_caps(CDL_SchedControl_Core(get_spec_object(spec, target_cap_obj)));
         break;
+    case CDL_DomainCap:
+        /* there's only one */
+        src_index = seL4_CapDomain;
+        move_cap = false;
+        break;
+    case CDL_ASIDControlCap:
+        /* there's only one */
+        src_index = seL4_CapASIDControl;
+        move_cap = false;
+        break;
     default:
         src_index = orig_caps(target_cap_obj);
         break;

@@ -116,6 +116,7 @@ showCap objs (TCBCap id) _ is_orig _ =
     ", .is_orig = " ++ is_orig ++
     ", .rights = CDL_AllRights}"
 showCap _ IRQControlCap _ _ _ = "{.type = CDL_IRQControlCap}"
+showCap _ DomainCap _ _ _ = "{.type = CDL_DomainCap}"
 showCap _ (IRQHandlerCap id) irqNode is_orig _ =
     "{.type = CDL_IRQHandlerCap, .obj_id = INVALID_OBJ_ID" ++
     ", .is_orig = " ++ is_orig ++

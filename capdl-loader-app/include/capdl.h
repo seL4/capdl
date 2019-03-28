@@ -91,6 +91,7 @@ typedef enum {
     CDL_SCCap,
     CDL_SchedControlCap,
     CDL_RTReplyCap,
+    CDL_DomainCap,
 } CDL_CapType;
 
 #define CDL_CapData_Badge 0

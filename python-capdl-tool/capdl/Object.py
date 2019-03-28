@@ -72,8 +72,10 @@ class ObjectType(Enum):
     seL4_FrameObject = auto()
     seL4_IRQControl = auto()
     seL4_IRQHandler = auto()
+    seL4_DomainControl = auto()
 
     seL4_ASID_Pool = auto()
+    seL4_ASID_Control = auto()
 
     seL4_SchedContextObject = auto()
     seL4_SchedControl = auto()
@@ -494,9 +496,36 @@ class SC(Object):
 class IRQControl(Object):
     def __init__(self, name):
         super(IRQControl, self).__init__(name)
+        self.name='irq_control'
 
     def __repr__(self):
         # no object representation for an IRQControl
+        s = ""
+        return s
+
+    def get_size_bits(self):
+        return None
+
+class ASIDControl(Object):
+    def __init__(self, name):
+        super(ASIDControl, self).__init__(name)
+        self.name='asid_control'
+
+    def __repr__(self):
+        # no object representation for an ASID Control
+        s = ""
+        return s
+
+    def get_size_bits(self):
+        return None
+
+class DomainControl(Object):
+    def __init__(self, name):
+        super(DomainControl, self).__init__(name)
+        self.name='domain'
+
+    def __repr__(self):
+        # no object representation for an DomainControl
         s = ""
         return s
 

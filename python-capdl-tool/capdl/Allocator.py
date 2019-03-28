@@ -16,7 +16,8 @@ from __future__ import absolute_import, division, print_function, \
 from .Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
     Notification, TCB, Untyped, IOPageTable, Object, IRQ, IOPorts, IODevice, \
     ARMIODevice, VCPU, ASIDPool, SC, SchedControl, RTReply, ObjectType, \
-    ObjectRights, IOAPICIRQ, MSIIRQ, IRQControl, get_object_size
+    ObjectRights, IOAPICIRQ, MSIIRQ, IRQControl, get_object_size, ASIDControl, \
+    DomainControl
 from .Spec import Spec
 from .Cap import Cap
 import collections
@@ -116,6 +117,10 @@ class ObjectAllocator(object):
                 o.set_notification(kwargs['notification'])
         elif type == ObjectType.seL4_IRQControl:
             o = IRQControl(name)
+        elif type == ObjectType.seL4_ASID_Control:
+            o = ASIDControl(name)
+        elif type == ObjectType.seL4_DomainControl:
+            o = DomainControl(name)
         elif type == ObjectType.seL4_ASID_Pool:
             o = ASIDPool(name)
         elif len(frame_type) == 1:
