@@ -37,13 +37,12 @@ def register_object_sizes(sizes):
 
 
 def get_object_size_bits(object_type):
+    global object_sizes
     try:
-        global object_sizes
         return object_sizes[object_type.name]
     except KeyError:
         if not object_sizes:
-            logging.warn("No object sizes registered!")
-            return None
+            logging.fatal("No object sizes registered!")
         logging.fatal("No size for object {}".format(object_type.name))
 
 

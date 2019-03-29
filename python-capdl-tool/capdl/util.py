@@ -82,6 +82,7 @@ class Level:
         else:
             return vaddr % self.coverage // self.child.coverage
 
+
 def make_levels(levels):
     assert levels is not None
     assert len(levels) > 0
@@ -178,15 +179,24 @@ class AARCH64Arch(Arch):
         return "aarch64"
 
     def levels(self):
-        return [
-            Level(2 ** 48, [], ObjectType.seL4_AARCH64_PGD, PGD, "pgd"),
-            Level(2 ** 39, [ObjectType.seL4_HugePageObject],
-                  ObjectType.seL4_AARCH64_PUD, PUD, "pud"),
-            Level(2 ** 30, [ObjectType.seL4_LargePageObject],
-                  ObjectType.seL4_PageDirectoryObject, PageDirectory, "pd"),
-            Level(2 ** 21, [ObjectType.seL4_SmallPageObject],
-                  ObjectType.seL4_PageTableObject, PageTable, "pt"),
-        ]
+        # When on 40-bit PA size on aarch64-hyp the PGD level doesn't exist.
+        if get_object_size(ObjectType.seL4_AARCH64_PGD) > 1:
+            return [
+                Level(2 ** 48, [], ObjectType.seL4_AARCH64_PGD, PGD, "pgd"),
+                Level(2 ** 39, [ObjectType.seL4_HugePageObject],
+                      ObjectType.seL4_AARCH64_PUD, PUD, "pud"),
+                Level(2 ** 30, [ObjectType.seL4_LargePageObject],
+                      ObjectType.seL4_PageDirectoryObject, PageDirectory, "pd"),
+                Level(2 ** 21, [ObjectType.seL4_SmallPageObject],
+                      ObjectType.seL4_PageTableObject, PageTable, "pt"),
+            ]
+        else:
+            return [Level(2 ** 39, [ObjectType.seL4_HugePageObject], ObjectType.seL4_AARCH64_PUD, PUD, "pud"),
+                    Level(2 ** 30, [ObjectType.seL4_LargePageObject],
+                          ObjectType.seL4_PageDirectoryObject, PageDirectory, "pd"),
+                    Level(2 ** 21, [ObjectType.seL4_SmallPageObject],
+                          ObjectType.seL4_PageTableObject, PageTable, "pt"),
+                    ]
 
     def word_size_bits(self):
         return 64
