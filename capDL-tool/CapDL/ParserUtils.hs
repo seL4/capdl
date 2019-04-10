@@ -113,7 +113,7 @@ parse_either a b =
 parse_arch :: MapParser Arch
 parse_arch = do
     reserved "arch"
-    keyw "ia32" IA32 <|> keyw "arm11" ARM11 <|> keyw "x86_64" X86_64 <|> keyw "aarch64" AARCH64
+    keyw "ia32" IA32 <|> keyw "arm11" ARM11 <|> keyw "x86_64" X86_64 <|> keyw "aarch64" AARCH64 <|> keyw "riscv" RISCV
 
 object_type :: MapParser KOType
 object_type =

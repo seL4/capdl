@@ -370,6 +370,7 @@ prettyArch ARM11 = text "arm11"
 prettyArch IA32  = text "ia32"
 prettyArch X86_64 = text "x86_64"
 prettyArch AARCH64 = text "aarch64"
+prettyArch RISCV = text "riscv"
 
 -- Helpers for sorting function
 sizeOf :: Arch -> KernelObject Word -> Word

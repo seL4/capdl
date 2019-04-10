@@ -481,6 +481,7 @@ validObjCap (CNode _ 0) _ = False
 validObjCap (ASIDPool {}) (PDCap {}) = True
 validObjCap (ASIDPool {}) _ = False
 validObjCap (PT {}) (FrameCap {}) = True
+validObjCap (PT {}) (PTCap {}) = True
 validObjCap (PT {}) _ = False
 validObjCap (PML4 {}) (PDPTCap {}) = True
 validObjCap (PML4 {}) _ = False

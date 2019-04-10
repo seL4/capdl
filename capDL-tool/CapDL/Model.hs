@@ -21,7 +21,7 @@ import Data.Data
 import Data.Word
 
 -- Supported architectures:
-data Arch = IA32 | ARM11 | X86_64 | AARCH64 deriving (Eq, Show)
+data Arch = IA32 | ARM11 | X86_64 | AARCH64 | RISCV deriving (Eq, Show)
 
 -- Access rights of capabilities. Not all capability types support all rights.
 data Rights = Read
@@ -176,7 +176,7 @@ data KernelObject a
         maybeSizeBits :: Maybe Word}
     | RTReply
 
--- arch specific objects, ARM11, IA32, X86_64 and AARCH64 mixed
+-- arch specific objects, ARM11, IA32, X86_64, AARCH64 and RISCV mixed
     | ASIDPool { slots :: CapMap a }
     | PT { slots :: CapMap a }
     | PD { slots :: CapMap a }

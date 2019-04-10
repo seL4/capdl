@@ -59,6 +59,7 @@ memberArch arch =
             ARM11 -> "ARM"
             X86_64 -> "X86_64"
             AARCH64 -> "AARCH64"
+            RISCV -> "RISCV"
 
 memberNum :: Int -> String
 memberNum n = ".num = " ++ show n ++ ","
