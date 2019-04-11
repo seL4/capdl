@@ -153,7 +153,7 @@ class AARCH64Arch(Arch):
     def ipc_buffer_size(self):
         return 1024
 
-def lookup_architecture(arch):
+def normalise_architecture(arch):
     normalise = {
         'aarch32':'aarch32',
         'aarch64':'aarch64',
@@ -164,6 +164,12 @@ def lookup_architecture(arch):
         'x86':'ia32',
         'x86_64':'x86_64'
     }
+    try:
+        return normalise[arch.lower()]
+    except KeyError:
+        raise Exception('invalid architecture: %s' % arch)
+
+def lookup_architecture(arch):
     arch_map = {
         'aarch32': ARM32Arch(),
         'aarch64': AARCH64Arch(),
@@ -172,12 +178,9 @@ def lookup_architecture(arch):
         'x86_64': X64Arch()
     }
     try:
-        return arch_map[normalise[arch.lower()]]
+        return arch_map[normalise_architecture(arch)]
     except KeyError:
         raise Exception('invalid architecture: %s' % arch)
-
-def normalise_architecture(arch):
-    return lookup_architecture(arch).capdl_name()
 
 def round_down(n, alignment=FRAME_SIZE):
     """
