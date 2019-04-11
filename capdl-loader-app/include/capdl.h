@@ -199,6 +199,14 @@ typedef enum {
 #if defined(CONFIG_ARCH_ARM)
     CDL_ARMIODevice   = seL4_ObjectTypeCount + 9,
 #endif
+#ifdef CONFIG_ARCH_RISCV
+    CDL_Frame = seL4_RISCV_4K_Page,
+    CDL_PT = seL4_RISCV_PageTableObject,
+    /* We use this hack to distiguish a PageTableObject that is used as a root vspace
+     * as parts of the loader assume that the root vspace object types are unique
+     */
+    CDL_PT_ROOT_ALIAS = seL4_ObjectTypeCount + 10,
+#endif
 } CDL_ObjectType;
 
 #ifdef CONFIG_ARCH_AARCH64
@@ -219,6 +227,17 @@ typedef enum {
 #define CDL_PT_LEVEL_3_MAP       seL4_X86_PageTable_Map
 #define CDL_PT_LEVEL_3_IndexBits seL4_PageTableIndexBits
 #define CDL_PT_NUM_LEVELS 4
+#elif CONFIG_ARCH_RISCV
+#define CDL_TOP_LEVEL_PD CDL_PT_ROOT_ALIAS
+#define CDL_PT_LEVEL_0_MAP       seL4_RISCV_PageTable_Map
+#define CDL_PT_LEVEL_0_IndexBits seL4_PageTableIndexBits
+#define CDL_PT_LEVEL_1_MAP       seL4_RISCV_PageTable_Map
+#define CDL_PT_LEVEL_1_IndexBits seL4_PageTableIndexBits
+#define CDL_PT_LEVEL_2_MAP       seL4_RISCV_PageTable_Map
+#define CDL_PT_LEVEL_2_IndexBits seL4_PageTableIndexBits
+#define CDL_PT_LEVEL_3_MAP       seL4_RISCV_PageTable_Map
+#define CDL_PT_LEVEL_3_IndexBits seL4_PageTableIndexBits
+#define CDL_PT_NUM_LEVELS CONFIG_PT_LEVELS
 #else
 #define CDL_TOP_LEVEL_PD         CDL_PD
 #define CDL_PT_NUM_LEVELS 2

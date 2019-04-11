@@ -34,6 +34,11 @@
 
 #include "capdl_spec.h"
 
+#ifdef CONFIG_ARCH_RISCV
+#define seL4_PageDirIndexBits seL4_PageTableIndexBits
+#define PT_LEVEL_SLOT(vaddr, level) (((vaddr) >> ((seL4_PageTableIndexBits * (level-1)) + seL4_PageBits)) & MASK(seL4_PageTableIndexBits))
+#endif
+
 #define PML4_SLOT(vaddr) ((vaddr >> (seL4_PDPTIndexBits + seL4_PageDirIndexBits + seL4_PageTableIndexBits + seL4_PageBits)) & MASK(seL4_PML4IndexBits))
 #define PDPT_SLOT(vaddr) ((vaddr >> (seL4_PageDirIndexBits + seL4_PageTableIndexBits + seL4_PageBits)) & MASK(seL4_PDPTIndexBits))
 #define PD_SLOT(vaddr)   ((vaddr >> (seL4_PageTableIndexBits + seL4_PageBits)) & MASK(seL4_PageDirIndexBits))
@@ -225,7 +230,7 @@ static CDL_Cap *get_cdl_frame_pd(CDL_ObjID root, uintptr_t vaddr, CDL_Model *spe
 }
 #endif
 
-
+#ifndef CONFIG_ARCH_RISCV
 static CDL_Cap *get_cdl_frame_pt(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
 {
 #if defined(CONFIG_ARCH_X86_64) || defined(CONFIG_ARCH_AARCH64)
@@ -240,6 +245,37 @@ static CDL_Cap *get_cdl_frame_pt(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
     }
     return pt_cap;
 }
+
+#else /* CONFIG_ARCH_RISCV */
+
+/**
+ * Do a recursive traversal from the top to bottom of a page table structure to
+ * get the cap for a particular page table object for a certain vaddr at a certain
+ * level. The level variable treats level==CONFIG_PT_LEVELS as the root page table
+ * object, and level 0 as the bottom level 4k frames.
+ */
+static CDL_Cap *get_cdl_frame_pt_recurse(CDL_ObjID root, uintptr_t vaddr, CDL_Model *spec, int level)
+{
+    CDL_Object *cdl_pt = NULL;
+    if(level < CONFIG_PT_LEVELS) {
+        CDL_Cap *pt_cap = get_cdl_frame_pt_recurse(root, vaddr, spec, level+1);
+        cdl_pt = get_spec_object(spec, CDL_Cap_ObjID(pt_cap));
+    } else {
+        cdl_pt = get_spec_object(spec, root);
+    }
+    CDL_Cap *pt_cap_ret = get_cap_at(cdl_pt, PT_LEVEL_SLOT(vaddr, level));
+    if (pt_cap_ret == NULL) {
+        ZF_LOGF("Could not find PD cap %s[%d]", CDL_Obj_Name(cdl_pt), (int)PT_LEVEL_SLOT(vaddr, level));
+    }
+    return pt_cap_ret;
+}
+
+static CDL_Cap *get_cdl_frame_pt(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
+{
+    return get_cdl_frame_pt_recurse(pd, vaddr, spec, 2);
+}
+
+#endif
 
 static seL4_CPtr
 get_frame_pt(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
@@ -336,7 +372,11 @@ void init_copy_frame(seL4_BootInfo *bootinfo)
     /* guess that there is one PDPT and PML4 on x86_64 or one PGD and PUD on aarch64 */
     copy_addr_pt += 2;
 #endif
-
+#ifdef CONFIG_ARCH_RISCV
+    /* The base case assumes that there is 2 levels paging structure and already skips
+     * the top level and level after that.  We then also need to skip the remaining levels */
+    copy_addr_pt += CONFIG_PT_LEVELS -2;
+#endif
     int error;
 
     for (int i = 0; i < sizeof(copy_addr_with_pt) / PAGE_SIZE_4K; i++) {
@@ -1070,6 +1110,9 @@ configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
 #if defined(CONFIG_ARCH_X86_64)
     reg_args = 4;
 #endif
+#if defined(CONFIG_ARCH_RISCV)
+    reg_args = 4;
+#endif
 
     if (argc > reg_args) {
 #ifdef CONFIG_CAPDL_LOADER_CC_REGISTERS
@@ -1172,6 +1215,13 @@ configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
         .rsi = argc > 1 ? argv[1] : 0,
         .rdx = argc > 2 ? argv[2] : 0,
         .rcx = argc > 3 ? argv[3] : 0,
+#elif defined(CONFIG_ARCH_RISCV)
+        .pc = pc,
+        .sp = sp,
+        .a0 = argc > 0 ? argv[0] : 0,
+        .a1 = argc > 1 ? argv[1] : 0,
+        .a2 = argc > 2 ? argv[2] : 0,
+        .a3 = argc > 3 ? argv[3] : 0,
 #endif
     };
     ZF_LOGD("  Setting up _start(");
@@ -1416,7 +1466,7 @@ map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
     }
 }
 
-#if defined(CONFIG_ARCH_X86_64) || defined(CONFIG_ARCH_AARCH64)
+#if defined(CONFIG_ARCH_X86_64) || defined(CONFIG_ARCH_AARCH64) || defined(CONFIG_ARCH_RISCV)
 
 static void
 init_level_3(CDL_Model *spec, CDL_ObjID level_0_obj, uintptr_t level_3_base, CDL_ObjID level_3_obj)
@@ -1564,7 +1614,7 @@ init_vspace(CDL_Model *spec)
 {
     ZF_LOGD("Initialising VSpaces...\n");
 
-#if defined(CONFIG_ARCH_X86_64) || defined(CONFIG_ARCH_AARCH64)
+#if defined(CONFIG_ARCH_X86_64) || defined(CONFIG_ARCH_AARCH64) || defined(CONFIG_ARCH_RISCV)
     /* Have no understanding of the logic of model of whatever the hell the
        other code in this function is doing as it is pure gibberish. For
        x86_64 and aarch64 we will just do the obvious recursive initialization */
@@ -1862,6 +1912,32 @@ init_scs(CDL_Model *spec)
     }
 }
 
+#ifdef CONFIG_ARCH_RISCV
+/**
+ * RISC-V uses a PageTable object as all table objects in the address structure.
+ * in several places this loader assumes that the root VSpace object is a unique
+ * object type and can be iterated over in the spec for performing operations on
+ * a vspace_root. This function updates the CDL object type of all PageTables that
+ * exist in a TCB VSpace slot to CDL_PT_ROOT_ALIAS which allows the rest of the
+ * loader to treat the roots as unique objects.
+ */
+static void
+mark_vspace_roots(CDL_Model *spec)
+{
+    ZF_LOGD("Marking top level PageTables as CDL_PT_ROOT_ALIAS...\n");
+
+    for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
+        CDL_ObjectType type = CDL_TCB;
+        if (spec->objects[obj_id].type == type) {
+            CDL_ObjID root = CDL_Cap_ObjID(get_cap_at(get_spec_object(spec, obj_id), CDL_TCB_VTable_Slot));
+            ZF_LOGD(" Updating vspace_root: %d\n", root);
+            spec->objects[root].type = CDL_PT_ROOT_ALIAS;
+        }
+    }
+}
+#endif
+
+
 static void
 init_system(CDL_Model *spec)
 {
@@ -1876,6 +1952,13 @@ init_system(CDL_Model *spec)
     sort_untypeds(bootinfo);
 
     create_objects(spec, bootinfo);
+#ifdef CONFIG_ARCH_RISCV
+    /*
+     * This needs to be called after create_objects as it modifies parts of the
+     * spec that create_objects uses, but are _hopefully_ safe to change after.
+     */
+    mark_vspace_roots(spec);
+#endif
     create_irq_caps(spec);
     if (config_set(CONFIG_KERNEL_RT)) {
         create_sched_ctrl_caps(bootinfo);
