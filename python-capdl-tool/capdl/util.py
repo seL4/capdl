@@ -153,6 +153,32 @@ class AARCH64Arch(Arch):
     def ipc_buffer_size(self):
         return 1024
 
+class RISCV64Arch(Arch):
+    def capdl_name(self):
+        return "riscv"
+    def vspace(self):
+        return make_levels([
+            Level(2 ** 39, [ObjectType.seL4_HugePageObject], ObjectType.seL4_PageTableObject, PageTable, "pt"),
+            Level(2 ** 30, [ObjectType.seL4_LargePageObject], ObjectType.seL4_PageTableObject, PageTable, "pt"),
+            Level(2 ** 21, [ObjectType.seL4_SmallPageObject], ObjectType.seL4_PageTableObject, PageTable, "pt"),
+        ])
+    def word_size_bits(self):
+        return 64
+    def ipc_buffer_size(self):
+        return 1024
+class RISCV32Arch(Arch):
+    def capdl_name(self):
+        return "riscv"
+    def vspace(self):
+        return make_levels([
+            Level(2 ** 32, [ObjectType.seL4_LargePageObject], ObjectType.seL4_PageTableObject, PageTable, "pt"),
+            Level(2 ** 22, [ObjectType.seL4_SmallPageObject], ObjectType.seL4_PageTableObject, PageTable, "pt"),
+        ])
+    def word_size_bits(self):
+        return 32
+    def ipc_buffer_size(self):
+        return 512
+
 def normalise_architecture(arch):
     normalise = {
         'aarch32':'aarch32',
@@ -162,12 +188,15 @@ def normalise_architecture(arch):
         'arm_hyp':'arm_hyp',
         'ia32':'ia32',
         'x86':'ia32',
-        'x86_64':'x86_64'
+        'x86_64':'x86_64',
+        'riscv64':'riscv64',
+        'riscv32':'riscv32'
     }
     try:
         return normalise[arch.lower()]
     except KeyError:
         raise Exception('invalid architecture: %s' % arch)
+
 
 def lookup_architecture(arch):
     arch_map = {
@@ -175,7 +204,9 @@ def lookup_architecture(arch):
         'aarch64': AARCH64Arch(),
         'arm_hyp': ARM32Arch(hyp=True),
         'ia32': IA32Arch(),
-        'x86_64': X64Arch()
+        'x86_64': X64Arch(),
+        'riscv64': RISCV64Arch(),
+        'riscv32': RISCV32Arch()
     }
     try:
         return arch_map[normalise_architecture(arch)]
