@@ -1475,13 +1475,13 @@ init_level_1(CDL_Model *spec, CDL_ObjID level_0_obj, uintptr_t level_1_base, CDL
 }
 
 static void
-init_level_0(CDL_Model *spec, CDL_ObjID level_0_obj)
+init_level_0(CDL_Model *spec, CDL_ObjID level_0_obj, uintptr_t level_0_base, CDL_ObjID level_0_obj_unused)
 {
     CDL_Object *obj = get_spec_object(spec, level_0_obj);
     for (unsigned long slot_index = 0; slot_index < CDL_Obj_NumSlots(obj); slot_index++) {
         CDL_CapSlot *slot = CDL_Obj_GetSlot(obj, slot_index);
         unsigned long obj_slot = CDL_CapSlot_Slot(slot);
-        uintptr_t base = obj_slot << (CDL_PT_LEVEL_1_IndexBits + CDL_PT_LEVEL_2_IndexBits + CDL_PT_LEVEL_3_IndexBits + seL4_PageBits);
+        uintptr_t base = level_0_base + obj_slot << (CDL_PT_LEVEL_1_IndexBits + CDL_PT_LEVEL_2_IndexBits + CDL_PT_LEVEL_3_IndexBits + seL4_PageBits);
         CDL_Cap *level_1_cap = CDL_CapSlot_Cap(slot);
         CDL_ObjID level_1_obj = CDL_Cap_ObjID(level_1_cap);
         seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(level_1_cap);
@@ -1572,7 +1572,15 @@ init_vspace(CDL_Model *spec)
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
         if (spec->objects[obj_id].type == CDL_TOP_LEVEL_PD) {
             ZF_LOGD(" Initialising top level %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
-            init_level_0(spec, obj_id);
+            if(CDL_PT_NUM_LEVELS == 4) {
+                init_level_0(spec, obj_id, 0, obj_id);
+            } else if (CDL_PT_NUM_LEVELS == 3) {
+                init_level_1(spec, obj_id, 0, obj_id);
+            } else if (CDL_PT_NUM_LEVELS == 2) {
+                init_level_2(spec, obj_id, 0, obj_id);
+            } else {
+                ZF_LOGF("Unsupported CDL_PT_NUM_LEVELS value: \"%d\"", CDL_PT_NUM_LEVELS);
+            }
         }
     }
 #else

@@ -209,6 +209,7 @@ typedef enum {
 #define CDL_PT_LEVEL_2_IndexBits seL4_PageDirIndexBits
 #define CDL_PT_LEVEL_3_MAP       seL4_ARM_PageTable_Map
 #define CDL_PT_LEVEL_3_IndexBits seL4_PageTableIndexBits
+#define CDL_PT_NUM_LEVELS 4
 #elif CONFIG_ARCH_X86_64
 #define CDL_TOP_LEVEL_PD         CDL_PML4
 #define CDL_PT_LEVEL_1_MAP       seL4_X86_PDPT_Map
@@ -217,8 +218,10 @@ typedef enum {
 #define CDL_PT_LEVEL_2_IndexBits seL4_PageDirIndexBits
 #define CDL_PT_LEVEL_3_MAP       seL4_X86_PageTable_Map
 #define CDL_PT_LEVEL_3_IndexBits seL4_PageTableIndexBits
+#define CDL_PT_NUM_LEVELS 4
 #else
 #define CDL_TOP_LEVEL_PD         CDL_PD
+#define CDL_PT_NUM_LEVELS 2
 #endif
 
 typedef struct {
