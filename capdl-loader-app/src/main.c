@@ -1707,8 +1707,10 @@ init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cnode_id, CDL_C
             /* Look up the container object which contains the mapping. */
             CDL_Object *container = get_spec_object(spec, container_id);
             assert(container);
-            assert(container->type == CDL_PT || container->type == CDL_PD);
-
+            assert(container->type == CDL_PT);
+#ifdef CDL_PD
+            assert(container->type == CDL_PD);
+#endif
             /* When the frame was mapped in, a copy of the cap was first created,
              * and the copy used for the mapping. This copy is the cap that must
              * be moved into the current slot. */
