@@ -22,6 +22,7 @@ from .Spec import Spec
 from .Cap import Cap
 import collections
 
+
 class AllocatorState():
     def __init__(self, obj_space, cspaces={}, pds={}, addr_spaces={}):
         self.obj_space = obj_space
@@ -112,11 +113,11 @@ class ObjectAllocator(object):
             elif 'vector' in kwargs and 'ioapic' in kwargs \
                     and 'ioapic_pin' in kwargs and 'level' in kwargs and 'polarity' in kwargs:
                 o = IOAPICIRQ(name, kwargs['vector'], kwargs['ioapic'], kwargs['ioapic_pin'],
-                    kwargs['level'], kwargs['polarity'])
+                              kwargs['level'], kwargs['polarity'])
             elif 'vector' in kwargs and 'handle' in kwargs \
                     and 'pci_bus' in kwargs and 'pci_dev' in kwargs and 'pci_fun' in kwargs:
                 o = MSIIRQ(name, kwargs['vector'], kwargs['handle'], kwargs['pci_bus'],
-                    kwargs['pci_dev'], kwargs['pci_fun'])
+                           kwargs['pci_dev'], kwargs['pci_fun'])
             else:
                 raise ValueError("IRQHandler objects must define (number|vector,ioapic,ioapic_pin,level,"
                                  "polarity|vector,handle,pci_bus,pci_dev,pci_fun)")
@@ -150,7 +151,7 @@ class ObjectAllocator(object):
         assert isinstance(spec, Spec)
         self.spec.merge(spec)
         [self._assign_label(label, x) for x in spec.objs]
-        self.name_to_object.update({x.name:x for x in spec})
+        self.name_to_object.update({x.name: x for x in spec})
 
     def __contains__(self, item):
         return item in self.name_to_object
@@ -166,6 +167,7 @@ class ObjectAllocator(object):
         self.spec.objs.remove(o)
         del self.name_to_object[o.name]
 
+
 class CSpaceAllocator(object):
     '''
     An offline CSpace allocator. Note that this is only capable of allocating
@@ -175,7 +177,7 @@ class CSpaceAllocator(object):
     def __init__(self, cnode):
         assert isinstance(cnode, CNode)
         self.cnode = cnode
-        self.slot = 1 # Skip the null slot
+        self.slot = 1  # Skip the null slot
 
     def alloc(self, obj, **kwargs):
         '''
@@ -216,6 +218,7 @@ class CSpaceAllocator(object):
         self.cnode[slot] = cap
         return slot
 
+
 class AddressSpaceAllocator(object):
     '''
     Structure for describing backing frame policy for an address space loaded
@@ -236,6 +239,7 @@ class AddressSpaceAllocator(object):
     constructed, these symbols will be translated into virtual addresses that can
     be given to the PageCollection object as it creates a spec with the provided frames.
     '''
+
     def __init__(self, name, vspace_root):
         self.name = name
         self.vspace_root = vspace_root
@@ -286,7 +290,7 @@ class AddressSpaceAllocator(object):
         assert len(sizes) == len(caps)
         for (size, cap) in zip(sizes, caps):
             self._regions[vaddr] = (size, cap)
-            vaddr+=size
+            vaddr += size
 
     def get_regions_and_clear(self):
         '''

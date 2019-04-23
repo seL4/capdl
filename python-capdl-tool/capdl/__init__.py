@@ -16,9 +16,9 @@ from __future__ import absolute_import, division, print_function, \
 from .Cap import Cap
 from .ELF import ELF
 from .Object import Frame, PageTable, PageDirectory, ASIDPool, CNode, Endpoint, \
-                   Notification, TCB, Untyped, IOPorts, IODevice, IOPageTable, \
-                   IRQ, SC, RTReply, calculate_cnode_size, \
-                   Object, ContainerObject, ObjectType, ObjectRights, IRQControl, register_object_sizes
+    Notification, TCB, Untyped, IOPorts, IODevice, IOPageTable, \
+    IRQ, SC, RTReply, calculate_cnode_size, \
+    Object, ContainerObject, ObjectType, ObjectRights, IRQControl, register_object_sizes
 from .Spec import Spec
 from .Allocator import ObjectAllocator, CSpaceAllocator, AddressSpaceAllocator, AllocatorState
 from .PageCollection import PageCollection, create_address_space

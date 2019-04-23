@@ -11,6 +11,10 @@
 # @TAG(DATA61_BSD)
 #
 
+from simpleeval import EvalWithCompoundTypes
+from capdl.Object import register_object_sizes
+from capdl import ELF, lookup_architecture, TCB
+from jinja2 import Environment, BaseLoader, FileSystemLoader
 import sys
 import argparse
 import pickle
@@ -21,11 +25,7 @@ import pkg_resources
 import yaml
 import six
 pkg_resources.require("jinja2>=2.10")
-from jinja2 import Environment, BaseLoader, FileSystemLoader
 
-from capdl import ELF, lookup_architecture, TCB
-from capdl.Object import register_object_sizes
-from simpleeval import EvalWithCompoundTypes
 
 CSPACE_TEMPLATE_FILE = os.path.join(os.path.dirname(__file__), "templates/cspace.template.c")
 
@@ -41,8 +41,10 @@ def manifest(cap_symbols, region_symbols, architecture, targets):
     for (e, ccspace) in targets:
         name = os.path.basename(e)
         if ccspace:
-            data = template.render({'slots': cap_symbols[name], 'symbols': region_symbols[name], 'progname': name, 'ipc_buffer_symbol': "mainIpcBuffer"})
+            data = template.render(
+                {'slots': cap_symbols[name], 'symbols': region_symbols[name], 'progname': name, 'ipc_buffer_symbol': "mainIpcBuffer"})
             ccspace.write(data)
+
 
 def final_spec(args, obj_space, cspaces, addr_spaces, targets, architecture):
     """
@@ -56,10 +58,11 @@ def final_spec(args, obj_space, cspaces, addr_spaces, targets, architecture):
         cspace = cspaces[key]
 
         # Avoid inferring a TCB as we've already created our own.
-        elf_spec = elf.get_spec(infer_tcb=False, infer_asid=False,pd=addr_spaces[key].vspace_root, addr_space=addr_spaces[key])
+        elf_spec = elf.get_spec(infer_tcb=False, infer_asid=False,
+                                pd=addr_spaces[key].vspace_root, addr_space=addr_spaces[key])
         obj_space.merge(elf_spec, label=key)
         for (slot, tcb) in [(k, v.referent) for (k, v) in cspace.cnode.slots.items()
-                if v is not None and isinstance(v.referent, TCB)]:
+                            if v is not None and isinstance(v.referent, TCB)]:
             funcs = {"get_vaddr": lambda x: elf.get_symbol_vaddr(x)}
             s = EvalWithCompoundTypes(functions=funcs)
             tcb.ip = s.eval(str(tcb.ip))
@@ -73,12 +76,13 @@ def final_spec(args, obj_space, cspaces, addr_spaces, targets, architecture):
 
     return obj_space
 
+
 def main():
     parser = argparse.ArgumentParser(
-                description="")
+        description="")
     parser.add_argument('--architecture', '--arch', default='aarch32',
-        type=lambda x: type('')(x).lower(), choices=('aarch32', 'arm_hyp', 'ia32', 'x86_64', 'aarch64'),
-        help='Target architecture.')
+                        type=lambda x: type('')(x).lower(), choices=('aarch32', 'arm_hyp', 'ia32', 'x86_64', 'aarch64'),
+                        help='Target architecture.')
     parser.add_argument('--object-sizes', required=True, type=argparse.FileType('r'))
     subparsers = parser.add_subparsers()
     parser_a = subparsers.add_parser('build_cnode')
@@ -93,11 +97,11 @@ def main():
     parser_b.add_argument('--elffile', nargs='+', action='append')
     parser_b.add_argument('--keys', nargs='+', action='append')
     parser_b.add_argument('--fprovide-tcb-caps', action='store_true',
-        default=True, help='Hand out TCB caps to components, allowing them to '
-        'exit cleanly.')
+                          default=True, help='Hand out TCB caps to components, allowing them to '
+                          'exit cleanly.')
     parser_b.add_argument('--fno-provide-tcb-caps', action='store_false',
-        dest='fprovide_tcb_caps', help='Do not hand out TCB caps, causing '
-        'components to fault on exiting.')
+                          dest='fprovide_tcb_caps', help='Do not hand out TCB caps, causing '
+                          'components to fault on exiting.')
     parser_b.add_argument('--save-object-state', type=argparse.FileType('w'))
 
     args = parser.parse_args()
@@ -117,13 +121,15 @@ def main():
         elfs = [item for sublist in args.elffile for item in sublist]
         keys = [item for sublist in args.keys for item in sublist]
         targets = zip(elfs, keys)
-        obj_space = final_spec(args, allocator_state.obj_space, allocator_state.cspaces, allocator_state.addr_spaces, targets, args.architecture)
+        obj_space = final_spec(args, allocator_state.obj_space, allocator_state.cspaces,
+                               allocator_state.addr_spaces, targets, args.architecture)
 
         args.outfile.write(repr(obj_space.spec))
         if args.save_object_state:
             pickle.dump(allocator_state, args.save_object_state)
 
     return 0
+
 
 if __name__ == '__main__':
     sys.exit(main())
