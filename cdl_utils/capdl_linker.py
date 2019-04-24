@@ -12,7 +12,8 @@
 #
 
 from simpleeval import EvalWithCompoundTypes
-from capdl.Object import register_object_sizes
+from capdl.Object import register_object_sizes, Untyped
+from capdl.Allocator import BestFitAllocator
 from capdl import ELF, lookup_architecture, TCB, valid_architectures
 from jinja2 import Environment, BaseLoader, FileSystemLoader
 import sys
@@ -106,6 +107,12 @@ def main():
                           dest='fprovide_tcb_caps', help='Do not hand out TCB caps, causing '
                           'components to fault on exiting.')
     parser_b.add_argument('--save-object-state', type=argparse.FileType('w'))
+    parser_b.add_argument('--static-alloc', action='store_true',
+                          help='Perform static object allocation (requires --untyped)')
+    parser_b.add_argument('--dynamic-alloc', action='store_false', dest='static_alloc',
+                          help='Cancel --static-alloc')
+    parser_b.add_argument('--untyped', type=argparse.FileType('r'),
+                          help="YAML file with available seL4 bootinfo untypeds")
 
     args = parser.parse_args()
     register_object_sizes(yaml.load(args.object_sizes, Loader=yaml.FullLoader))
@@ -120,12 +127,25 @@ def main():
         return 0
 
     if args.which is "gen_cdl":
+        if args.static_alloc and not args.untyped:
+            parser.error('--static-alloc requires --untyped')
+
         allocator_state = pickle.load(args.manifest_in)
         elfs = [item for sublist in args.elffile for item in sublist]
         keys = [item for sublist in args.keys for item in sublist]
         targets = zip(elfs, keys)
         obj_space = final_spec(args, allocator_state.obj_space, allocator_state.cspaces,
                                allocator_state.addr_spaces, targets, args.architecture)
+
+        # Calculate final layout for objects...
+        if args.static_alloc:
+            alloc = BestFitAllocator()
+            for ut in yaml.load(args.untyped):
+                if len(ut):
+                    is_device, paddr, size_bits = ut['device'], ut['paddr'], ut['size_bits']
+                    alloc.add_untyped(Untyped("root_untyped_0x%x" % paddr,
+                                              size_bits=size_bits, paddr=paddr), is_device)
+            alloc.allocate(obj_space.spec)
 
         args.outfile.write(repr(obj_space.spec))
         if args.save_object_state:
