@@ -12,23 +12,29 @@
 
 set(CapDLToolDirectory ${CMAKE_CURRENT_LIST_DIR})
 
+include(make)
 # Build and install capDL-tool
 # Path of installed tool will be returned in program_path
 # This assumes that there are no other dependencies.
 function(CapDLToolInstall target program_path)
     # Require the parse-capDL tool
-    ExternalProject_Add(parse_capdl_tool
-        BUILD_ALWAYS ON # for tracking changes to the capDL source dir
-        CONFIGURE_COMMAND "" # capDL-tool has its own build system
-        SOURCE_DIR "${CapDLToolDirectory}"
-        BUILD_COMMAND bash -c "cp -a ${CapDLToolDirectory}/* ."
-        COMMAND       ${CMAKE_COMMAND} -E env make
-        INSTALL_COMMAND ""
+    create_depfile_by_find(
+        depfile_commands
+        "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/parse-capDL"
+        "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/parse-capDL.d"
+        "${CapDLToolDirectory}/"
     )
-    ExternalProject_Get_property(parse_capdl_tool BINARY_DIR)
-    DeclareExternalProjObjectFiles(parse_capdl_tool ${BINARY_DIR} FILES parse-capDL)
-    add_custom_target(${target} DEPENDS "${BINARY_DIR}/parse-capDL")
-    set(${program_path} "${BINARY_DIR}/parse-capDL" PARENT_SCOPE)
+    add_custom_command(
+        OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/parse-capDL"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/
+        ${depfile_commands}
+        COMMAND
+            cp -a ${CapDLToolDirectory}/* .
+        COMMAND
+            ${CMAKE_COMMAND} -E env make
+    )
+    add_custom_target(${target} DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/parse-capDL")
+    set(${program_path} "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/parse-capDL" PARENT_SCOPE)
 endfunction()
 
 # Create target for creating capdl C file from cdl spec
