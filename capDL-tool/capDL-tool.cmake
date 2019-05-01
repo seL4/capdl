@@ -46,20 +46,17 @@ endfunction()
 # DEPENDS: Any target or file dependencies that the parse command depends on
 function(CapDLToolCFileGen target output input capdl_tool)
     cmake_parse_arguments(PARSE_ARGV 4 CAPDL "" "MAX_IRQS" "DEPENDS")
-    if (NOT "${CAPDL_UNPARSED_ARGUMENTS}" STREQUAL "")
+    if(NOT "${CAPDL_UNPARSED_ARGUMENTS}" STREQUAL "")
         message(FATAL_ERROR "Unknown arguments to CapDLToolCFileGen")
     endif()
-    if (NOT "${CAPDL_MAX_IRQS}" STREQUAL "")
+    if(NOT "${CAPDL_MAX_IRQS}" STREQUAL "")
         set(max_irqs "--code-max-irqs=${CAPDL_MAX_IRQS}")
     endif()
     # Invoke the parse-capDL tool to turn the CDL spec into a C spec
     add_custom_command(
         OUTPUT ${output}
-        COMMAND
-            ${capdl_tool} ${max_irqs} --code ${output} "${input}"
-        DEPENDS
-            "${input}"
-            ${CAPDL_DEPENDS}
+        COMMAND ${capdl_tool} ${max_irqs} --code ${output} "${input}"
+        DEPENDS "${input}" ${CAPDL_DEPENDS}
     )
     add_custom_target(${target} DEPENDS ${output})
 endfunction()
