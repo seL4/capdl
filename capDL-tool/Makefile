@@ -36,12 +36,13 @@ tests: example-arm.test-OK example-ia32.test-OK hello-dump.test-OK
 .SECONDARY: example-arm.parse example-arm.dot example-arm.xml example-ia32.parse example-ia32.dot example-ia32.xml hello-dump.parse hello-dump.dot hello-dump.xml
 
 .PHONY: sandbox
-sandbox: stack.yaml capDL-tool.cabal
+sandbox:
 	stack setup
 	stack build --only-dependencies
 
 # `stack install` copies the binary out of the build dir
-$(TARGET): stack.yaml capDL-tool.cabal Setup.hs Main.hs CapDL/*.hs
+.PHONY: $(TARGET)
+$(TARGET):
 	stack build
 	stack install
 
