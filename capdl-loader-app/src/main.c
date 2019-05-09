@@ -803,6 +803,9 @@ static void create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
 
     unsigned int free_slot_index = 0;
 
+    /* First, allocate most objects and update the spec database with
+       the cslot locations. The exception is ASIDPools, where
+       create_object only allocates the backing untypeds. */
     for (int ut_index = 0; ut_index < spec->num_untyped; ut_index++) {
         CDL_UntypedDerivation *ud = &spec->untyped[ut_index];
         seL4_CPtr untyped_cptr = untyped_cptrs[ut_index];
@@ -820,15 +823,6 @@ static void create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
                        CDL_Obj_Name(obj));
             seL4_Error err = create_object(spec, obj, obj_id, bootinfo, untyped_cptr, free_slot);
             if (err == seL4_NoError) {
-                if (capdl_obj_type == CDL_ASIDPool) {
-                    free_slot_index++;
-                    seL4_CPtr asid_slot = free_slot_start + free_slot_index;
-                    err = seL4_ARCH_ASIDControl_MakePool(seL4_CapASIDControl, free_slot,
-                                                         seL4_CapInitThreadCNode, asid_slot,
-                                                         CONFIG_WORD_SIZE);
-                    free_slot = asid_slot;
-                    ZF_LOGF_IFERR(err, "Failed to create asid pool");
-                }
                 add_sel4_cap(obj_id, ORIG, free_slot);
                 free_slot_index++;
             } else {
@@ -837,6 +831,30 @@ static void create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
             }
         }
     }
+
+    /* Now, we turn the backing untypeds into ASID pools, in the order
+       given by the ASID slot allocation policy. This fixes the layout
+       inside the kernel's ASID table, which ensures consistency with
+       verification models. */
+    if (spec->num_asid_slots > 1) {
+        ZF_LOGD("Creating ASID pools...\n");
+    }
+    for (seL4_Word asid_high = 1; asid_high < spec->num_asid_slots; asid_high++) {
+        CDL_ObjID obj_id = spec->asid_slots[asid_high];
+        seL4_CPtr asidpool_ut = orig_caps(obj_id);
+        seL4_CPtr asidpool_slot = free_slot_start + free_slot_index;
+
+        seL4_Error err = seL4_ARCH_ASIDControl_MakePool(seL4_CapASIDControl, asidpool_ut,
+                                                        seL4_CapInitThreadCNode, asidpool_slot,
+                                                        CONFIG_WORD_SIZE);
+        ZF_LOGF_IFERR(err, "Failed to create ASID pool #%d from ut slot %ld into slot %ld",
+                      (int)asid_high, (long)asidpool_ut, (long)asidpool_slot);
+
+        // update to point to our new ASID pool
+        add_sel4_cap(obj_id, ORIG, asidpool_slot);
+        free_slot_index++;
+    }
+
     // Update the free slot to go past all the objects we just made.
     free_slot_start += free_slot_index;
 }
@@ -902,13 +920,36 @@ static void create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
         }
         obj_id_index++;
     }
-    // Update the free slot to go past all the objects we just made.
-    free_slot_start += free_slot_index;
 
     if (obj_id_index != spec->num) {
         /* We didn't iterate through all the objects. */
         ZF_LOGF("Ran out of untyped memory while creating objects.");
     }
+
+    /* Now, we turn the backing untypeds into ASID pools, in the order
+       given by the ASID slot allocation policy. This fixes the layout
+       inside the kernel's ASID table, which ensures consistency with
+       verification models. */
+    if (spec->num_asid_slots > 1) {
+        ZF_LOGD("Creating ASID pools...\n");
+    }
+    for (seL4_Word asid_high = 1; asid_high < spec->num_asid_slots; asid_high++) {
+        CDL_ObjID obj_id = spec->asid_slots[asid_high];
+        seL4_CPtr asid_ut = orig_caps(obj_id);
+        seL4_CPtr asid_slot = free_slot_start + free_slot_index;
+
+        seL4_Error err = seL4_ARCH_ASIDControl_MakePool(seL4_CapASIDControl, asid_ut,
+                                                        seL4_CapInitThreadCNode, asid_slot,
+                                                        CONFIG_WORD_SIZE);
+        ZF_LOGF_IFERR(err, "Failed to create asid pool");
+
+        // update to point to our new ASID pool
+        add_sel4_cap(obj_id, ORIG, asid_slot);
+        free_slot_index++;
+    }
+
+    // Update the free slot to go past all the objects we just made.
+    free_slot_start += free_slot_index;
 }
 
 #endif /* !CONFIG_CAPDL_LOADER_STATIC_ALLOC */

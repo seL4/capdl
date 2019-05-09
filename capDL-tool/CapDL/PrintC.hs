@@ -24,6 +24,7 @@ import Control.Exception (assert)
 import Data.List.Compat
 import Data.List.Utils
 import Data.Maybe (fromJust, fromMaybe)
+import Data.Ord (comparing)
 import Prelude ()
 import Prelude.Compat
 import qualified Data.Map as Map
@@ -424,6 +425,37 @@ showUntypedDerivations StaticAlloc objs untypedCovers =
                                 Map.toList untypedCovers) +++
     "},"
 
+-- find all ASIDPools and prepare them for allocation wrt. asid_high.
+getASIDPoolDerivations :: ObjMap Word -> [(Word, ObjID)]
+getASIDPoolDerivations ms =
+    let table =
+          sortBy (comparing fst) $
+          [ (asidHigh, objID)
+          | (objID, ASIDPool lowSlots maybeAsidHigh) <- Map.toList ms,
+            -- sanity checks
+            Map.null lowSlots || can'tAllocate objID "it has nonempty low slots",
+            maybeAsidHigh /= Nothing || can'tAllocate objID "it has no assigned asid_high",
+            let Just asidHigh = maybeAsidHigh
+          ]
+        asidHighs = map fst table
+    in -- more sanity checks
+       if asidHighs /= [1..fromIntegral (length asidHighs)]
+       then error $ "ASID pools don't have slot numbers 1..n: " ++ show table
+       else table
+    where can'tAllocate objID reason =
+              error $ "can't allocate ASID pool " ++ show objID ++ " because " ++ reason
+
+showASIDPoolDerivations :: Map ObjID Int -> ObjMap Word -> String
+showASIDPoolDerivations objs ms =
+    let table = getASIDPoolDerivations ms
+        -- include ignored slot 0
+        array = "(CDL_ObjID)-1 /* slot reserved for root thread, ignored */"
+                : map (showObjID objs . snd) table
+    in ".num_asid_slots = " ++ show (length array) ++ "," +++
+       ".asid_slots = (CDL_ObjID[]){" +++
+           Data.List.Utils.join ",\n" ["    " ++ idStr | idStr <- array] +++
+       "},"
+
 printC :: AllocationType -> Model Word -> Idents CapName -> CopyMap -> Word -> Doc
 printC allocType (Model arch objs irqNode cdt untypedCovers) _ _ maxIrqs =
     text $
@@ -444,6 +476,7 @@ printC allocType (Model arch objs irqNode cdt untypedCovers) _ _ maxIrqs =
     memberIRQs obj_ids irqNode arch maxIrqs +++
     memberObjects obj_ids obj_list irqNode cdt objs +++
     showUntypedDerivations allocType obj_ids untypedCovers +++
+    showASIDPoolDerivations obj_ids objs +++
     "};"
     where objs_sz = length $ Map.toList objs
           obj_list = case allocType of

@@ -344,8 +344,17 @@ typedef struct {
     seL4_Word num;
     CDL_Object *objects;
     CDL_ObjID irqs[CONFIG_CAPDL_LOADER_MAX_IRQS];
+
     seL4_Word num_untyped;
     CDL_UntypedDerivation *untyped;
+
+    /* Array from ASID slot number to ASID pool object.
+       NB: asid_slots[0] is unused, so the array size is one larger
+           than the number of slots being allocated.
+           Slot 0 is unused because it is the root thread's ASID slot,
+           which the loader uses for loading other component VSpaces. */
+    seL4_Word num_asid_slots;
+    CDL_ObjID *asid_slots;
 } CDL_Model;
 
 /* helper functions ---------------------------------------------------------------------------- */
