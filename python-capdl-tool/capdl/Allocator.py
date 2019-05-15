@@ -551,6 +551,9 @@ class BestFitAllocator(UntypedAllocator):
                 s.add_object(ut)
         elif ut.remaining() > 0:
             self._use_untyped(objects, ut, ut.remaining(), is_device, s)
+            if not objects.more_fun():
+                # the allocator below will not run; add ut before we finish
+                s.add_object(ut)
 
         # now allocate the rest of the objects
         while objects.more_fun():

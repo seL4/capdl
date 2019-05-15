@@ -19,7 +19,7 @@ import unittest
 import hypothesis.strategies as st
 from hypothesis import given
 
-from capdl import Spec, Untyped, Endpoint, IRQControl
+from capdl import Spec, Untyped, Endpoint, IRQControl, Frame
 from capdl.Allocator import BestFitAllocator, AllocatorException
 from capdl.util import round_up
 from tests import CapdlTestCase
@@ -241,6 +241,34 @@ class TestAllocator(CapdlTestCase):
         allocator.add_untyped(ut)
         self.assertValidSpec(allocator, spec, 1<<ut_size_bits, paddr - start_paddr, children, [ut])
 
+    def test_regression_unfun_at_end(self):
+        """
+        Ensure that if an unfun object is the last to get allocated,
+        its root ut is included in the spec.
+        """
+        allocator = BestFitAllocator()
+        root_ut_A = Untyped("root_ut_A", size_bits=16, paddr=0x10000)
+        root_ut_B = Untyped("root_ut_B", size_bits=16, paddr=0x20000)
+        allocator.add_untyped(root_ut_A)
+        allocator.add_untyped(root_ut_B)
+
+        spec = Spec()
+        my_frame_A0 = Frame("my_frame_A0")
+        my_frame_A1 = Frame("my_frame_A1")
+        my_pinned_frame_B = Frame("my_pinned_frame_B", paddr=0x20000)
+        spec.add_object(my_frame_A0)
+        spec.add_object(my_frame_A1)
+        spec.add_object(my_pinned_frame_B)
+
+        allocator.allocate(spec)
+        self.assertIn(root_ut_B, spec.objs) # main test
+        # other tests:
+        for obj in (root_ut_A, root_ut_B, my_frame_A0, my_frame_A1, my_pinned_frame_B):
+            self.assertIn(obj, spec.objs)
+        for obj in (my_frame_A0, my_frame_A1):
+            self.assertIn(obj, root_ut_A.children)
+        for obj in (my_pinned_frame_B,):
+            self.assertIn(obj, root_ut_B.children)
 
 if __name__ == '__main__':
     unittest.main()
