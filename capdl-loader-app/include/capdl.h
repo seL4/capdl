@@ -248,6 +248,7 @@ typedef struct {
     uint8_t priority;
     uint8_t max_priority;
     uint8_t affinity;
+    uint8_t domain;
     seL4_Word pc;
     seL4_Word sp;
     const char *elf_name;
@@ -255,7 +256,6 @@ typedef struct {
     seL4_Word init_sz;
     seL4_CPtr fault_ep;
     seL4_Word ipcbuffer_addr;
-    uint8_t domain;
 } CDL_TCBExtraInfo;
 
 typedef struct {
