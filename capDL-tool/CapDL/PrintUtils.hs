@@ -280,7 +280,8 @@ maybeGSize = maybeNum "guard_size"
 
 zombieNum n = [text "zombie" <> colon <+> num n]
 
-printAsid (high, low) = text "(" <> num high <> text ", " <> num low <> text ")"
+printAsid (high, low) =
+    text "(" <> text (hex high) <> text ", " <> text (hex low) <> text ")"
 
 prettyAsid asid = [text "asid:" <+> printAsid asid]
 

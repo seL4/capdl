@@ -17,7 +17,7 @@ objects {
 cnode = cnode (4 bits)
 tcb = tcb (addr: 0x15000, ip: 0x00010000, sp: 0x00013000, elf: sel4_simpleserver, prio: 42, init:[10,15], fault_ep_slot: 1)
 pd1 = pd
-ap = asid_pool
+ap = asid_pool (asid_high: 0x1)
 pt1 = pt
 frame[6] = frame (4k)
 ep = notification

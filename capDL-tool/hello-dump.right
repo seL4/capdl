@@ -88,13 +88,13 @@ objects {
   cnode@0xf7ff0000 {
     1: tcb@0xf0031700
     2: cnode@0xf7ff0000 (guard_size: 20)
-    3: pd@0xf7fec000 (asid: (0, 1))
+    3: pd@0xf7fec000 (asid: (0x0, 0x1))
     4: irq_control
     5: asid_control
     6: asid_pool@0xf0306000
-    9: frame@0xf002f000[1..0] (RW, asid: (0, 1))
-    11: frame@0xf0307000[0..15] (RW, asid: (0, 1))
-    27: pt@0xf0031000 (asid: (0, 1))
+    9: frame@0xf002f000[1..0] (RW, asid: (0x0, 0x1))
+    11: frame@0xf0307000[0..15] (RW, asid: (0x0, 0x1))
+    27: pt@0xf0031000 (asid: (0x0, 0x1))
     28: untyped@0xf0000000@12[0..15]
     44: untyped@0xf0031800@11
     45: untyped@0xf0032000@13
@@ -176,9 +176,9 @@ objects {
 
   tcb@0xf0031700 {
     0: cnode@0xf7ff0000 (guard_size: 20)
-    1: pd@0xf7fec000 (asid: (0, 1))
+    1: pd@0xf7fec000 (asid: (0x0, 0x1))
     2: tcb@0xf0031700 (master_reply)
-    4: frame@0xf002f000[0] (RW, asid: (0, 1))
+    4: frame@0xf002f000[0] (RW, asid: (0x0, 0x1))
   }
 
 } cdt {

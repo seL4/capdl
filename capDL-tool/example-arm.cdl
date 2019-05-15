@@ -64,7 +64,7 @@ z = ep
 rm_cn {
   001: rm_tcb
   002: rm_cn (guard: 0, guard_size: 0)
-  003: rm_pd (asid: (1, 1))
+  003: rm_pd (asid: (0x1, 0x1))
   006: rm_ap
 0x00b: linux_pd;
 0x00c: rm_ut_small[3..5];
@@ -75,7 +75,7 @@ rm_cn {
 0x0a4: name[] = frame_nic1[];
 
 0x0e5: irq_handler[1];
-0x0e6: frame_nic2[] (RW, asid: (1, 1));
+0x0e6: frame_nic2[] (RW, asid: (0x1, 0x1));
 --  126: iospace
 
 0x127: irq_handler[2];

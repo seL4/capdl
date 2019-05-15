@@ -24,7 +24,7 @@ rm_ut = ut {
     rm_cn = cnode (10 bits)
   }
   rm_pd = page_directory [ 10 -> frame_name_x, .. ]
-  rm_ap = asid_pool
+  rm_ap = asid_pool (asid_high: 0x0)
 
   linux_pd = page_directory
 

@@ -47,7 +47,7 @@ objects {
   rm_cn {
     1: rm_tcb
     2: rm_cn
-    3: rm_pd (asid: (1, 1))
+    3: rm_pd (asid: (0x1, 0x1))
     6: rm_ap
     11: linux_pd
     12: rm_ut_small[3..5, 7..20, 23, 27..49]
@@ -55,7 +55,7 @@ objects {
     163: irq_handler[0]
     164: frame_nic1[0..63]
     229: irq_handler[1]
-    230: frame_nic2[0..63] (RW, asid: (1, 1))
+    230: frame_nic2[0..63] (RW, asid: (0x1, 0x1))
     295: irq_handler[2]
     296: frame_nic3[0..3]
     301: timer (G)
