@@ -227,8 +227,8 @@ class RISCV32Arch(Arch):
         return 512
 
 
-def normalise_architecture(arch):
-    normalise = {
+def normalised_map():
+    return {
         'aarch32': 'aarch32',
         'aarch64': 'aarch64',
         'arm': 'aarch32',
@@ -240,8 +240,15 @@ def normalise_architecture(arch):
         'riscv64': 'riscv64',
         'riscv32': 'riscv32'
     }
+
+
+def valid_architectures():
+    return set(normalised_map().values())
+
+
+def normalise_architecture(arch):
     try:
-        return normalise[arch.lower()]
+        return normalised_map()[arch.lower()]
     except KeyError:
         raise Exception('invalid architecture: %s' % arch)
 

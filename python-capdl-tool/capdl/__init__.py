@@ -23,4 +23,4 @@ from .Spec import Spec
 from .Allocator import ObjectAllocator, CSpaceAllocator, AddressSpaceAllocator, AllocatorState
 from .PageCollection import PageCollection, create_address_space
 from .util import page_index, page_sizes, page_table_coverage, \
-    page_table_index, page_table_vaddr, page_vaddr, lookup_architecture
+    page_table_index, page_table_vaddr, page_vaddr, lookup_architecture, valid_architectures
