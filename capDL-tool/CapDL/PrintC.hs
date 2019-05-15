@@ -23,7 +23,7 @@ import CapDL.PrintUtils (sortObjects)
 import Control.Exception (assert)
 import Data.List.Compat
 import Data.List.Utils
-import Data.Maybe (fromJust, fromMaybe, mapMaybe)
+import Data.Maybe (fromJust, fromMaybe)
 import Prelude ()
 import Prelude.Compat
 import Data.Map as Map
@@ -218,6 +218,17 @@ printInit :: [Word] -> String
 printInit argv =
     "{" ++ Data.List.Utils.join ", " (Data.List.Compat.map show argv) ++ "}"
 
+showFrameFill :: Maybe [String] -> String
+showFrameFill (Just (info_type:offset:extra))  =
+    ".type = " ++ info_type ++ "," +++
+    ".dest_offset = " ++ offset ++ "," +++
+    ".extra_information = " ++ (Data.List.Utils.join " " extra) ++ ","
+showFrameFill _ = ""
+
+showFramePaddr :: Maybe Word -> String
+showFramePaddr paddr =
+    ".paddr = " ++ pointerOfPAddr paddr ++ ","
+
 showObjectFields :: Map ObjID Int -> ObjID -> KernelObject Word -> IRQMap -> CDT -> ObjMap Word -> String
 showObjectFields _ _ Endpoint _ _ _ = ".type = CDL_Endpoint,"
 showObjectFields _ _ Notification _ _ _ = ".type = CDL_Notification,"
@@ -302,10 +313,10 @@ showObjectFields objs obj_id (PUD slots) _ _ _ =
 showObjectFields objs obj_id (PGD slots) _ _ _ =
     ".type = CDL_PGD," +++
     memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
-showObjectFields _ _ (Frame size paddr _) _ _ _ =
+showObjectFields _ _ (Frame size paddr extra) _ _ _ =
     ".type = CDL_Frame," +++
     ".size_bits = " ++ show size ++ "," +++
-    ".paddr = " ++ pointerOfPAddr paddr ++ ","
+    ".frame_extra = { " ++ showFramePaddr paddr ++ showFrameFill extra +++ " },"
 showObjectFields _ _ (IOPorts (start, end)) _ _ _ =
     ".type = CDL_IOPorts," +++
     ".start = " ++ show start ++ "," ++
@@ -374,32 +385,6 @@ memberIRQs objs irqNode _ maxIrqs =
         _ -> -1) [0..(maxIrqs - 1)]) +++
     "},"
 
-showFrameInfo :: Map ObjID Int -> (ObjID, KernelObject Word) -> Maybe String
-showFrameInfo objs (obj_id, Frame _ _ (Just (info_type:offset:extra))) = Just (
-    "{" +++
-    ".frame = " ++ (showObjID objs obj_id) ++ "," +++
-    ".type = \"" ++ info_type ++ "\"," +++
-    ".dest_offset = " ++ offset ++ "," +++
-    ".extra_information = \"" ++ (Data.List.Utils.join " " extra) ++ "\"" +++
-    "}")
-
-showFrameInfo _ _ = Nothing
-
-showFrameInfos :: Map ObjID Int -> [(ObjID, KernelObject Word)] -> (Int, String)
-showFrameInfos objs xs =
-   (length infos, Data.List.Utils.join ", " infos)
-      where
-         infos = Data.Maybe.mapMaybe (showFrameInfo objs) xs
-
-extraFrameInfos :: Map ObjID Int -> [(ObjID, KernelObject Word)] -> String
-extraFrameInfos obj_ids objs =
-    ".num_frame_fill = " ++ show (fst frameinfo) ++ "," +++
-    ".frame_fill = (CDL_FrameFill[]){" +++
-    snd frameinfo +++
-    "},"
-    where
-        frameinfo = showFrameInfos obj_ids objs
-
 printC :: Model Word -> Idents CapName -> CopyMap -> Word -> Doc
 printC (Model arch objs irqNode cdt _) _ _ maxIrqs =
     text $
@@ -419,7 +404,6 @@ printC (Model arch objs irqNode cdt _) _ _ maxIrqs =
     memberNum objs_sz +++
     memberIRQs obj_ids irqNode arch maxIrqs +++
     memberObjects obj_ids objs' irqNode cdt objs +++
-    extraFrameInfos obj_ids objs' +++
     "};"
     where
         objs_sz = length $ Map.toList objs

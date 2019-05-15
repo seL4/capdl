@@ -592,7 +592,7 @@ static int find_device_object(seL4_Word paddr, seL4_Word type, int size_bits, se
         CDL_ObjID prev = obj_id - 1;
         CDL_Object *obj = &spec->objects[prev];
         if (CDL_Obj_Type(obj) == CDL_Frame &&
-            obj->paddr == paddr &&
+            obj->frame_extra.paddr == paddr &&
             CDL_Obj_SizeBits(obj) == size_bits) {
             /* Attempt to copy the cap */
             error = seL4_CNode_Copy(seL4_CapInitThreadCNode, free_slot, CONFIG_WORD_SIZE,
@@ -681,7 +681,14 @@ static int retype_untyped(seL4_CPtr free_slot, seL4_CPtr free_untyped,
 
 bool isDeviceObject(CDL_Object *obj)
 {
-    return (obj->paddr != 0 && (CDL_Obj_Type(obj) == CDL_Frame || CDL_Obj_Type(obj) == CDL_Untyped));
+    switch (CDL_Obj_Type(obj)) {
+    case CDL_Frame:
+        return obj->frame_extra.paddr != 0;
+    case CDL_Untyped:
+        return obj->paddr != 0;
+    default:
+        return false;
+    }
 }
 
 unsigned int create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_BootInfo *info, seL4_CPtr untyped_slot,
@@ -726,7 +733,7 @@ unsigned int create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_
 
         /* This is a device object. Look for it in bootinfo. */
         err = find_device_object(obj->paddr, obj_type, obj_size, free_slot, id, info, spec);
-        ZF_LOGF_IF(err != seL4_NoError, "Failed to find device frame/untyped at paddr = %p\n", obj->paddr);
+        ZF_LOGF_IF(err != seL4_NoError, "Failed to find device frame/untyped at paddr = %p\n", (void *) obj->paddr);
         return seL4_NoError;
     } else {
         return retype_untyped(free_slot, untyped_slot, obj_type, obj_size);
@@ -1800,55 +1807,63 @@ static void start_threads(CDL_Model *spec)
     }
 }
 
-static void init_fill_frames(CDL_Model *spec, simple_t *simple)
+static void init_frame(CDL_Model *spec, CDL_ObjID obj_id, simple_t *simple)
 {
-    seL4_Word i;
-    for (i = 0; i < spec->num_frame_fill; i++) {
-        /* get the cap to the original object */
-        seL4_CPtr cap = capdl_to_sel4_orig[spec->frame_fill[i].frame];
-        /* try a large mapping */
-        uintptr_t base = (uintptr_t)copy_addr;
-        int error = seL4_ARCH_Page_Map(cap, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
-                                       seL4_ReadWrite, seL4_ARCH_Default_VMAttributes);
-        if (error == seL4_FailedLookup) {
-            /* try a small mapping */
-            base = (uintptr_t)copy_addr_with_pt;
-            error = seL4_ARCH_Page_Map(cap, seL4_CapInitThreadPD, (seL4_Word)copy_addr_with_pt,
-                                       seL4_ReadWrite, seL4_ARCH_Default_VMAttributes);
-        }
-        ZF_LOGF_IFERR(error, "");
+    seL4_CPtr cap = orig_caps(obj_id);
 
-        /* Determine destination */
-        uintptr_t dest = base + spec->frame_fill[i].dest_offset;
-        ssize_t max = BIT(spec->objects[spec->frame_fill[i].frame].size_bits) - spec->frame_fill[i].dest_offset;
-        if (max < 0) {
-            max = 0;
-        }
-        /* Check for which type */
-        if (strcmp(spec->frame_fill[i].type, "bootinfo") == 0) {
-            /* Ask simple to fill it in */
-            int id;
-            if (strcmp(spec->frame_fill[i].extra_information, "SEL4_BOOTINFO_HEADER_X86_VBE") == 0) {
-                id = SEL4_BOOTINFO_HEADER_X86_VBE;
-            } else if (strcmp(spec->frame_fill[i].extra_information, "SEL4_BOOTINFO_HEADER_X86_TSC_FREQ") == 0) {
-                id = SEL4_BOOTINFO_HEADER_X86_TSC_FREQ;
-            } else {
-                ZF_LOGF("Unable to parse extra information for \"bootinfo\", given \"%s\"", spec->frame_fill[i].extra_information);
-            }
-            error = simple_get_extended_bootinfo(simple, id, (void *)dest, max);
-            if (error == -1) {
-                seL4_BootInfoHeader empty = (seL4_BootInfoHeader) {
-                    .id = -1, .len = -1
-                };
-                memcpy((void *)dest, &empty, MIN(max, sizeof(empty)));
-            }
-        } else {
-            ZF_LOGF("Unsupported frame fill type %s", spec->frame_fill[i].type);
-        }
+    /* get the cap to the original object */
+    /* try a large mapping */
+    uintptr_t base = (uintptr_t)copy_addr;
+    int error = seL4_ARCH_Page_Map(cap, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
+                                   seL4_ReadWrite, seL4_ARCH_Default_VMAttributes);
+    if (error == seL4_FailedLookup) {
+        /* try a small mapping */
+        base = (uintptr_t)copy_addr_with_pt;
+        error = seL4_ARCH_Page_Map(cap, seL4_CapInitThreadPD, (seL4_Word)copy_addr_with_pt,
+                                   seL4_ReadWrite, seL4_ARCH_Default_VMAttributes);
+    }
+    ZF_LOGF_IFERR(error, "");
 
-        /* Unmap the frame */
-        error = seL4_ARCH_Page_Unmap(cap);
-        ZF_LOGF_IFERR(error, "");
+    /* Determine destination */
+    uintptr_t dest = base + spec->objects[obj_id].frame_extra.dest_offset;
+    ssize_t max = BIT(spec->objects[obj_id].size_bits) - spec->objects[obj_id].frame_extra.dest_offset;
+    if (max < 0) {
+        max = 0;
+    }
+    /* Check for which type */
+    if (spec->objects[obj_id].frame_extra.type == CDL_FrameFill_BootInfo) {
+        /* Ask simple to fill it in */
+        int id = spec->objects[obj_id].frame_extra.extra_information;
+        switch (id) {
+        case SEL4_BOOTINFO_HEADER_X86_VBE:
+        case SEL4_BOOTINFO_HEADER_X86_TSC_FREQ:
+            break;
+        default:
+            ZF_LOGF("Unable to parse extra information for \"bootinfo\", given \"%d\"",
+                    spec->objects[obj_id].frame_extra.extra_information);
+        }
+        error = simple_get_extended_bootinfo(simple, id, (void *)dest, max);
+        if (error == -1) {
+            seL4_BootInfoHeader empty = (seL4_BootInfoHeader) {
+                .id = -1, .len = -1
+            };
+            memcpy((void *)dest, &empty, MIN(max, sizeof(empty)));
+        }
+    } else {
+        ZF_LOGF("Unsupported frame fill type %"PRIuPTR, spec->objects[obj_id].frame_extra.type);
+    }
+
+    /* Unmap the frame */
+    error = seL4_ARCH_Page_Unmap(cap);
+    ZF_LOGF_IFERR(error, "");
+}
+
+static void init_frames(CDL_Model *spec, simple_t *simple)
+{
+    for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
+        if (spec->objects[obj_id].type == CDL_Frame && spec->objects[obj_id].frame_extra.type != CDL_FrameFill_None) {
+            init_frame(spec, obj_id, simple);
+        }
     }
 }
 
@@ -1919,7 +1934,7 @@ static void init_system(CDL_Model *spec)
     init_irqs(spec);
     init_pd_asids(spec);
     init_elfs(spec, bootinfo);
-    init_fill_frames(spec, &simple);
+    init_frames(spec, &simple);
     init_vspace(spec);
     init_scs(spec);
     init_tcbs(spec);

@@ -278,6 +278,18 @@ typedef struct {
     int pci_fun;
 } CDL_MSIIRQExtraInfo;
 
+typedef enum {
+    CDL_FrameFill_None = 0,
+    CDL_FrameFill_BootInfo
+} CDL_FrameFillType_t;
+
+typedef struct {
+    CDL_FrameFillType_t type;
+    size_t dest_offset;
+    seL4_Word extra_information;
+    seL4_Word paddr;
+} CDL_FrameExtraInfo;
+
 typedef struct {
 #ifdef CONFIG_DEBUG_BUILD
     const char *name; /* textual ObjID from the capDL spec */
@@ -289,7 +301,8 @@ typedef struct {
         CDL_SCExtraInfo sc_extra;
         CDL_IOAPICIRQExtraInfo ioapicirq_extra;
         CDL_MSIIRQExtraInfo msiirq_extra;
-        seL4_Word paddr; /* Physical address; only relevant for frames and untyped objects. */
+        CDL_FrameExtraInfo frame_extra;
+        seL4_Word paddr; /* Physical address; only relevant for untyped objects. */
         CDL_Core core; /* core for sched control */
         struct {
             seL4_Word start;
@@ -303,21 +316,10 @@ typedef struct {
 
 } PACKED CDL_Object;
 
-typedef struct {
-    CDL_ObjID frame;
-    const char *type;
-    size_t dest_offset;
-    char *extra_information;
-} PACKED CDL_FrameFill;
-
 /* CapDLModel: is described by a map from ObjectIDs (array index) to Objects */
 typedef struct {
-
     seL4_Word num;
     CDL_Object *objects;
-    seL4_Word num_frame_fill;
-    CDL_FrameFill *frame_fill;
-
     CDL_ObjID irqs[CONFIG_CAPDL_LOADER_MAX_IRQS];
 } CDL_Model;
 
