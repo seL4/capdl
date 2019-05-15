@@ -53,7 +53,7 @@ class TestAllocator(CapdlTestCase):
         allocator = BestFitAllocator()
         spec = Spec()
 
-        ut = Untyped(name="test_ut", size_bits=ut_size_bits, paddr=0)
+        ut = Untyped(name="test_ut", size_bits=ut_size_bits, paddr=1<<ut_size_bits)
         allocator.add_untyped(ut)
 
         child = Untyped(name="child_ut", size_bits=child_size_bits)
@@ -80,7 +80,7 @@ class TestAllocator(CapdlTestCase):
         spec = Spec()
         (total_child_size, children) = TestAllocator.alloc_children(spec, object_sizes)
 
-        ut = Untyped(name="test_ut", size_bits=ut_size_bits, paddr=0)
+        ut = Untyped(name="test_ut", size_bits=ut_size_bits, paddr=1<<ut_size_bits)
         allocator.add_untyped(ut)
 
         self.assertValidSpec(allocator, spec, 1<<ut_size_bits, total_child_size, children, [ut])
@@ -93,7 +93,7 @@ class TestAllocator(CapdlTestCase):
         spec = Spec()
         (total_child_size, children) = TestAllocator.alloc_children(spec, object_sizes)
         untyped = []
-        paddr = 0
+        paddr = 0x1
 
         for i in range(0, len(ut_sizes)):
             size_bits = ut_sizes[i]
@@ -136,7 +136,7 @@ class TestAllocator(CapdlTestCase):
         spec = Spec()
         spec.add_object(irq_ctrl)
         allocator = BestFitAllocator()
-        allocator.add_untyped(Untyped(name="test_ut", size_bits=16, paddr=0))
+        allocator.add_untyped(Untyped(name="test_ut", size_bits=16, paddr=0x10000))
         allocator.allocate(spec)
         self.assertTrue(irq_ctrl in spec.objs)
 
@@ -172,7 +172,7 @@ class TestAllocator(CapdlTestCase):
         Test allocating fun objects from only device untypeds
         """
         allocator = BestFitAllocator()
-        paddr = 0
+        paddr = 0x1
         for i in range(0, len(ut_sizes)):
             paddr = round_up(paddr, 1<<ut_sizes[i])
             allocator.add_device_untyped(Untyped("device_untyped_{0}".format(i), size_bits=ut_sizes[i], paddr=paddr))
@@ -224,7 +224,7 @@ class TestAllocator(CapdlTestCase):
         Test allocating a collection of unfun objects that do not align and have placeholder uts between them
         """
         allocator = BestFitAllocator()
-        start_paddr = 0
+        start_paddr = 1<<(max(sizes) + len(sizes).bit_length())
         paddr = start_paddr
 
         children = []
