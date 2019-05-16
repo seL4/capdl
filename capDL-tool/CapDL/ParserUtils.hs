@@ -26,7 +26,7 @@ import Prelude.Compat
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import Data.Word
-import Data.Char(isSpace)
+import Data.Char (isSpace)
 
 data Maps = Maps {
     refMap :: Map.Map Name ObjID,

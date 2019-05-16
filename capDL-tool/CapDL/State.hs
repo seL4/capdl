@@ -14,10 +14,10 @@ module CapDL.State where
 
 import CapDL.Model
 
+import Prelude ()
+import Prelude.Compat
 import Control.Monad.State
 import Control.Monad.Writer
-import Prelude ()
-import Prelude.Compat hiding (mapM)
 import Data.Maybe
 import Data.List.Compat
 import qualified Data.Map as Map
@@ -38,14 +38,12 @@ object ref m =
         Just obj -> obj
         Nothing -> error $ "Object does not exist: " ++ show ref
 
-setObject :: ObjID -> KernelObject Word -> Kernel ()
-setObject ref obj = do
-    modify (\s -> s { objects = Map.insert ref obj (objects s) })
-
 modifyObject :: ObjID -> (KernelObject Word -> KernelObject Word) -> Kernel ()
-modifyObject ref f = do
-    obj <- gets $ object ref
-    setObject ref (f obj)
+modifyObject ref f =
+    modify (\s -> s { objects = Map.update (Just . f) ref (objects s) })
+
+setObject :: ObjID -> KernelObject Word -> Kernel ()
+setObject ref obj = modifyObject ref (const obj)
 
 objSlots :: KernelObject Word -> CapMap Word
 objSlots obj =
@@ -59,16 +57,11 @@ slotsOf :: ObjID -> Model Word -> CapMap Word
 slotsOf ref = slotsOfMaybe . maybeObject ref
 
 getCovered :: ObjID -> Model Word -> [ObjID]
-getCovered ut_ref (Model _ _ _ _ covers) =
-    case Map.lookup ut_ref covers of
-        Nothing -> []
-        Just cov -> cov
+getCovered ut_ref = getUTCover ut_ref . untypedCovers
 
 setCovered :: ObjID -> [ObjID] -> Kernel ()
-setCovered ut_ref covers = do
-    covMap <- gets untypedCovers
-    let covMap' = Map.insert ut_ref covers covMap
-    modify (\s -> s { untypedCovers = covMap' })
+setCovered ut_ref covers =
+    modify (\s -> s { untypedCovers = Map.insert ut_ref covers (untypedCovers s) })
 
 type SlotsLookup = ObjID -> Model Word -> CapMap Word
 
@@ -251,18 +244,18 @@ findSlots :: (Cap -> Bool) -> Model Word -> [CapRef]
 findSlots p = map fst . findSlotCaps p
 
 hasTarget :: ObjID -> Cap -> Bool
-hasTarget ref cap = if hasObjID cap then objID cap == ref else False
+hasTarget ref cap = hasObjID cap && objID cap == ref
 
 -- validity
 
 type Logger a = Writer Doc a
 
 sameID :: ObjID -> Cap -> Bool
-sameID id cap = if hasObjID cap then id == objID cap else False
+sameID id cap = hasObjID cap && id == objID cap
 
 isMapped :: ObjID -> KernelObject Word -> Bool
 isMapped id obj
-    | hasSlots obj = or $ map (sameID id) $ Map.elems (slots obj)
+    | hasSlots obj = any (sameID id) $ Map.elems (slots obj)
     | otherwise = False
 
 allMappings :: ObjID -> Model Word -> [(ObjID, KernelObject Word)]
@@ -370,9 +363,10 @@ capTyp _ = error "cap has no object"
 
 checkTypAt :: Cap -> Model Word -> ObjID -> Word -> Logger Bool
 checkTypAt cap m contID slot = do
-    let valid = if hasObjID cap then typAt (capTyp cap) (objID cap) m else True
+    let valid = not (hasObjID cap) || typAt (capTyp cap) (objID cap) m
     unless valid (tell $ text $ "The cap at slot " ++ show slot ++ " in " ++
-                        show contID ++ " refers to an object of the wrong type\n") --FIXME:Needs better error message
+                                show contID ++ " refers to an object of the wrong type\n")
+                  --FIXME:Needs better error message
     return valid
 
 validCapArch :: Arch -> Cap -> Bool
@@ -420,7 +414,7 @@ checkCapArch :: Arch -> Cap -> ObjID -> Word -> Logger Bool
 checkCapArch arch cap contID slot = do
     let valid = validCapArch arch cap
     unless valid (tell $ text $ "The cap at slot " ++ show slot ++ " in " ++
-                           show contID ++ " is not valid for this architecture\n")
+                                show contID ++ " is not valid for this architecture\n")
     return valid
 
 checkValidCap :: Arch -> ObjID -> Model Word -> (Word, Cap) -> Logger Bool
@@ -560,22 +554,21 @@ checkUntypedCover m (id, objs) = do
     return valid
 
 checkUntypedCovers :: Model Word -> Logger Bool
-checkUntypedCovers m@(Model _ _ _ _ covMap) =
-    allM (checkUntypedCover m) (Map.toList covMap)
+checkUntypedCovers m =
+    allM (checkUntypedCover m) $ Map.toList $ untypedCovers m
 
 checkCovers :: Model Word -> Logger Bool
 checkCovers m = do
     let valid = nullIntersections $ map Set.fromList $ allCovers m
-    unless valid (tell $ text $
-                               "At least two untypeds have intersecting covers\n")
+    unless valid (tell $ text $ "At least two untypeds have intersecting covers\n")
     untypeds <- checkUntypeds m
     covers <- checkUntypedCovers m
     return $ valid && covers && untypeds
 
 isIRQ :: KernelObject Word -> Bool
 isIRQ (CNode _ 0) = True --check irqNode
-isIRQ (IOAPICIrq _ _ _ _ _) = True
-isIRQ (MSIIrq _ _ _ _ _) = True
+isIRQ IOAPICIrq{} = True
+isIRQ MSIIrq{} = True
 isIRQ _ = False
 
 validIRQ :: Model Word -> ObjID -> Bool
@@ -585,7 +578,7 @@ checkIRQ :: Model Word -> (Word, ObjID) -> Logger Bool
 checkIRQ m (slot, irq) = do
     let valid = validIRQ m irq
     unless valid (tell $ text $ "The object mapped by irq " ++ show slot ++ --FIXME:rewrite
-                                     " in the irqNode is not a valid irq_slot\n")
+                                " in the irqNode is not a valid irq_slot\n")
     return valid
 
 checkIRQNode :: Model Word -> Logger Bool
@@ -593,7 +586,7 @@ checkIRQNode m = allM (checkIRQ m) (Map.toList $ irqNode m)
 
 flattenCNodeSlots :: [(ObjID, KernelObject Word)] -> [Cap]
 flattenCNodeSlots [] = []
-flattenCNodeSlots ((_, CNode slots _) : xs) = (map snd (Map.toList slots)) ++ (flattenCNodeSlots xs)
+flattenCNodeSlots ((_, CNode slots _) : xs) = map snd (Map.toList slots) ++ flattenCNodeSlots xs
 flattenCNodeSlots (_ : xs) = flattenCNodeSlots xs
 
 isMappedFrameCap :: Cap -> Bool
@@ -603,21 +596,16 @@ isMappedFrameCap _ = False
 -- Returns list containing each element in argument list occuring more than once.
 -- There are no duplicates in the returned list.
 findDuplicates :: Ord a => [a] -> [a]
-findDuplicates [] = []
-findDuplicates s =
-    let sorted = sort s
-        in Set.toList $ snd $ foldl (\(prev, duplicates) x ->
-            if x == prev then (x, Set.insert x duplicates)
-                         else (x, duplicates))
-            (head sorted, Set.empty) (tail sorted)
+findDuplicates = map head . filter ((>1) . length) . groupBy (==) . sort
 
 -- Checks that each mapping is specified by at most 1 frame cap
 checkDuplicateMappedFrameCaps :: [(ObjID, Word)] -> Logger Bool
 checkDuplicateMappedFrameCaps mappings = do
     let duplicates = findDuplicates mappings
     let valid = null duplicates
+        showCapSlot ((container, _), slot) = container ++ ", slot " ++ show slot
     unless valid (tell $ text $ "Mappings referenced by multiple frame caps:\n" ++
-                  (intercalate "\n" $ map (\((container, _), slot) -> container ++ ", slot " ++ show slot) duplicates)
+                  (intercalate "\n" $ map showCapSlot duplicates)
                   ++ "\n")
     return valid
 

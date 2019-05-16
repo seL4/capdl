@@ -14,22 +14,21 @@
 
 module CapDL.Parser where
 
+import Prelude ()
+import Prelude.Compat
 import CapDL.AST
 import CapDL.ParserUtils
 
 import Text.ParserCombinators.Parsec
 
-import Prelude ()
-import Prelude.Compat
-
 obj_decl_or_ref :: MapParser (Either KODecl NameRef)
 obj_decl_or_ref =
         (try $ do
             d <- obj_decl
-            (comma <|> return "")
+            comma <|> return ""
             return $ Left d)
     <|> (do n <- name_ref
-            (comma <|> return "")
+            comma <|> return ""
             return $ Right n)
 
 opt_obj_decls :: MapParser [Either KODecl NameRef]

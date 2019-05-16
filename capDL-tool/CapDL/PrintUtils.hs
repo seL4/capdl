@@ -12,14 +12,15 @@
 
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeSynonymInstances #-}
+
 module CapDL.PrintUtils where
 
 import CapDL.Model
 import CapDL.State (objSizeBits)
 
-import Text.PrettyPrint
 import Prelude ()
 import Prelude.Compat
+import Text.PrettyPrint
 import qualified Data.Set as Set
 import Data.Word
 import Numeric

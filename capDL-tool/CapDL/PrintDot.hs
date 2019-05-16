@@ -11,15 +11,15 @@
 --
 
 {-# LANGUAGE FlexibleInstances #-}
+
 module CapDL.PrintDot where
 
 import CapDL.Model
 import CapDL.PrintUtils
-
-import Text.PrettyPrint
-import Data.List.Compat
 import Prelude ()
 import Prelude.Compat
+import Text.PrettyPrint
+import Data.List.Compat
 import qualified Data.Map as Map
 
 indent = 2

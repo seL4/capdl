@@ -15,10 +15,10 @@ module CapDL.PrintModel where
 import CapDL.Model
 import CapDL.PrintUtils
 
-import Text.PrettyPrint
-import Data.List.Compat
 import Prelude ()
 import Prelude.Compat
+import Text.PrettyPrint
+import Data.List.Compat
 import qualified Data.Map as Map
 
 indent = 2
@@ -26,7 +26,7 @@ indent = 2
 prettyMapping :: (Show a, Show b) => (a,b) -> Doc
 prettyMapping (a,b) = text (show a) <> text " -> " <> text (show b)
 
-prettyBigList f xs = lbrack $+$ (nest indent (vcat (map f xs))) $+$ rbrack
+prettyBigList f xs = lbrack $+$ nest indent (vcat (map f xs)) $+$ rbrack
 
 prettyMap m = prettyBigList prettyMapping (Map.toList m)
 
@@ -59,12 +59,6 @@ prettyCovered list@(id:_) =
     prettyNameRefr same:prettyCovered (drop (length same) list)
     where same = takeWhile (sameName id) list
 
-getCover :: ObjID -> CoverMap -> [ObjID]
-getCover ut covers =
-    case Map.lookup ut covers of
-        Nothing -> []
-        Just cover -> cover
-
 prettyIndexedUntyped :: CoverMap -> [(ObjID, KernelObject a)] -> Doc
 prettyIndexedUntyped _ [] = empty
 prettyIndexedUntyped covers ((name, obj@(Untyped _ _)):xs) =
@@ -73,7 +67,7 @@ prettyIndexedUntyped covers ((name, obj@(Untyped _ _)):xs) =
     else prettyNameRefr [name] <+> equals <+> prettyObjParams obj <+>
         braces (fsep $ punctuate comma $ prettyCovered cover) $+$
         prettyIndexedUntyped covers xs
-    where cover = getCover name covers
+    where cover = getUTCover name covers
 prettyIndexedUntyped _ _ = error "Untyped only"
 
 prettyUntyped :: CoverMap -> [(ObjID, KernelObject a)] -> Doc
@@ -86,7 +80,7 @@ prettyUntyped covers list@((name, obj@(Untyped _ _)):_) =
     else prettyNameDecl name len <+> prettyObjParams obj $+$
          prettyIndexedUntyped covers list
     where len = length list
-          cover = getCover name covers
+          cover = getUTCover name covers
 prettyUntyped _ _ = empty
 
 prettyUntypedsList :: CoverMap -> [(ObjID, KernelObject a)] -> [Doc]

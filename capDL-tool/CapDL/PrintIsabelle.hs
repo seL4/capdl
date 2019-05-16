@@ -16,13 +16,13 @@ import CapDL.Model
 import CapDL.State (koType, lookupSizeMap, objSizeBits)
 import CapDL.PrintUtils (printAsid, objPaddr)
 
+import Prelude ()
+import Prelude.Compat
 import Text.PrettyPrint
 import Numeric (showHex)
 import Data.List.Compat
 import Data.Ord (comparing)
-import Prelude ()
-import Prelude.Compat
-import Control.Monad (when)
+import Control.Monad (unless)
 import Control.Monad.State.Strict (StateT (..))
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -130,15 +130,15 @@ untypedCoverToPaddrs sizeMap objs
            alloc1 addr objID =
                do obj <- getObject objID
                   let objSize = 2^objSizeBits sizeMap obj
-                  when (not $ checkEqPaddr obj addr) $
+                  unless (checkEqPaddr obj addr) $
                       Left ("Object addr doesn't match untyped's current addr (" ++
                             hex addr ++ ")", [utID, objID])
                   let addr' = addr + objSize
-                  when (addr `mod` objSize /= 0) $
+                  unless (addr `mod` objSize == 0) $
                       Left ("Can't place obj at unaligned addr (addr=" ++
                             hex addr ++ ", obj size=" ++
                             hex objSize ++ ")", [utID, objID])
-                  when (addr' > utEnd) $
+                  unless (addr' <= utEnd) $
                       Left ("Can't place obj at addr outside untyped (addr=" ++
                             hex addr ++ ", ut end=" ++ hex utEnd ++ ", obj size=" ++
                             hex objSize ++ ")", [utID, objID])
@@ -171,12 +171,10 @@ getPhysAddrs objSizeMap objs untypedCovers =
  - Also invent locations for IRQ nodes.
  -}
 getAddr :: ObjectSizeMap -> Map.Map ObjID Word -> IRQMap -> ObjID -> Word
-getAddr objSizeMap objAddrs irqNode id =
-    case lookupElem id irqNode of
-        Just irq -> irq_node_paddr__hack + irq * slotSize
-        Nothing -> case Map.lookup id objAddrs of
-                       Just addr -> addr
-                       Nothing -> error $ "getID: no address for object: " ++ showID id
+getAddr objSizeMap objAddrs irqNode id
+    | Just irq <- lookupElem id irqNode = irq_node_paddr__hack + irq * slotSize
+    | Just addr <- Map.lookup id objAddrs = addr
+    | otherwise = error $ "getID: no address for object: " ++ showID id
     where slotSize = 2^lookupSizeMap CNode_T objSizeMap
 
 getID :: ObjectSizeMap -> Map.Map ObjID Word -> IRQMap -> ObjID -> Doc
@@ -186,10 +184,7 @@ printID :: ObjID -> Doc
 printID id = text (showID id ++ "_id")
 
 printRight :: Rights -> Doc
-printRight Read = text "Read"
-printRight Write = text "Write"
-printRight Grant = text "Grant"
-printRight GrantReply = text "GrantReply"
+printRight = text . show
 
 printRightsList :: [Rights] -> [Doc]
 printRightsList [] = [empty]
@@ -535,5 +530,5 @@ printIsabelle name objSizeMap (Model (arch@ARM11) ms irqNode cdt untypedCovers) 
                           filter (notUntyped . snd) $
                           Map.toList ms
 
-printIsabelle _ _ (Model _ _ _ _ _) =
+printIsabelle _ _ _ =
     error "Currently only the ARM11 architecture is supported when parsing to Isabelle"

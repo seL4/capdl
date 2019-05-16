@@ -27,7 +27,6 @@ import Data.Array.IO
 
 import Prelude ()
 import Prelude.Compat
-
 import Data.Map (Map)
 import qualified Data.Map as Map
 

@@ -22,10 +22,11 @@ import Prelude ()
 import Prelude.Compat
 import Data.Maybe
 import Data.List.Compat
-import Data.Either as Either
+import qualified Data.Either as Either
 import Data.Data
 import Data.Word
 import Data.Bits
+import Data.Function (on)
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Control.Monad.State as ST
@@ -33,6 +34,9 @@ import Control.Monad
 import Control.Monad.Writer (tell)
 import Text.PrettyPrint (text)
 
+-- | A spec can place objects in explicit slots, or not.
+-- This keeps track of the most recently used slot, and returns
+-- the next slot when needed.
 type SlotState = ST.State Word
 
 getSlot :: SlotState Word
@@ -43,8 +47,11 @@ getSlot = do
 putSlot :: Word -> SlotState ()
 putSlot = ST.put
 
+evalSlotState :: SlotState a -> a
+evalSlotState = (`ST.evalState` maxBound) -- HACK: `getSlot maxBound` wraps to slot 0
+
 isUntyped :: KernelObject Word -> Bool
-isUntyped (Untyped {}) = True
+isUntyped Untyped{} = True
 isUntyped _ = False
 
 emptyModel arch = Model arch Map.empty Map.empty
@@ -95,7 +102,7 @@ makeIDs name Nothing = [(name,Nothing)]
 makeIDs name (Just num) = zip (repeat name) (map Just [0..(num - 1)])
 
 members :: Ord k => [k] -> Map.Map k a -> Bool
-members names objs = all (flip Map.member objs) names
+members names objs = all (`Map.member` objs) names
 
 addCovered :: ObjMap Word -> [ObjID] -> [ObjID] -> [ObjID]
 addCovered objs names cov =
@@ -103,13 +110,9 @@ addCovered objs names cov =
     then cov ++ names -- FIXME: needed to preserve order, but inefficient
     else error ("At least one object reference is unknown: " ++ show names)
 
-getUTCov :: CoverMap -> ObjID -> [ObjID]
-getUTCov covers ut = Map.findWithDefault [] ut covers
-
 addUTCover :: ObjMap Word -> CoverMap -> [ObjID] -> ObjID -> CoverMap
 addUTCover objs covers names ut =
-    let cov = getUTCov covers ut
-    in Map.insert ut (addCovered objs names cov) covers
+    Map.insertWith (addCovered objs) ut names covers
 
 addUTCovers :: ObjMap Word -> CoverMap -> [ObjID] -> [ObjID] -> CoverMap
 addUTCovers _ covers _ [] = covers
@@ -138,7 +141,7 @@ getUntypedCover ns objs covers (ObjDecl (KODecl objName obj)) =
                                   (map refToID (reverse (ns ++ qns)))
             covers'' = addUTDecls objs name covers' (Either.rights (objDecls obj))
         in getUntypedCovers (ns ++ objName) objs covers''
-                                        (map ObjDecl (lefts (objDecls obj)))
+                                        (map ObjDecl (Either.lefts (objDecls obj)))
 getUntypedCover _ _ covers _ = covers
 
 getUntypedCovers :: [NameRef] -> ObjMap Word -> CoverMap -> [Decl] -> CoverMap
@@ -192,7 +195,7 @@ addUntyped objs (ObjDecl (KODecl objName obj)) =
     else
         let qns = qNames objName
             objs' = addUTNames objs (map refToID qns)
-        in addUntypeds objs' (map ObjDecl (lefts (objDecls obj)))
+        in addUntypeds objs' (map ObjDecl (Either.lefts (objDecls obj)))
 addUntyped objs _ = objs
 
 addUntypeds :: ObjMap Word -> [Decl] -> ObjMap Word
@@ -384,24 +387,14 @@ getMaybeAsidHigh [] = Nothing
 getMaybeAsidHigh (AsidHigh asidHigh : _) = Just asidHigh
 getMaybeAsidHigh (_ : ps) = getMaybeAsidHigh ps
 
-orderedSubset :: Eq a => [a] -> [a] -> Bool
-orderedSubset [] _ = True
-orderedSubset _ [] = False
-orderedSubset (x:xs) (y:ys)
-    | x == y = orderedSubset xs ys
-    | otherwise = orderedSubset (x:xs) ys
+-- need this hack because 'Constr' isn't 'Ord'. "Ord a" must group by constrs!
+sortConstrs :: (Data a, Ord a) => [a] -> [a]
+sortConstrs = sortBy (\x y -> if toConstr x == toConstr y then EQ else compare x y)
 
-sortConstrs :: (Data a, Ord a) => a -> a -> Ordering
-sortConstrs x y =
-  if toConstr x == toConstr y
-     then EQ
-     else compare x y
+subsetConstrs :: (Ord a, Data a) => [a] -> [a] -> Bool
+subsetConstrs = isSubsequenceOf `on` (map toConstr . sortConstrs)
 
-subsetConstrs :: (Data a, Ord a) => [a] -> [a] -> Bool
-subsetConstrs xs ys = orderedSubset (map toConstr $ sortBy sortConstrs xs)
-                                    (map toConstr $ sortBy sortConstrs ys)
-
-containsConstr :: (Data b) => b -> [b] -> Bool
+containsConstr :: (Data a) => a -> [a] -> Bool
 containsConstr x xs = toConstr x `elem` map toConstr xs
 
 numConstrs :: (Data a) => a -> Int
@@ -425,7 +418,8 @@ validObjPars (Obj IOPorts_T ps []) = subsetConstrs ps [Ports undefined]
 validObjPars (Obj IODevice_T ps []) = subsetConstrs ps [DomainID undefined, PCIDevice undefined]
 validObjPars (Obj ARMIODevice_T ps []) = subsetConstrs ps [ARMIOSpace undefined]
 validObjPars (Obj SC_T ps []) =
-  subsetConstrs ps ((replicate (numConstrs (Addr undefined)) (SCExtraParam undefined)) ++ [BitSize undefined])
+  subsetConstrs ps (replicate (numConstrs (Addr undefined)) (SCExtraParam undefined)
+                    ++ [BitSize undefined])
 validObjPars (Obj IOAPICIrqSlot_T ps []) =
   subsetConstrs ps (replicate (numConstrs (Addr undefined)) (IOAPICIRQExtraParam undefined))
 validObjPars (Obj MSIIrqSlot_T ps []) =
@@ -489,7 +483,7 @@ addObject objs (ObjDecl (KODecl objName obj)) =
         then error ("Duplicate name declaration: " ++ name)
         else let
             objs' = insertObjects (makeIDs name num) (objectOf name obj) objs
-        in addObjects objs' (map ObjDecl (lefts (objDecls obj)))
+        in addObjects objs' (map ObjDecl (Either.lefts (objDecls obj)))
     else objs
     where (name, num) = refToID $ baseName objName
 addObject s _ = s
@@ -528,7 +522,7 @@ addIRQMappings objs irqNode =
 addIRQNode :: ObjMap Word -> IRQMap -> Decl -> IRQMap
 addIRQNode objs irqNode (IRQDecl irqs) =
     if Map.null irqNode
-    then ST.evalState (addIRQMappings objs irqNode irqs) (-1)
+    then evalSlotState (addIRQMappings objs irqNode irqs)
     else error "Duplicate IRQ node declaration"
 addIRQNode _ irqNode _ = irqNode
 
@@ -739,7 +733,7 @@ addCap (Model arch objs irqNode cdt untypedCovers) (id, mappings) =
             then Model arch (Map.insert id mapped objs) irqNode cdt untypedCovers
             else error $ printID id ++
                                 " uses both copies of caps and unnumbered slots"
-            where mapped = ST.evalState (addMappings objs id obj mappings) (-1)
+            where mapped = evalSlotState (addMappings objs id obj mappings)
 
 addCapDecl :: Model Word -> Decl -> Model Word
 addCapDecl m@(Model _ objs _ _ _) (CapDecl names mappings) =
@@ -953,7 +947,7 @@ addCDTMappings ids cdt (obj, mappings) =
 
 addCDTCapDecl :: ObjMap Word -> Idents CapName -> CDT -> Decl -> CDT
 addCDTCapDecl objs ids cdt (CapDecl names mappings) =
-    foldl' (\cdt capDecl -> ST.evalState (addCDTMappings ids cdt capDecl) (-1))
+    foldl' (\cdt capDecl -> evalSlotState (addCDTMappings ids cdt capDecl))
            cdt (zip (refToIDs objs names) (repeat mappings))
 addCDTCapDecl _ _ cdt _ = cdt
 

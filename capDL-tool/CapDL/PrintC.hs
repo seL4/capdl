@@ -13,20 +13,18 @@
 -- Printer for C source format to be consumed by the CapDL initialiser.
 -- Note: corresponds to the -c/--code argument.
 
-{-# LANGUAGE CPP #-}
-
 module CapDL.PrintC where
 
 import CapDL.Model
 import CapDL.PrintUtils (sortObjects)
 
+import Prelude ()
+import Prelude.Compat
 import Control.Exception (assert)
+import Data.Ord (comparing)
 import Data.List.Compat
 import Data.List.Utils
 import Data.Maybe (fromJust, fromMaybe)
-import Data.Ord (comparing)
-import Prelude ()
-import Prelude.Compat
 import qualified Data.Map as Map
 import Data.Map (Map)
 import qualified Data.Set as Set
@@ -39,10 +37,11 @@ data AllocationType =
        StaticAlloc
      | DynamicAlloc ObjectSizeMap
 
-(∈) = Set.member
-
 (+++) :: String -> String -> String
 s1 +++ s2 = s1 ++ "\n" ++ s2
+
+joinBy :: String -> [String] -> String
+joinBy = intercalate
 
 hex :: Word -> String
 hex x = "0x" ++ showHex x ""
@@ -76,14 +75,14 @@ showObjID xs id = (case Map.lookup id xs of
     Just w -> show w
     _ -> "INVALID_SLOT") ++ " /* " ++ fst id ++ " */"
 
+rightConst :: Rights -> String
+rightConst = ("CDL_Can"++) . show
+
 showRights :: CapRights -> String
-showRights rights =
-    "(" ++ intercalate "|" (["0"] ++ r ++ w ++ g ++ rg) ++ ")"
-    where
-        r = if Read ∈ rights then  ["CDL_CanRead"]  else []
-        w = if Write ∈ rights then ["CDL_CanWrite"] else []
-        g = if Grant ∈ rights then ["CDL_CanGrant"] else []
-        rg = if GrantReply ∈ rights then ["CDL_CanGrantReply"] else []
+showRights rights
+  | Set.null rights = "0"
+  | otherwise =
+      "(" ++ joinBy "|" (rightConst <$> Set.toList rights) ++ ")"
 
 showPCI :: Word -> (Word, Word, Word) -> String
 showPCI domainID (pciBus, pciDev, pciFun) =
@@ -128,31 +127,33 @@ showCap _ DomainCap _ _ _ = "{.type = CDL_DomainCap}"
 showCap _ (IRQHandlerCap id) irqNode is_orig _ =
     "{.type = CDL_IRQHandlerCap, .obj_id = INVALID_OBJ_ID" ++
     ", .is_orig = " ++ is_orig ++
-    ", .irq = " ++ show (lookupByValue (\x -> x == id) irqNode) ++ "}"
+    ", .irq = " ++ show (lookupByValue (== id) irqNode) ++ "}"
     -- Caps have obj_ids, or IRQs, but not both.
 showCap _ (IRQIOAPICHandlerCap id) irqNode is_orig _ =
     "{.type = CDL_IRQHandlerCap, .obj_id = INVALID_OBJ_ID" ++
     ", .is_orig = " ++ is_orig ++
-    ", .irq = " ++ show (lookupByValue (\x -> x == id) irqNode) ++ "}"
+    ", .irq = " ++ show (lookupByValue (== id) irqNode) ++ "}"
     -- Caps have obj_ids, or IRQs, but not both.
 showCap _ (IRQMSIHandlerCap id) irqNode is_orig _ =
     "{.type = CDL_IRQHandlerCap, .obj_id = INVALID_OBJ_ID" ++
     ", .is_orig = " ++ is_orig ++
-    ", .irq = " ++ show (lookupByValue (\x -> x == id) irqNode) ++ "}"
+    ", .irq = " ++ show (lookupByValue (== id) irqNode) ++ "}"
     -- Caps have obj_ids, or IRQs, but not both.
 showCap objs (FrameCap id rights _ cached maybe_mapping) _ is_orig _ =
     "{.type = CDL_FrameCap, .obj_id = " ++ showObjID objs id ++
     ", .is_orig = " ++ is_orig ++
     ", .rights = " ++ showRights rights ++
-    ", .vm_attribs = " ++ (if cached then "seL4_ARCH_Default_VMAttributes" else "CDL_VM_CacheDisabled") ++
-    ", .mapping_container_id = " ++ case maybe_mapping of {
-                                      Just (mapping_container, _) -> showObjID objs mapping_container;
-                                      _ -> "INVALID_OBJ_ID"
-                                    } ++
-    ", .mapping_slot = " ++ case maybe_mapping of {
-                              Just (_, mapping_slot) -> (show mapping_slot);
-                              _ -> "0"
-                            } ++ "}"
+    ", .vm_attribs = " ++
+          (if cached then "seL4_ARCH_Default_VMAttributes" else "CDL_VM_CacheDisabled") ++
+    ", .mapping_container_id = " ++
+          (case maybe_mapping of
+               Just (mapping_container, _) -> showObjID objs mapping_container;
+               _ -> "INVALID_OBJ_ID") ++
+    ", .mapping_slot = " ++
+          (case maybe_mapping of
+               Just (_, mapping_slot) -> show mapping_slot;
+               _ -> "0") ++
+    "}"
     -- FIXME: I feel like I should be doing something with the ASID data here...
 showCap objs (PTCap id _) _ is_orig _ =
     "{.type = CDL_PTCap, .obj_id = " ++ showObjID objs id ++
@@ -210,7 +211,7 @@ showSlots objs obj_id (x:xs) irqNode cdt ms =
     where
         index = fst x
         slot = showCap objs (snd x) irqNode is_orig ms
-        is_orig = if (Map.notMember (obj_id, index) cdt) then "true" else "false"
+        is_orig = if Map.notMember (obj_id, index) cdt then "true" else "false"
 
 memberSlots :: Map ObjID Int -> ObjID -> CapMap Word -> IRQMap -> CDT -> ObjMap Word -> String
 memberSlots objs obj_id slots irqNode cdt ms =
@@ -223,7 +224,7 @@ memberSlots objs obj_id slots irqNode cdt ms =
 
 printInit :: [Word] -> String
 printInit argv =
-    "{" ++ Data.List.Utils.join ", " (Data.List.Compat.map show argv) ++ "}"
+    "{" ++ joinBy ", " (map show argv) ++ "}"
 
 showFrameFill :: Maybe [String] -> String
 showFrameFill (Just (info_type:dest_offset:extra:src_offset:[]))  =
@@ -300,10 +301,8 @@ showObjectFields objs obj_id (MSIIrq slots handle bus dev fun) irqNode cdt ms =
     "},"
 showObjectFields _ _ (Untyped size_bits paddr) _ _ _ =
     ".type = CDL_Untyped," +++
-    ".size_bits = " ++ show sizeBits ++ "," +++
+    ".size_bits = " ++ maybe "-1" show size_bits ++ "," +++
     ".paddr = " ++ pointerOfPAddr paddr ++ ","
-    where
-        sizeBits = case size_bits of {Just s -> s; _ -> -1}
 showObjectFields objs obj_id (PT slots) _ _ _ =
     ".type = CDL_PT," +++
     memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
@@ -332,11 +331,11 @@ showObjectFields _ _ (IOPorts (start, end)) _ _ _ =
     ".end = " ++ show end ++ ","
 showObjectFields objs obj_id (ASIDPool slots asidHigh) _ _ _ =
     ".type = CDL_ASIDPool," +++
-    ".asid_high = " ++ hex (fromMaybe (-1) asidHigh) ++ "," +++
+    ".asid_high = " ++ maybe "-1" hex asidHigh ++ "," +++
     memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
-showObjectFields _ _ (IODevice _ _ _) _ _ _ =
+showObjectFields _ _ IODevice{} _ _ _ =
     ".type = CDL_IODevice,"
-showObjectFields _ _ (ARMIODevice _ _) _ _ _ =
+showObjectFields _ _ ARMIODevice{} _ _ _ =
     ".type = CDL_ARMIODevice,"
 showObjectFields _ _ VCPU _ _ _ = ".type = CDL_VCPU,"
 showObjectFields _ _ (SC info size_bits) _ _ _ =
@@ -390,9 +389,12 @@ memberObjects obj_ids obj_list irqNode cdt objs =
 memberIRQs :: Map ObjID Int -> IRQMap -> Arch -> Word -> String
 memberIRQs objs irqNode _ maxIrqs =
     ".irqs = {" +++
-    (join ", " $ Data.List.Compat.map (\k -> show $ case Map.lookup k irqNode of
-        Just i -> fromJust $ Map.lookup i objs
-        _ -> -1) [0..(maxIrqs - 1)]) +++
+    joinBy ", "
+        [ case Map.lookup k irqNode of
+              Just i -> show $ fromJust $ Map.lookup i objs
+              _ -> "-1"
+        | k <- [0 .. maxIrqs - 1]
+        ] +++
     "},"
 
 showUntypedDerivation :: Map ObjID Int -> ObjID -> [ObjID] -> String
@@ -421,26 +423,28 @@ showUntypedDerivations DynamicAlloc{} _ untypedCovers
 showUntypedDerivations StaticAlloc objs untypedCovers =
     ".num_untyped = " ++ show (Map.size untypedCovers) ++ "," +++
     ".untyped = (CDL_UntypedDerivation[]){" +++
-    Data.List.Utils.join ",\n" (map (uncurry (showUntypedDerivation objs)) $
-                                Map.toList untypedCovers) +++
+    joinBy ",\n" (map (uncurry (showUntypedDerivation objs)) $
+                  Map.toList untypedCovers) +++
     "},"
 
 -- find all ASIDPools and prepare them for allocation wrt. asid_high.
 getASIDPoolDerivations :: ObjMap Word -> [(Word, ObjID)]
 getASIDPoolDerivations ms =
     let table =
-          sortBy (comparing fst) $
-          [ (asidHigh, objID)
-          | (objID, ASIDPool lowSlots maybeAsidHigh) <- Map.toList ms,
-            -- sanity checks
-            Map.null lowSlots || can'tAllocate objID "it has nonempty low slots",
-            maybeAsidHigh /= Nothing || can'tAllocate objID "it has no assigned asid_high",
-            let Just asidHigh = maybeAsidHigh
-          ]
+          sortBy (comparing fst)
+              [ (asidHigh, objID)
+              | (objID, ASIDPool lowSlots maybeAsidHigh) <- Map.toList ms,
+                -- sanity checks
+                Map.null lowSlots
+                    || can'tAllocate objID "it has nonempty low slots",
+                maybeAsidHigh /= Nothing
+                    || can'tAllocate objID "it has no assigned asid_high",
+                let Just asidHigh = maybeAsidHigh
+              ]
         asidHighs = map fst table
     in -- more sanity checks
        if asidHighs /= [1..fromIntegral (length asidHighs)]
-       then error $ "ASID pools don't have slot numbers 1..n: " ++ show table
+       then error $ "ASID pools don't have slot numbers of the form [1..n]: " ++ show table
        else table
     where can'tAllocate objID reason =
               error $ "can't allocate ASID pool " ++ show objID ++ " because " ++ reason
@@ -453,7 +457,7 @@ showASIDPoolDerivations objs ms =
                 : map (showObjID objs . snd) table
     in ".num_asid_slots = " ++ show (length array) ++ "," +++
        ".asid_slots = (CDL_ObjID[]){" +++
-           Data.List.Utils.join ",\n" ["    " ++ idStr | idStr <- array] +++
+           joinBy ",\n" ["    " ++ idStr | idStr <- array] +++
        "},"
 
 printC :: AllocationType -> Model Word -> Idents CapName -> CopyMap -> Word -> Doc

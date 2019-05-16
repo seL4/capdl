@@ -20,6 +20,7 @@ import Text.ParserCombinators.Parsec
 
 import Prelude ()
 import Prelude.Compat
+import Control.Monad (when)
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import Data.List.Compat
@@ -34,9 +35,7 @@ insertCov :: ObjID -> ObjID -> MapParser ()
 insertCov cov untyp = do
     maps <- getState
     let covM = covMap maps
-        covSet = case Map.lookup untyp covM of
-                     Just set -> set
-                     Nothing -> Set.empty
+        covSet = Map.findWithDefault Set.empty untyp covM
         covSet' = Set.insert cov covSet
     setState $ maps { covMap = Map.insert untyp covSet' covM }
 
@@ -93,14 +92,12 @@ getObjTyp string =
     else Nothing
 
 maybeInsertIRQ :: Name -> MapParser ()
-maybeInsertIRQ obj = do
-    if getObjTyp obj == Just "irqhandler"
-     then do
+maybeInsertIRQ obj =
+    when (getObjTyp obj == Just "irqhandler") $ do
         maps <- getState
         let irqM = irqMap maps
             slot = fromJust $ getAddr obj
         setState $ maps { irqMap = Map.insert slot obj irqM }
-     else return ()
 
 object :: MapParser KO
 object = do
@@ -142,13 +139,11 @@ consecutive arch (name1, obj1) (Just (name2, obj2)) num =
         addr2 = getAddr name2
     in case (addr1, addr2) of
         (Just addr1, Just addr2) ->
-            if obj1 == obj2 && addr1 + num * sizeOf arch obj1 == addr2
-            then True
-            else False
+            obj1 == obj2 && addr1 + num * sizeOf arch obj1 == addr2
         _ -> False
 
 considerUntypeds :: Arch -> ObjID -> Maybe Word -> KO -> MapParser ()
-considerUntypeds arch refr addr obj = do
+considerUntypeds arch refr addr obj =
     case (addr, obj) of
         (Just addr, Obj Untyped_T _ _ ) -> do
                                     covUn <- lookupAddr addr

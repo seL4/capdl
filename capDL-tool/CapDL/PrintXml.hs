@@ -14,10 +14,10 @@ module CapDL.PrintXml (printXml) where
 import CapDL.Model
 import CapDL.PrintUtils
 
-import Text.PrettyPrint
-import Data.Maybe (fromMaybe)
 import Prelude ()
 import Prelude.Compat
+import Text.PrettyPrint
+import Data.Maybe (fromMaybe)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 

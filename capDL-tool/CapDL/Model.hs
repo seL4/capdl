@@ -15,8 +15,10 @@ module CapDL.Model where
 
 import Prelude ()
 import Prelude.Compat
-import Data.Map
-import Data.Set
+import qualified Data.Map as Map
+import Data.Map (Map)
+import qualified Data.Set as Set
+import Data.Set (Set)
 import Data.Data
 import Data.Word
 
@@ -33,7 +35,7 @@ data Rights = Read
 type CapRights = Set Rights
 
 allRights :: CapRights
-allRights = Data.Set.fromList [Read, Write, Grant, GrantReply]
+allRights = Set.fromList [Read, Write, Grant, GrantReply]
 
 --
 -- Object identifiers.
@@ -271,6 +273,10 @@ type IRQMap = Map Word ObjID
 -- This list may contain duplicate IDs while parsing; see
 -- 'CapDL.MakeModel.dedupCoverIDs'.
 type CoverMap = Map ObjID [ObjID]
+
+-- UTs without cover decls aren't recorded, so return '[]' for those
+getUTCover :: ObjID -> CoverMap -> [ObjID]
+getUTCover = Map.findWithDefault []
 
 type CDT = Map CapRef CapRef
 
