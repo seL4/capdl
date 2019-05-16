@@ -358,6 +358,17 @@ def ctz(size_bytes):
     return low_bit
 
 
+def clz(val, base):
+    """
+    Count leading zeros in a python integer.
+    """
+    bits = 0
+    while val:
+        val >>= 1
+        bits += 1
+    return base - bits
+
+
 def is_aligned(value, size_bits):
     """
     Return true if value is aligned to the provided alignment
