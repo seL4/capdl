@@ -299,7 +299,9 @@ def last_level(level):
 
 
 def page_sizes(arch):
-    list = [get_object_size(page) for page in lookup_architecture(arch).get_pages()]
+    if isinstance(arch, six.string_types):
+        arch = lookup_architecture(arch)
+    list = [get_object_size(page) for page in arch.get_pages()]
     list.sort()
     return list
 
