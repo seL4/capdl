@@ -25,8 +25,11 @@ import CapDL.PrintC
 import CapDL.STCC
 
 import System.Environment
+import System.FilePath
 import System.IO
+import System.Posix (rename, removeLink)
 import Text.ParserCombinators.Parsec
+import Control.Exception (bracketOnError)
 import Control.Monad
 import Control.Monad.Writer
 import System.Console.GetOpt
@@ -146,8 +149,14 @@ main = do
         Right t -> return t
     let (m, i, c) = makeModel res
 
-    let writeFile' "-" = putStr
-        writeFile' f = writeFile f
+    let writeFile' "-" s = putStr s
+        writeFile' f   s = bracketOnError
+            (do (tempF, handle) <- uncurry openTempFile (splitFileName f)
+                hClose handle -- ignore for now
+                return tempF)
+            removeLink
+            (\tempF -> do writeFile tempF s
+                          rename tempF f)
 
     let (valid, log) = runWriter (checkModel m)
     if valid
