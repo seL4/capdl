@@ -681,14 +681,7 @@ static int retype_untyped(seL4_CPtr free_slot, seL4_CPtr free_untyped,
 
 bool isDeviceObject(CDL_Object *obj)
 {
-    switch (CDL_Obj_Type(obj)) {
-    case CDL_Frame:
-        return obj->frame_extra.paddr != 0;
-    case CDL_Untyped:
-        return obj->paddr != 0;
-    default:
-        return false;
-    }
+    return CDL_Obj_Paddr(obj) != 0;
 }
 
 unsigned int create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_BootInfo *info, seL4_CPtr untyped_slot,
@@ -729,11 +722,12 @@ unsigned int create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_
 #endif
 
     if (isDeviceObject(obj)) {
-        ZF_LOGD(" device frame/untyped, paddr = %p, size = %d bits\n", obj->paddr, obj_size);
+        seL4_Word paddr = CDL_Obj_Paddr(obj);
+        ZF_LOGE(" device frame/untyped, paddr = %p, size = %d bits\n", (void *) paddr, obj_size);
 
         /* This is a device object. Look for it in bootinfo. */
-        err = find_device_object(obj->paddr, obj_type, obj_size, free_slot, id, info, spec);
-        ZF_LOGF_IF(err != seL4_NoError, "Failed to find device frame/untyped at paddr = %p\n", (void *) obj->paddr);
+        err = find_device_object(paddr, obj_type, obj_size, free_slot, id, info, spec);
+        ZF_LOGF_IF(err != seL4_NoError, "Failed to find device frame/untyped at paddr = %p\n", (void *) paddr);
         return seL4_NoError;
     } else {
         return retype_untyped(free_slot, untyped_slot, obj_type, obj_size);

@@ -414,6 +414,19 @@ static inline seL4_Word      CDL_Obj_SizeBits(CDL_Object *obj)
 {
     return obj->size_bits;
 }
+
+static inline seL4_Word CDL_Obj_Paddr(CDL_Object *obj)
+{
+    switch (obj->type) {
+    case CDL_Frame:
+        return obj->frame_extra.paddr;
+    case CDL_Untyped:
+        return obj->paddr;
+    default:
+        return 0;
+    }
+}
+
 static inline seL4_Word      CDL_Obj_NumSlots(CDL_Object *obj)
 {
     return obj->slots.num;
