@@ -13,7 +13,7 @@
 
 from simpleeval import EvalWithCompoundTypes
 from capdl.Object import register_object_sizes
-from capdl import ELF, lookup_architecture, TCB
+from capdl import ELF, lookup_architecture, TCB, valid_architectures
 from jinja2 import Environment, BaseLoader, FileSystemLoader
 import sys
 import argparse
@@ -84,7 +84,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="")
     parser.add_argument('--architecture', '--arch', default='aarch32',
-                        type=lambda x: type('')(x).lower(), choices=('aarch32', 'arm_hyp', 'ia32', 'x86_64', 'aarch64'),
+                        type=lambda x: type('')(x).lower(), choices=valid_architectures(),
                         help='Target architecture.')
     parser.add_argument('--object-sizes', required=True, type=argparse.FileType('r'))
     subparsers = parser.add_subparsers()
