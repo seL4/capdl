@@ -17,6 +17,8 @@ Various internal utility functions. Pay no mind to this file.
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
+import abc
+
 import six
 from six.moves import range
 
@@ -92,7 +94,7 @@ def make_levels(levels):
     return levels[0]
 
 
-class Arch:
+class Arch(six.with_metaclass(abc.ABCMeta, object)):
     def get_pages(self):
         level = self.vspace()
         pages = []
@@ -101,18 +103,25 @@ class Arch:
             level = level.child
         return pages
 
+    def vspace(self):
+        return make_levels(self.levels())
+
+    @abc.abstractmethod
+    def levels(self):
+        pass
+
 
 class IA32Arch(Arch):
     def capdl_name(self):
         return "ia32"
 
-    def vspace(self):
-        return make_levels([
+    def levels(self):
+        return [
             Level(SIZE_4GB, [ObjectType.seL4_LargePageObject],
                   ObjectType.seL4_PageDirectoryObject, PageDirectory, "pd"),
             Level(SIZE_4M, [ObjectType.seL4_SmallPageObject],
                   ObjectType.seL4_PageTableObject, PageTable, "pt"),
-        ])
+        ]
 
     def word_size_bits(self):
         return 32
@@ -125,8 +134,8 @@ class X64Arch(Arch):
     def capdl_name(self):
         return "x86_64"
 
-    def vspace(self):
-        return make_levels([
+    def levels(self):
+        return [
             Level(2 ** 48, [], ObjectType.seL4_X64_PML4, PML4, "pml4"),
             Level(2 ** 39, [ObjectType.seL4_HugePageObject],
                   ObjectType.seL4_X64_PDPT, PDPT, "pdpt"),
@@ -134,7 +143,7 @@ class X64Arch(Arch):
                   ObjectType.seL4_PageDirectoryObject, PageDirectory, "pd"),
             Level(2 ** 21, [ObjectType.seL4_SmallPageObject],
                   ObjectType.seL4_PageTableObject, PageTable, "pt"),
-        ])
+        ]
 
     def word_size_bits(self):
         return 64
@@ -150,13 +159,13 @@ class ARM32Arch(Arch):
     def capdl_name(self):
         return "arm11"
 
-    def vspace(self):
-        return make_levels([
+    def levels(self):
+        return [
             Level(SIZE_4GB, [ObjectType.seL4_ARM_SectionObject, ObjectType.seL4_ARM_SuperSectionObject],
                   ObjectType.seL4_PageDirectoryObject, PageDirectory, "pd"),
             Level(SIZE_2M if self.hyp else SIZE_1M, [
                   ObjectType.seL4_SmallPageObject, ObjectType.seL4_LargePageObject], ObjectType.seL4_PageTableObject, PageTable, "pt"),
-        ])
+        ]
 
     def word_size_bits(self):
         return 32
@@ -169,8 +178,8 @@ class AARCH64Arch(Arch):
     def capdl_name(self):
         return "aarch64"
 
-    def vspace(self):
-        return make_levels([
+    def levels(self):
+        return [
             Level(2 ** 48, [], ObjectType.seL4_AARCH64_PGD, PGD, "pgd"),
             Level(2 ** 39, [ObjectType.seL4_HugePageObject],
                   ObjectType.seL4_AARCH64_PUD, PUD, "pud"),
@@ -178,7 +187,7 @@ class AARCH64Arch(Arch):
                   ObjectType.seL4_PageDirectoryObject, PageDirectory, "pd"),
             Level(2 ** 21, [ObjectType.seL4_SmallPageObject],
                   ObjectType.seL4_PageTableObject, PageTable, "pt"),
-        ])
+        ]
 
     def word_size_bits(self):
         return 64
@@ -191,15 +200,15 @@ class RISCV64Arch(Arch):
     def capdl_name(self):
         return "riscv"
 
-    def vspace(self):
-        return make_levels([
+    def levels(self):
+        return [
             Level(2 ** 39, [ObjectType.seL4_HugePageObject],
                   ObjectType.seL4_PageTableObject, PageTable, "pt"),
             Level(2 ** 30, [ObjectType.seL4_LargePageObject],
                   ObjectType.seL4_PageTableObject, PageTable, "pt"),
             Level(2 ** 21, [ObjectType.seL4_SmallPageObject],
                   ObjectType.seL4_PageTableObject, PageTable, "pt"),
-        ])
+        ]
 
     def word_size_bits(self):
         return 64
@@ -212,13 +221,13 @@ class RISCV32Arch(Arch):
     def capdl_name(self):
         return "riscv"
 
-    def vspace(self):
-        return make_levels([
+    def levels(self):
+        return [
             Level(2 ** 32, [ObjectType.seL4_LargePageObject],
                   ObjectType.seL4_PageTableObject, PageTable, "pt"),
             Level(2 ** 22, [ObjectType.seL4_SmallPageObject],
                   ObjectType.seL4_PageTableObject, PageTable, "pt"),
-        ])
+        ]
 
     def word_size_bits(self):
         return 32
