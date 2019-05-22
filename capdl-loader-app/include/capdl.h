@@ -13,9 +13,10 @@
 #pragma once
 
 #include <autoconf.h>
+#include <capdl_loader_app/gen_config.h>
+
 #include <sel4/types.h>
 #include <sel4utils/mapping.h>
-#include <autoconf.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>

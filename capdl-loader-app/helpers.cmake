@@ -37,7 +37,7 @@ function(BuildCapDLApplication)
     )
     add_dependencies("${CAPDL_BUILD_APP_OUTPUT}" ${CAPDL_BUILD_APP_DEPENDS})
     target_include_directories("${CAPDL_BUILD_APP_OUTPUT}" PRIVATE $<TARGET_PROPERTY:capdl_app_properties,INCLUDE_DIRS>)
-    target_link_libraries("${CAPDL_BUILD_APP_OUTPUT}" Configuration sel4runtime muslc sel4 elf cpio sel4platsupport sel4utils sel4muslcsys)
+    target_link_libraries("${CAPDL_BUILD_APP_OUTPUT}" sel4runtime muslc sel4 elf cpio sel4platsupport sel4utils sel4muslcsys capdl_loader_app_Config kernel_autoconf)
 endfunction(BuildCapDLApplication)
 
 # Hook for CAmkES build system. This allows CAmkES projects to

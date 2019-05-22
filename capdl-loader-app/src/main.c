@@ -11,6 +11,7 @@
  */
 
 #include <autoconf.h>
+#include <capdl_loader_app/gen_config.h>
 
 #include <assert.h>
 #include <inttypes.h>
