@@ -16,7 +16,7 @@ TARGET=parse-capDL
 all: $(TARGET)
 
 .PHONY: tests
-tests: example-arm.test-OK example-ia32.test-OK hello-dump.test-OK
+tests: example-arm.test-OK example-ia32.test-OK hello-dump.test-OK cap-dist-elf-simpleserver.test-OK
 
 %.parse %.dot %.xml: %.cdl $(TARGET)
 	stack exec $(TARGET) -- -t $*.parse -x $*.xml -d $*.dot $< || rm -f $*.parse $*.dot $*.xml
@@ -33,7 +33,10 @@ tests: example-arm.test-OK example-ia32.test-OK hello-dump.test-OK
 # for the *.test-OK targets, so that Make won't delete them.
 # We can't use a wildcard here because it's not implemented in Make; see
 # https://stackoverflow.com/questions/27090032
-.SECONDARY: example-arm.parse example-arm.dot example-arm.xml example-ia32.parse example-ia32.dot example-ia32.xml hello-dump.parse hello-dump.dot hello-dump.xml
+.SECONDARY: example-arm.parse example-arm.dot example-arm.xml \
+  example-ia32.parse example-ia32.dot example-ia32.xml \
+  hello-dump.parse hello-dump.dot hello-dump.xml \
+  cap-dist-elf-simpleserver.parse cap-dist-elf-simpleserver.dot cap-dist-elf-simpleserver.xml
 
 .PHONY: sandbox
 sandbox:
