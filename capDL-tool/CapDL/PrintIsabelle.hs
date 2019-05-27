@@ -29,6 +29,7 @@ import qualified Data.Set as Set
 import Data.Maybe
 import Data.Bits
 import System.FilePath.Posix
+import Text.Regex (mkRegex, matchRegex)
 
 -- This lifts `mapAccumL` over a monad
 mapAccumM :: (Monad m, Traversable t) =>
@@ -61,9 +62,21 @@ lambda = text "\\<lambda>"
 
 isaComment x = "\\<comment> \\<open>" ++ x ++ "\\<close>"
 
+{- This mangles hierarchical names into valid Isabelle identifiers:
+ - we replace '.' by '\'' and check that the result would be valid. -}
+mangle :: String -> String
+mangle = fixDots . checkValid
+  where -- Technically, we could support more names, but we don't
+        -- expect the camkes toolchain to generate them.
+        nameRE = mkRegex "^[a-zA-Z]([a-zA-Z0-9_.]*[a-zA-Z0-9])?$"
+        checkValid s = case matchRegex nameRE s of
+                           Just _ -> s
+                           _ -> error $ "can't mangle object name to Isabelle: " ++ show s
+        fixDots = map (\c -> if c == '.' then '\'' else c)
+
 showID :: ObjID -> String
-showID (name, Nothing) = name
-showID (name, Just num) = name ++ "_" ++ show num
+showID (name, Nothing) = mangle name
+showID (name, Just num) = mangle $ name ++ "_" ++ show num
 
 capsName id = showID id ++ "_caps"
 
