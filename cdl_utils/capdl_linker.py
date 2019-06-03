@@ -108,10 +108,10 @@ def main():
     parser_b.add_argument('--save-object-state', type=argparse.FileType('w'))
 
     args = parser.parse_args()
-    register_object_sizes(yaml.load(args.object_sizes))
+    register_object_sizes(yaml.load(args.object_sizes, Loader=yaml.FullLoader))
 
     if args.which is "build_cnode":
-        data = yaml.load(args.manifest_in)
+        data = yaml.load(args.manifest_in, Loader=yaml.FullLoader)
         assert 'cap_symbols' in data and 'region_symbols' in data, "Invalid file format"
         elfs = [item for sublist in args.elffile for item in sublist]
         cspaces = [item for sublist in args.ccspace for item in sublist]
