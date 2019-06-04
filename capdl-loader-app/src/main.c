@@ -1423,7 +1423,7 @@ static void map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
          * unify the mapping here, flushing the cached data from the kernel's
          * mapping.
          */
-        if (!(vm_attribs & seL4_ARM_PageCacheable) && spec->objects[page].paddr == 0) {
+        if (!(vm_attribs & seL4_ARM_PageCacheable) && CDL_Obj_Paddr(&spec->objects[page]) == 0) {
             seL4_Word size_bits = spec->objects[page].size_bits;
             assert(size_bits <= sizeof(uintptr_t) * CHAR_BIT - 1 && "illegal object size");
             error = seL4_ARM_Page_CleanInvalidate_Data(sel4_page, 0, BIT(size_bits));
