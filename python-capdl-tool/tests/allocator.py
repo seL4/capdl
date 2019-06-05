@@ -31,13 +31,8 @@ class TestAllocator(CapdlTestCase):
         if ut_size >= child_size:
             allocator.allocate(spec)
             # now check if all the children got allocated
-            while len(children):
-                c = children.pop()
-                for u in uts:
-                    if c in u.children:
-                        c = None
-                        break
-                if c:
+            for c in children:
+                if not any(c in ut.children for ut in uts):
                     self.fail("Child {0} not allocated!".format(c))
         else:
             with self.assertRaises(AllocatorException):
@@ -65,8 +60,7 @@ class TestAllocator(CapdlTestCase):
     def alloc_children(spec, object_sizes):
         sum = 0
         children = []
-        for i in range(0, len(object_sizes)):
-            size_bits = object_sizes[i]
+        for i, size_bits in enumerate(object_sizes):
             sum += (1 << size_bits)
             child = Untyped(name="child ut {0}".format(i), size_bits=size_bits)
             spec.add_object(child)
@@ -94,6 +88,7 @@ class TestAllocator(CapdlTestCase):
         (total_child_size, children) = TestAllocator.alloc_children(spec, object_sizes)
         untyped = []
         paddr = 0x1
+        ut_size = 0
 
         for i in range(0, len(ut_sizes)):
             size_bits = ut_sizes[i]
@@ -102,8 +97,9 @@ class TestAllocator(CapdlTestCase):
             untyped.append(ut)
             allocator.add_untyped(ut)
             paddr += 1<<size_bits
+            ut_size += 1<<size_bits
 
-        self.assertValidSpec(allocator, spec, paddr, total_child_size, children, untyped)
+        self.assertValidSpec(allocator, spec, ut_size, total_child_size, children, untyped)
 
     def test_alloc_no_spec_no_untyped(self):
         """
@@ -226,6 +222,7 @@ class TestAllocator(CapdlTestCase):
         allocator = BestFitAllocator()
         start_paddr = 1<<(max(sizes) + len(sizes).bit_length())
         paddr = start_paddr
+        ut_size = 0
 
         children = []
         spec = Spec()
@@ -233,13 +230,14 @@ class TestAllocator(CapdlTestCase):
             paddr = round_up(paddr, 1<<sizes[i])
             ut = Untyped("ut_{0}".format(i), size_bits=sizes[i], paddr=paddr)
             spec.add_object(ut)
-            paddr += (1<<sizes[i])
+            paddr += 1<<sizes[i]
+            ut_size += 1<<sizes[i]
             children.append(ut)
 
         ut_size_bits = (paddr - start_paddr).bit_length()
         ut = Untyped("ut_parent", size_bits=ut_size_bits, paddr=start_paddr)
         allocator.add_untyped(ut)
-        self.assertValidSpec(allocator, spec, 1<<ut_size_bits, paddr - start_paddr, children, [ut])
+        self.assertValidSpec(allocator, spec, 1<<ut_size_bits, ut_size, children, [ut])
 
     def test_regression_unfun_at_end(self):
         """
