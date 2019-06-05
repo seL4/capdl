@@ -82,6 +82,14 @@ class Level:
         else:
             return vaddr % self.coverage // self.child.coverage
 
+    def objects_for_range(self, start, end):
+        """
+        Calculate the number of paging objects needed to map a
+        given virtual address range.
+        """
+        start = round_down(start, self.coverage)
+        end = round_up(end, self.coverage)
+        return (end - start) // self.coverage
 
 def make_levels(levels):
     assert levels is not None

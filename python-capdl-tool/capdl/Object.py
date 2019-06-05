@@ -360,7 +360,7 @@ class Untyped(Object):
         return self.size_bits
 
     def __eq__(self, other):
-        return self.size_bits == other.size_bits and self.paddr == other.paddr and self.name == other.name
+        return self.get_size_bits() == other.get_size_bits() and self.paddr == other.paddr and self.name == other.name
 
     def __lt__(self, other):
         return (self.paddr, self.size_bits, self.name) < (other.paddr, other.size_bits, other.name)

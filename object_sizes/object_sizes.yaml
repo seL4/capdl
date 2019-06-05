@@ -20,6 +20,8 @@ seL4_SmallPageObject: seL4_PageBits
 seL4_LargePageObject: seL4_LargePageBits
 seL4_ASID_Pool: seL4_ASIDPoolBits
 seL4_Slot: seL4_SlotBits
+seL4_Value_MinUntypedBits: seL4_MinUntypedBits
+seL4_Value_MaxUntypedBits: seL4_MaxUntypedBits
 #ifdef seL4_ReplyBits
 seL4_RTReplyObject: seL4_ReplyBits
 #endif
