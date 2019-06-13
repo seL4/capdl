@@ -219,10 +219,12 @@ printInit argv =
     "{" ++ Data.List.Utils.join ", " (Data.List.Compat.map show argv) ++ "}"
 
 showFrameFill :: Maybe [String] -> String
-showFrameFill (Just (info_type:offset:extra))  =
+showFrameFill (Just (info_type:dest_offset:extra:src_offset:[]))  =
     ".type = " ++ info_type ++ "," +++
-    ".dest_offset = " ++ offset ++ "," +++
-    ".extra_information = " ++ (Data.List.Utils.join " " extra) ++ ","
+    ".dest_offset = " ++ dest_offset ++ "," +++
+    ".src_offset = " ++ src_offset ++ "," +++
+    case info_type of "CDL_FrameFill_BootInfo" -> ".bi_type = " ++ extra
+                      _ -> ""
 showFrameFill _ = ""
 
 showFramePaddr :: Maybe Word -> String
