@@ -283,10 +283,23 @@ typedef enum {
     CDL_FrameFill_BootInfo
 } CDL_FrameFillType_t;
 
+typedef enum {
+    CDL_FrameFill_BootInfo_Padding = SEL4_BOOTINFO_HEADER_FDT,
+    CDL_FrameFill_BootInfo_X86_VBE = SEL4_BOOTINFO_HEADER_X86_VBE,
+    CDL_FrameFill_BootInfo_X86_MBMMAP = SEL4_BOOTINFO_HEADER_X86_MBMMAP,
+    CDL_FrameFill_BootInfo_X86_ACPI_RSDP = SEL4_BOOTINFO_HEADER_X86_ACPI_RSDP,
+    CDL_FrameFill_BootInfo_X86_Framebuffer = SEL4_BOOTINFO_HEADER_X86_FRAMEBUFFER,
+    CDL_FrameFill_BootInfo_X86_TSC_Freq = SEL4_BOOTINFO_HEADER_X86_TSC_FREQ,
+    CDL_FrameFill_BootInfo_FDT = SEL4_BOOTINFO_HEADER_FDT
+} CDL_FrameFill_BootInfoType_t;
+
 typedef struct {
     CDL_FrameFillType_t type;
     size_t dest_offset;
-    seL4_Word extra_information;
+    size_t src_offset;
+    union {
+        CDL_FrameFill_BootInfoType_t bi_type;
+    };
     seL4_Word paddr;
 } CDL_FrameExtraInfo;
 
