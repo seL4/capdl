@@ -88,6 +88,8 @@ extern char _end[];
  * is guaranteed to have a pagetable */
 static char copy_addr_with_pt[PAGE_SIZE_4K] __attribute__((aligned(PAGE_SIZE_4K)));
 
+static seL4_BootInfoHeader *extended_bootinfo_table[SEL4_BOOTINFO_HEADER_NUM] = {0};
+
 /* helper functions ---------------------------------------------------------------------------- */
 
 static seL4_CPtr get_free_slot(void)
@@ -1801,6 +1803,18 @@ static void start_threads(CDL_Model *spec)
     }
 }
 
+static void cache_extended_bootinfo_headers(seL4_BootInfo *bi)
+{
+    uintptr_t cur = (uintptr_t)bi + PAGE_SIZE_4K;
+    uintptr_t end = cur + bi->extraLen;
+
+    while (cur < end) {
+        seL4_BootInfoHeader *header = (seL4_BootInfoHeader *)cur;
+        extended_bootinfo_table[header->id] = header;
+        cur += header->len;
+    }
+}
+
 static void init_frame(CDL_Model *spec, CDL_ObjID obj_id, simple_t *simple)
 {
     seL4_CPtr cap = orig_caps(obj_id);
@@ -1903,6 +1917,8 @@ static void init_system(CDL_Model *spec)
 {
     seL4_BootInfo *bootinfo = platsupport_get_bootinfo();
     simple_t simple;
+
+    cache_extended_bootinfo_headers(bootinfo);
 
     simple_default_init_bootinfo(&simple, bootinfo);
 
