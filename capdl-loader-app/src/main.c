@@ -1871,6 +1871,7 @@ static void init_frame(CDL_Model *spec, CDL_ObjID obj_id)
         switch (bi_type) {
         case CDL_FrameFill_BootInfo_X86_VBE:
         case CDL_FrameFill_BootInfo_X86_TSC_Freq:
+        case CDL_FrameFill_BootInfo_FDT:
             break;
         default:
             ZF_LOGF("Unable to parse extra information for \"bootinfo\", given \"%d\"",
