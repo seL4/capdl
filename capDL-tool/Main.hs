@@ -44,7 +44,8 @@ data Options = Options {
     optOutputIsabelle :: Maybe String,
     optOutputXml :: Maybe String,
     optOutputDot :: Maybe String,
-    optOutputHeader :: Maybe String,
+    optOutputCSpec :: Maybe String,
+    optDynamicAllocCSpec :: Bool,
     optCodeMaxIRQs :: Word,
     optOutputText :: Maybe String,
     optOutputAnalysis :: Maybe String,
@@ -58,7 +59,8 @@ defaultOptions = Options {
     optOutputIsabelle = Nothing,
     optOutputXml = Nothing,
     optOutputDot = Nothing,
-    optOutputHeader = Nothing,
+    optOutputCSpec = Nothing,
+    optDynamicAllocCSpec = True,
     optCodeMaxIRQs = 256,
     optOutputText = Nothing,
     optOutputAnalysis = Nothing,
@@ -79,8 +81,16 @@ options = [
         "output dot to FILE",
 
     Option ['c'] ["code"]
-        (ReqArg (\arg -> \o -> o {optOutputHeader = Just arg}) "FILE")
+        (ReqArg (\arg -> \o -> o {optOutputCSpec = Just arg}) "FILE")
         "output C initialiser source to FILE",
+
+    Option [] ["code-dynamic-alloc"]
+        (NoArg (\o -> o {optDynamicAllocCSpec = True}))
+        "assume dynamic allocation for C initialiser (default)",
+
+    Option [] ["code-static-alloc"]
+        (NoArg (\o -> o {optDynamicAllocCSpec = False}))
+        "assume static allocation for C initialiser (must have untyped covers)",
 
     Option [] ["code-max-irqs"]
         (ReqArg (\arg -> \o -> o {optCodeMaxIRQs = read arg}) "IRQ_NUM")
@@ -104,7 +114,7 @@ options = [
 
     Option [] ["object-sizes"]
         (ReqArg (\arg o -> o {optObjectSizeFile = Just arg}) "FILE")
-        "YAML file containing kernel object sizes. Required for --code and --isabelle output"
+        "YAML file containing kernel object sizes. Required for --code-dynamic-alloc and --isabelle"
   ]
 
 --
@@ -172,8 +182,8 @@ main = do
     when (isJust (optOutputIsabelle opt) && isNothing (optObjectSizeFile opt)) $
         error $ "--isabelle output requires --object-sizes file to be given"
 
-    when (isJust (optOutputHeader opt) && isNothing (optObjectSizeFile opt)) $
-        error $ "--code output requires --object-sizes file to be given"
+    when (isJust (optOutputCSpec opt) && optDynamicAllocCSpec opt && isNothing (optObjectSizeFile opt)) $
+        error $ "--code-dynamic-alloc requires --object-sizes file to be given"
 
     -- Parse the file.
     let inputFile = nonOpts !! 0
@@ -214,7 +224,11 @@ main = do
         let optActions = [(optOutputIsabelle, \f -> writeFile' f $ show $ printIsabelle f objSizeMap m),
                           (optOutputXml,      \f -> writeFile' f $ show $ printXml inputFile m),
                           (optOutputDot,      \f -> writeFile' f $ show $ printDot inputFile m),
-                          (optOutputHeader,   \f -> writeFile' f $ show $ printC objSizeMap m i c (optCodeMaxIRQs opt)),
+                          (optOutputCSpec,    \f -> let allocType
+                                                          | optDynamicAllocCSpec opt = DynamicAlloc objSizeMap
+                                                          | otherwise = StaticAlloc
+                                                    in writeFile' f $ show $
+                                                       printC allocType m i c (optCodeMaxIRQs opt)),
                           (optOutputText,     \f -> writeFile' f $ show $ pretty m),
                           (optOutputAnalysis, \f -> do (leakDot, flowDot, newM) <- leakMatrix m
                                                        writeFile (f ++ "-leak.dot") leakDot

@@ -398,6 +398,10 @@ justLeft _ (Just l) = Left l
  - spec creator can induce a specific ordering for identically sized objects.
  - This is primarily useful for getting physically contiguous frames,
  - for example, in the CAmkES DMA allocator.
+ -
+ - (This is used for the dynamic allocator in the capDL loader. If static
+ - allocation is used, objects will already be sorted in allocation order
+ - and we do not sort them again.)
  -}
 sortObjects :: ObjectSizeMap -> [(ObjID, KernelObject Word)] -> [(ObjID, KernelObject Word)]
 sortObjects objSizeMap = sortBy (comparing cmp)

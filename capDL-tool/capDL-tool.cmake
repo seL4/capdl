@@ -40,23 +40,32 @@ endfunction()
 # Create target for creating capdl C file from cdl spec
 # target: Name of target to Create
 # output: Output name of C file
+# static_alloc: whether the spec has been statically allocated
+# object_sizes: object_sizes file
 # input: Input name of capdl spec
 # capdl_tool: Path to capdl parse tool
 # MAX_IRQS: Named argument for size of IRQ array
 # DEPENDS: Any target or file dependencies that the parse command depends on
-function(CapDLToolCFileGen target output input capdl_tool)
-    cmake_parse_arguments(PARSE_ARGV 4 CAPDL "" "MAX_IRQS" "DEPENDS")
+function(CapDLToolCFileGen target output static_alloc object_sizes input capdl_tool)
+    cmake_parse_arguments(PARSE_ARGV 6 CAPDL "" "MAX_IRQS" "DEPENDS")
     if(NOT "${CAPDL_UNPARSED_ARGUMENTS}" STREQUAL "")
         message(FATAL_ERROR "Unknown arguments to CapDLToolCFileGen")
     endif()
+    if(static_alloc)
+        set(alloc_type_opt "--code-static-alloc")
+        set(object_sizes_opt "")
+    else()
+        set(alloc_type_opt "--code-dynamic-alloc")
+        set(object_sizes_opt "--object-sizes=${object_sizes}")
+    endif()
     if(NOT "${CAPDL_MAX_IRQS}" STREQUAL "")
-        set(max_irqs "--code-max-irqs=${CAPDL_MAX_IRQS}")
+        set(max_irqs_opt "--code-max-irqs=${CAPDL_MAX_IRQS}")
     endif()
     # Invoke the parse-capDL tool to turn the CDL spec into a C spec
     add_custom_command(
         OUTPUT ${output}
-        COMMAND ${capdl_tool} ${max_irqs} --code ${output} "${input}"
-        DEPENDS "${input}" ${CAPDL_DEPENDS}
+        COMMAND ${capdl_tool} ${max_irqs_opt} --code ${output} ${alloc_type_opt} ${object_sizes_opt} "${input}"
+        DEPENDS "${input}" "${object_sizes}" ${CAPDL_DEPENDS}
     )
-    add_custom_target(${target} DEPENDS ${output})
+    add_custom_target(${target} DEPENDS ${output} ${object_sizes})
 endfunction()

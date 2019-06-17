@@ -33,6 +33,11 @@ import Data.Bits
 import Numeric (showHex)
 import Text.PrettyPrint
 
+-- What we print depends on whether objects are pre-allocated.
+data AllocationType =
+       StaticAlloc
+     | DynamicAlloc ObjectSizeMap
+
 (∈) = Set.member
 
 (+++) :: String -> String -> String
@@ -370,11 +375,11 @@ showObjects objs counter (x:xs) irqNode cdt ms =
     "[" ++ show counter ++ "] = " ++ showObject objs x irqNode cdt ms ++ "," +++
     showObjects objs (counter + 1) xs irqNode cdt ms
 
-memberObjects ::  Map ObjID Int -> [(ObjID, KernelObject Word)] -> IRQMap -> CDT ->
-                  ObjMap Word -> String
-memberObjects obj_ids objs irqNode cdt objs' =
+memberObjects :: Map ObjID Int -> [(ObjID, KernelObject Word)] -> IRQMap -> CDT ->
+                 ObjMap Word -> String
+memberObjects obj_ids obj_list irqNode cdt objs =
     ".objects = (CDL_Object[]) {" +++
-    showObjects obj_ids 0 objs irqNode cdt objs' +++
+    showObjects obj_ids 0 obj_list irqNode cdt objs +++
     "},"
 
 -- Emit an array where each entry represents a given interrupt. Each is -1 if
@@ -399,16 +404,22 @@ showUntypedDerivation objs utID utChildren =
     "  }" +++
     "}"
 
-showUntypedDerivations :: Map ObjID Int -> CoverMap -> String
-showUntypedDerivations objs untypedCovers =
+showUntypedDerivations :: AllocationType -> Map ObjID Int -> CoverMap -> String
+showUntypedDerivations DynamicAlloc{} _ untypedCovers
+  | all null (Map.elems untypedCovers) =
+      ".num_untyped = 0," +++
+      ".untyped = NULL,"
+  | -- TODO: detect and report earlier?
+    otherwise = error "refusing to generate spec for dynamic allocation because it already has untyped children"
+showUntypedDerivations StaticAlloc objs untypedCovers =
     ".num_untyped = " ++ show (Map.size untypedCovers) ++ "," +++
     ".untyped = (CDL_UntypedDerivation[]){" +++
     Data.List.Utils.join ",\n" (map (uncurry (showUntypedDerivation objs)) $
                                 Map.toList untypedCovers) +++
     "},"
 
-printC :: ObjectSizeMap -> Model Word -> Idents CapName -> CopyMap -> Word -> Doc
-printC objSizeMap (Model arch objs irqNode cdt untypedCovers) _ _ maxIrqs =
+printC :: AllocationType -> Model Word -> Idents CapName -> CopyMap -> Word -> Doc
+printC allocType (Model arch objs irqNode cdt untypedCovers) _ _ maxIrqs =
     text $
     "/* Generated file. Your changes will be overwritten. */" +++
     "" +++
@@ -425,10 +436,11 @@ printC objSizeMap (Model arch objs irqNode cdt untypedCovers) _ _ maxIrqs =
     memberArch arch +++
     memberNum objs_sz +++
     memberIRQs obj_ids irqNode arch maxIrqs +++
-    memberObjects obj_ids objs' irqNode cdt objs +++
-    showUntypedDerivations obj_ids untypedCovers +++
+    memberObjects obj_ids obj_list irqNode cdt objs +++
+    showUntypedDerivations allocType obj_ids untypedCovers +++
     "};"
-    where
-        objs_sz = length $ Map.toList objs
-        objs' = sortObjects objSizeMap $ Map.toList objs
-        obj_ids = Map.fromList $ flip zip [0..] $ Prelude.Compat.map fst objs'
+    where objs_sz = length $ Map.toList objs
+          obj_list = case allocType of
+              StaticAlloc -> Map.toList objs
+              DynamicAlloc objSizeMap -> sortObjects objSizeMap (Map.toList objs)
+          obj_ids = Map.fromList $ flip zip [0..] $ map fst obj_list
