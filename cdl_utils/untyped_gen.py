@@ -152,13 +152,16 @@ def main(args):
     # first the kernel image
     kernel_elf = ELFFile(args.kernel_elf)
     kernel_region = get_load_bounds(kernel_elf)
+    # elfloader currently rounds end to page boundary
+    kernel_region = Region(kernel_region.start, round_up(kernel_region.end, PAGE_SIZE))
     reserved.add(kernel_region)
 
     # now the dtb
-    next_paddr = round_up(kernel_region.end, PAGE_SIZE)
+    next_paddr = kernel_region.end
     if args.dtb_size:
-        reserved.add(Region(next_paddr, next_paddr + args.dtb_size))
-        print("DTB: {0}<-->{1}".format(hex(next_paddr), hex(next_paddr + args.dtb_size)))
+        dtb_region = Region(next_paddr, round_up(next_paddr + args.dtb_size, PAGE_SIZE))
+        reserved.add(dtb_region)
+        print("DTB: {0}<-->{1}".format(hex(dtb_region.start), hex(dtb_region.end)))
 
     # now we need to work out the user image size
     if args.loader:
