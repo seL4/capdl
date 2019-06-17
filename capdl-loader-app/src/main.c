@@ -54,6 +54,8 @@ static seL4_CPtr capdl_to_sel4_orig[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 static seL4_CPtr capdl_to_sel4_copy[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 static seL4_CPtr capdl_to_sel4_irq[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 static seL4_CPtr capdl_to_sched_ctrl[CONFIG_MAX_NUM_NODES];
+/* For static allocation, this maps from untyped derivation index to cslot.
+ * Otherwise, this stores the result of sort_untypeds. */
 static seL4_CPtr untyped_cptrs[CONFIG_MAX_NUM_BOOTINFO_UNTYPED_CAPS];
 
 static seL4_CPtr free_slot_start, free_slot_end;
@@ -488,6 +490,7 @@ static void elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
     }
 }
 
+#if !CONFIG_CAPDL_LOADER_STATIC_ALLOC
 /* Sort the untyped objects from largest to smallest.
  * This ensures that fragmentation is eliminated if the objects
  * themselves are also sorted, largest to smallest.
@@ -538,6 +541,7 @@ static void sort_untypeds(seL4_BootInfo *bootinfo)
     }
 
 }
+#endif /* !CONFIG_CAPDL_LOADER_STATIC_ALLOC */
 
 static void parse_bootinfo(seL4_BootInfo *bootinfo, CDL_Model *spec)
 {
@@ -609,6 +613,7 @@ static void parse_bootinfo(seL4_BootInfo *bootinfo, CDL_Model *spec)
     first_arm_iospace = bootinfo->ioSpaceCaps.start;
 }
 
+#if !CONFIG_CAPDL_LOADER_STATIC_ALLOC
 static int find_device_object(seL4_Word paddr, seL4_Word type, int size_bits, seL4_CPtr free_slot,
                               CDL_ObjID obj_id, seL4_BootInfo *bootinfo, CDL_Model *spec)
 {
@@ -688,6 +693,12 @@ static int find_device_object(seL4_Word paddr, seL4_Word type, int size_bits, se
     return -1;
 }
 
+bool isDeviceObject(CDL_Object *obj)
+{
+    return CDL_Obj_Paddr(obj) != 0;
+}
+#endif /* !CONFIG_CAPDL_LOADER_STATIC_ALLOC */
+
 /* Create objects */
 static int retype_untyped(seL4_CPtr free_slot, seL4_CPtr free_untyped,
                           seL4_ArchObjectType object_type, int object_size)
@@ -706,11 +717,6 @@ static int retype_untyped(seL4_CPtr free_slot, seL4_CPtr free_untyped,
     return seL4_Untyped_Retype(free_untyped, object_type, object_size,
                                root, node_index, node_depth, node_offset, no_objects);
 
-}
-
-bool isDeviceObject(CDL_Object *obj)
-{
-    return CDL_Obj_Paddr(obj) != 0;
 }
 
 unsigned int create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_BootInfo *info, seL4_CPtr untyped_slot,
@@ -750,6 +756,20 @@ unsigned int create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_
     }
 #endif
 
+#if !CONFIG_CAPDL_LOADER_STATIC_ALLOC
+    if (isDeviceObject(obj)) {
+        seL4_Word paddr = CDL_Obj_Paddr(obj);
+        ZF_LOGE(" device frame/untyped, paddr = %p, size = %d bits\n", (void *) paddr, obj_size);
+
+        /* This is a device object. Look for it in bootinfo. */
+        err = find_device_object(paddr, obj_type, obj_size, free_slot, id, info, spec);
+        ZF_LOGF_IF(err != seL4_NoError, "Failed to find device frame/untyped at paddr = %p\n", (void *) paddr);
+        return seL4_NoError;
+    }
+#endif
+
+    /* It's not a device object, or it's a statically allocated device
+     * object, so we don't need to search for it. */
     return retype_untyped(free_slot, untyped_slot, obj_type, obj_size);
 }
 
@@ -771,6 +791,11 @@ static int requires_creation(CDL_ObjectType type)
     }
 }
 
+#if CONFIG_CAPDL_LOADER_STATIC_ALLOC
+
+/*
+ * Spec was statically allocated; just run its untyped derivation steps.
+ */
 static void create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
 {
     ZF_LOGD("Creating objects...\n");
@@ -813,6 +838,78 @@ static void create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
     // Update the free slot to go past all the objects we just made.
     free_slot_start += free_slot_index;
 }
+
+#else /* !CONFIG_CAPDL_LOADER_STATIC_ALLOC */
+
+/*
+ * Spec was not statically allocated; run a simple allocator.
+ *
+ * For best results, this relies on capDL-tool grouping device objects
+ * by address and sorting other objects from largest to smallest, to
+ * minimise memory fragmentation. See CapDL/PrintC.hs.
+ */
+static void create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
+{
+    /* Sort untypeds from largest to smallest. */
+    sort_untypeds(bootinfo);
+
+    ZF_LOGD("Creating objects...\n");
+
+    unsigned int obj_id_index = 0;
+    unsigned int free_slot_index = 0;
+    unsigned int ut_index = 0;
+
+    // Each time through the loop either:
+    //  - we successfully create an object, and move to the next object to create
+    //    OR
+    //  - we fail to create an object, and move to the next untyped object
+
+    while (obj_id_index < spec->num && ut_index < (bootinfo->untyped.end - bootinfo->untyped.start)) {
+        CDL_ObjID obj_id = obj_id_index;
+        seL4_CPtr free_slot = free_slot_start + free_slot_index;
+        seL4_CPtr untyped_cptr = untyped_cptrs[ut_index];
+        CDL_Object *obj = &spec->objects[obj_id_index];
+        CDL_ObjectType capdl_obj_type = CDL_Obj_Type(obj);
+
+        ZF_LOGV("Creating object %s in slot %ld, from untyped %lx...\n", CDL_Obj_Name(obj), (long)free_slot,
+                (long)untyped_cptr);
+
+        if (requires_creation(capdl_obj_type)) {
+            /* at this point we are definately creating an object - figure out what it is */
+            seL4_Error err = create_object(spec, obj, obj_id, bootinfo, untyped_cptr, free_slot);
+            if (err == seL4_NoError) {
+                if (capdl_obj_type == CDL_ASIDPool) {
+                    free_slot_index++;
+                    seL4_CPtr asid_slot = free_slot_start + free_slot_index;
+                    err = seL4_ARCH_ASIDControl_MakePool(seL4_CapASIDControl, free_slot,
+                                                         seL4_CapInitThreadCNode, asid_slot, CONFIG_WORD_SIZE);
+                    free_slot = asid_slot;
+                    ZF_LOGF_IFERR(err, "Failed to create asid pool");
+                }
+                add_sel4_cap(obj_id, ORIG, free_slot);
+                free_slot_index++;
+            } else if (err == seL4_NotEnoughMemory) {
+                /* go to the next untyped to allocate objects - this one is empty */
+                ut_index++;
+                /* we failed to process the current object, go back 1 */
+                obj_id_index--;
+            } else {
+                /* Exit with failure. */
+                ZF_LOGF_IFERR(err, "Untyped retype failed with unexpected error");
+            }
+        }
+        obj_id_index++;
+    }
+    // Update the free slot to go past all the objects we just made.
+    free_slot_start += free_slot_index;
+
+    if (obj_id_index != spec->num) {
+        /* We didn't iterate through all the objects. */
+        ZF_LOGF("Ran out of untyped memory while creating objects.");
+    }
+}
+
+#endif /* !CONFIG_CAPDL_LOADER_STATIC_ALLOC */
 
 static void create_irq_cap(CDL_IRQ irq, CDL_Object *obj, seL4_CPtr free_slot)
 {
@@ -1949,7 +2046,6 @@ static void init_system(CDL_Model *spec)
     init_copy_frame(bootinfo);
 
     parse_bootinfo(bootinfo, spec);
-    sort_untypeds(bootinfo);
 
     create_objects(spec, bootinfo);
 #ifdef CONFIG_ARCH_RISCV

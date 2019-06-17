@@ -70,6 +70,11 @@ config_option(CapDLLoaderPrintCapDLObjects CAPDL_LOAD_PRINT_CAPDL_OBJECTS
     DEPENDS "NOT CapDLLoaderVerified"
 )
 
+config_option(CapDLLoaderStaticAlloc CAPDL_LOADER_STATIC_ALLOC
+    "Build the loader to expect a statically allocated capDL spec."
+    DEFAULT OFF
+)
+
 add_config_library(capdl_loader_app "${configure_string}")
 
 # The capdl-loader-app requires outside configuration in order to build. To achieve this
