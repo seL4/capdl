@@ -568,6 +568,7 @@ static void parse_bootinfo(seL4_BootInfo *bootinfo, CDL_Model *spec)
     ZF_LOGD("  %ld free cap slots, from %ld to %ld\n", (long)(free_slot_end - free_slot_start), (long)free_slot_start,
             (long)free_slot_end);
 
+#if CONFIG_CAPDL_LOADER_STATIC_ALLOC
     /*
      * Make sure the untypeds in the model correspond to what we got
      * from bootinfo.
@@ -595,6 +596,10 @@ static void parse_bootinfo(seL4_BootInfo *bootinfo, CDL_Model *spec)
         }
         ZF_LOGF_IF(!found, "Failed to find ut for %p\n", ut->paddr);
     }
+#else
+    /* Probably an inconsistency in the build configuration, so fail now. */
+    ZF_LOGF_IF(spec->num_untyped, "spec has static alloc, but loader is compiled for dynamic");
+#endif
 
 #if CONFIG_CAPDL_LOADER_PRINT_UNTYPEDS
     int num_untyped = bootinfo->untyped.end - bootinfo->untyped.start;
