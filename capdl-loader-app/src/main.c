@@ -819,24 +819,25 @@ static void create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
             ZF_LOGV("Creating object %s in slot %ld, from untyped %lx...\n",
                      CDL_Obj_Name(obj), (long)free_slot, (long)untyped_cptr);
 
-            if (requires_creation(capdl_obj_type)) {
-                seL4_Error err = create_object(spec, obj, obj_id, bootinfo, untyped_cptr, free_slot);
-                if (err == seL4_NoError) {
-                    if (capdl_obj_type == CDL_ASIDPool) {
-                        free_slot_index++;
-                        seL4_CPtr asid_slot = free_slot_start + free_slot_index;
-                        err = seL4_ARCH_ASIDControl_MakePool(seL4_CapASIDControl, free_slot,
-                                                             seL4_CapInitThreadCNode, asid_slot,
-                                                             CONFIG_WORD_SIZE);
-                        free_slot = asid_slot;
-                        ZF_LOGF_IFERR(err, "Failed to create asid pool");
-                    }
-                    add_sel4_cap(obj_id, ORIG, free_slot);
+            ZF_LOGF_IF(!requires_creation(capdl_obj_type),
+                       "object %s is in static allocation, but requires_creation is false",
+                       CDL_Obj_Name(obj));
+            seL4_Error err = create_object(spec, obj, obj_id, bootinfo, untyped_cptr, free_slot);
+            if (err == seL4_NoError) {
+                if (capdl_obj_type == CDL_ASIDPool) {
                     free_slot_index++;
-                } else {
-                    /* Exit with failure. */
-                    ZF_LOGF_IFERR(err, "Untyped retype failed with unexpected error");
+                    seL4_CPtr asid_slot = free_slot_start + free_slot_index;
+                    err = seL4_ARCH_ASIDControl_MakePool(seL4_CapASIDControl, free_slot,
+                                                         seL4_CapInitThreadCNode, asid_slot,
+                                                         CONFIG_WORD_SIZE);
+                    free_slot = asid_slot;
+                    ZF_LOGF_IFERR(err, "Failed to create asid pool");
                 }
+                add_sel4_cap(obj_id, ORIG, free_slot);
+                free_slot_index++;
+            } else {
+                /* Exit with failure. */
+                ZF_LOGF_IFERR(err, "Untyped retype failed with unexpected error");
             }
         }
     }
