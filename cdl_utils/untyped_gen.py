@@ -49,10 +49,12 @@ def create_untypeds_for_region(object_sizes, region, arch, device):
 
 
 def init_freemem(available, reserved):
-    """Remove any reserved regions from available and return a new list of
+    """
+    Remove any reserved regions from available and return a new list of
     available regions that does not contain any reserved regions
 
-    This method mirrors init_freemem in the kernel."""
+    This method mirrors init_freemem in the kernel.
+    """
 
     freemem = []
     available = deque(available)
@@ -95,30 +97,6 @@ def init_freemem(available, reserved):
     return freemem
 
 
-def rootserver_memory_size(num_nodes, root_cnode_size_bits, extra_bi_size_bits, arch, user_virt):
-    """Compute the total size of the root server objects, and the largest object size"""
-    size_bits_histogram = defaultdict(int)
-
-    def add_size_bits(size_bits, n):
-        size_bits_histogram[size_bits] += n
-
-    def add_objects(object_type, n):
-        add_size_bits(get_object_size_bits(object_type), n)
-
-    add_objects(ObjectType.seL4_TCBObject, 1 + num_nodes)  # rootserver tcb + idle thread(s)
-    add_size_bits(root_cnode_size_bits + get_object_size_bits(ObjectType.seL4_Slot), 1)  # root cnode
-    add_objects(ObjectType.seL4_ASID_Pool, 1)  # asid pool
-    add_objects(ObjectType.seL4_SmallPageObject, 2)  # ipc buf + boot info
-    if extra_bi_size_bits:
-        add_size_bits(extra_bi_size_bits, 1)  # extra boot info
-    for level in arch.levels(): # paging
-        add_size_bits(get_object_size_bits(level.object),
-                      level.objects_for_range(user_virt.start, user_virt.end))
-
-    num_bytes = sum(count << size_bits for size_bits, count in size_bits_histogram.items())
-    return (num_bytes, max(size_bits_histogram.keys()))
-
-
 def get_load_bounds(elf):
     end = 0
     start = 0xFFFFFFFFFFFFFFFF
@@ -156,36 +134,20 @@ def main(args):
     kernel_region = Region(kernel_region.start, round_up(kernel_region.end, PAGE_SIZE))
     reserved.add(kernel_region)
 
-    # now the dtb
+    # now the DTB
     next_paddr = kernel_region.end
     if args.dtb_size:
         dtb_region = Region(next_paddr, round_up(next_paddr + args.dtb_size, PAGE_SIZE))
         reserved.add(dtb_region)
         print("DTB: {0}<-->{1}".format(hex(dtb_region.start), hex(dtb_region.end)))
 
-    # now we need to work out the user image size
-    if args.loader:
-        user_elf = ELFFile(args.loader)
-        user_region = get_load_bounds(user_elf)
-        capdl_object_size = get_symbol_size(user_elf, 'capdl_object')
-    else:
-        capdl_object_size = 0
-
-    spec_size = args.max_spec_size
-    spec_object_size = capdl_object_size
-
-    # work out how much memory we need for the user image
-    user_size, user_max_size_bits = rootserver_memory_size(args.num_nodes, args.cnode_size, args.extra_bi_size_bits,
-                                                           arch, Region(args.user_virt_start, args.user_virt_end))
-    user_start = round_up(args.alloc_start, 1 << user_max_size_bits)
-    # create a new reserved region at the end of the user image
-    reserved.add(Region(user_start, user_start + user_size))
-
     available = SortedList()
     for a in addresses['memory']:
         # trim to paddr-top
-        start = min(a['start'], args.paddr_top)
-        end = min(a['end'], args.paddr_top)
+        start, end = a['start'], a['end']
+        if args.paddr_top is not None:
+            start = min(start, args.paddr_top)
+            end = min(end, args.paddr_top)
         if start != end:
             available.add(Region(start, end))
 
@@ -224,25 +186,11 @@ if __name__ == '__main__':
                         help='Size_bits of extra bootinfo frame (0 if none)')
     parser.add_argument('--kernel-elf', type=argparse.FileType('r'),
                         help='Kernel elf file', required=False)
-    parser.add_argument('--paddr-top', required=True, type=int_or_hex,
+    parser.add_argument('--paddr-top', type=int_or_hex,
                         help='Kernel\'s PADDR_TOP (highest usable physical memory addr)')
-    parser.add_argument('--loader', type=argparse.FileType('r'),
-                        help='Base loader image with empty spec.')
-    parser.add_argument('--user-virt-start', required=True, type=int_or_hex,
-                        help='Start virtual address of loader image')
-    parser.add_argument('--user-virt-end', required=True, type=int_or_hex,
-                        help='End virtual address of loader image')
-    parser.add_argument('--alloc-start', type=int_or_hex,
-                        help='Where the kernel starts allocating rootserver objects '
-                             '(default: after last loaded image)')
     parser.add_argument('--architecture', choices=valid_architectures())
-    parser.add_argument('--num-nodes', type=int, default=1,
-                        help='Number of processors the kernel is configured to run')
-    parser.add_argument('--cnode-size', type=int, default=12,
-                        help='Size_bits slots in the root cnode')
     parser.add_argument('--dtb-size', type=int_or_hex, default=0,
                         help='DTB (device tree binary) blob size')
-    parser.add_argument('--max-spec-size', type=int_or_hex, help="Max number of objects in the spec")
     parser.add_argument('--elffile', nargs='+', action='append')
 
     main(parser.parse_args())
