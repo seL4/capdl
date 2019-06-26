@@ -44,19 +44,19 @@ seL4_ARM_SuperSectionObject: seL4_SuperSectionBits
 seL4_HugePageObject: seL4_HugePageBits
 #endif
 #ifdef seL4_PGDBits
-seL4_AARCH64_PGDObject: seL4_PGDBits
+seL4_AARCH64_PGD: seL4_PGDBits
 #endif
 #ifdef seL4_PUDBits
-seL4_AARCH64_PUDObject: seL4_PUDBits
+seL4_AARCH64_PUD: seL4_PUDBits
 #endif
 #ifdef seL4_IOPageTableBits
 seL4_IOPageTableObject: seL4_IOPageTableBits
 #endif
 #ifdef seL4_PDPTBits
-seL4_X64_PDPTObject: seL4_PDPTBits
+seL4_X64_PDPT: seL4_PDPTBits
 #endif
 #ifdef seL4_PML4Bits
-seL4_X64_PML4Object: seL4_PML4Bits
+seL4_X64_PML4: seL4_PML4Bits
 #endif
 #ifdef seL4_MinSchedContextBits
 seL4_SchedContextObject: seL4_MinSchedContextBits
