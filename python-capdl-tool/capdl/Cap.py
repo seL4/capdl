@@ -20,6 +20,7 @@ class Cap(object):
     """
     A capability to a kernel object.
     """
+
     def __init__(self, referent, **kwargs):
         assert isinstance(referent, Object)
         self.referent = referent
@@ -74,13 +75,13 @@ class Cap(object):
         if isinstance(self.referent,
                       (Frame, Endpoint, Notification)):
             is_frame = isinstance(self.referent, Frame)
-            rights = [ sym for sym, flag in
-                       [ ('R', self.read),
-                         ('W', self.write),
-                         ('X', is_frame and self.grant),
-                         ('G', not is_frame and self.grant),
-                         ('P', self.grantreply) ]
-                       if flag ]
+            rights = [sym for sym, flag in
+                      [('R', self.read),
+                       ('W', self.write),
+                       ('X', is_frame and self.grant),
+                       ('G', not is_frame and self.grant),
+                       ('P', self.grantreply)]
+                      if flag]
             extra.append(''.join(rights))
 
         if isinstance(self.referent, Frame) and not self.cached:
