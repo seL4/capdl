@@ -61,3 +61,11 @@ seL4_X64_PML4Object: seL4_PML4Bits
 #ifdef seL4_MinSchedContextBits
 seL4_SchedContextObject: seL4_MinSchedContextBits
 #endif
+
+/* These need not, and should not, be allocated */
+seL4_IOPorts: 0
+seL4_IODevice: 0
+seL4_ARMIODevice: 0
+seL4_IRQ: 0
+seL4_IOAPICIRQ: 0
+seL4_MSIIRQ: 0

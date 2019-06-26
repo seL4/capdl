@@ -165,6 +165,12 @@ genObjectSizeMap m =
                       , ("seL4_X64_PDPTObject",      PDPT_T)
                       , ("seL4_X64_PML4Object",      PML4_T)
                       , ("seL4_SchedContextObject",  SC_T)
+                      , ("seL4_IOPorts",             IOPorts_T)
+                      , ("seL4_IODevice",            IODevice_T)
+                      , ("seL4_ARMIODevice",         ARMIODevice_T)
+                      , ("seL4_IRQ",                 IrqSlot_T)
+                      , ("seL4_IOAPICIRQ",           IOAPICIrqSlot_T)
+                      , ("seL4_MSIIRQ",              MSIIrqSlot_T)
                       ]
 
 main = do
