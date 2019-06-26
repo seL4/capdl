@@ -75,7 +75,7 @@ def final_spec(args, obj_space, cspaces, addr_spaces, targets, architecture):
             tcb.init = s.eval(str(tcb.init))
             tcb.elf = name
             if not args.fprovide_tcb_caps:
-                del space.cnode[slot]
+                del cspace.cnode[slot]
         cspace.cnode.finalise_size(arch=arch)
 
     return obj_space

@@ -576,7 +576,6 @@ class RTReply(Object):
 
     def __repr__(self):
         return '%s = rtreply' % self.name
-        return s
 
     def get_size_bits(self):
         return get_object_size_bits(ObjectType.seL4_RTReplyObject)

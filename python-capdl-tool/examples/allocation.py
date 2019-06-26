@@ -25,12 +25,12 @@ obj_allocator = capdl.ObjectAllocator()
 
 # Let's create a CNode. Note that the allocation type constants are named to
 # match the enums in the kernel.
-my_cnode = obj_allocator.alloc(capdl.seL4_CapTableObject, size_bits=28)
+my_cnode = obj_allocator.alloc(capdl.ObjectType.seL4_CapTableObject, size_bits=28)
 
 # Now let's allocate some objects and caps to them in this CNode using a CSpace
 # allocator.
 cap_allocator = capdl.CSpaceAllocator(my_cnode)
-my_tcb = obj_allocator.alloc(capdl.seL4_TCBObject)
+my_tcb = obj_allocator.alloc(capdl.ObjectType.seL4_TCBObject)
 tcb_slot = cap_allocator.alloc(my_tcb)
 cnode_slot = cap_allocator.alloc(my_cnode)
 
