@@ -371,10 +371,6 @@ void init_copy_frame(seL4_BootInfo *bootinfo)
     int error;
 
     for (int i = 0; i < sizeof(copy_addr_with_pt) / PAGE_SIZE_4K; i++) {
-#ifdef CONFIG_ARCH_ARM
-        error = seL4_ARM_Page_Unify_Instruction(copy_addr_frame + i, 0, PAGE_SIZE_4K);
-        ZF_LOGF_IFERR(error, "");
-#endif
         error = seL4_ARCH_Page_Unmap(copy_addr_frame + i);
         ZF_LOGF_IFERR(error, "");
 
