@@ -350,7 +350,13 @@ class AllocQueue:
         # dict of lists of fungible objects, indexed by size_bits
         self.objects = {}
         self.sizes = SortedList()
-        for o in s.objs:
+        # Sort objects secondarily by name, for two reasons:
+        # 1. Determinism (Python sets are not ordered)
+        # 2. Makes it more likely that objects of the same size will be
+        #    allocated contiguously by name. For example, the CAmkES DMA
+        #    allocator relies on this for large contiguous allocations.
+        # Reversed because we are pushing onto a queue.
+        for o in sorted(s.objs, key=lambda obj: obj.name, reverse=True):
             if hasattr(o, 'paddr') and o.paddr:
                 self._push_unfun_obj(o)
             elif o.get_size_bits():
