@@ -526,7 +526,14 @@ class BestFitAllocator(UntypedAllocator):
             paddr, unfun = objects.unfun_objects.peekitem()
 
             if ut.remaining() == 0:
-                s.add_object(ut)
+                # HACK: Only add untypeds where we actually allocated objects.
+                # This is mainly to skip special device regions which might
+                # appear in the untyped list but are not available at boot.
+                if all(obj.name.startswith('place_holder_') for obj in ut.children):
+                    for obj in ut.children:
+                        s.objs.remove(obj)
+                else:
+                    s.add_object(ut)
                 (ut, is_device) = self._next_ut()
 
             if paddr < ut.watermark_paddr():
