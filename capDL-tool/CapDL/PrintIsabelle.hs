@@ -88,15 +88,15 @@ notUntyped _ = True
  - FIXME: this algorithm traverses the mapping repeatedly, we should
  - do it more efficiently at some point.
  -}
-getID :: Arch -> ObjMap Word -> IRQMap -> ObjID -> Doc
-getID arch ms irqNode id =
+getID :: ObjectSizeMap -> ObjMap Word -> IRQMap -> ObjID -> Doc
+getID objSizeMap ms irqNode id =
     case lookupElem id irqNode of
         Just irq -> int (Map.size ms' + fromIntegral irq)
         Nothing ->
             maybe empty int $
             findIndex (\(i, _) -> i == id) contiguousObjs
     where ms' = Map.filterWithKey (\id _ -> not (mapElem id irqNode)) ms
-          contiguousObjs = sortObjects arch $ Map.toList ms'
+          contiguousObjs = sortObjects objSizeMap $ Map.toList ms'
 
 printID :: ObjID -> Doc
 printID id = text (showID id ++ "_id")
@@ -229,17 +229,17 @@ hasFaultEndpoint fault =
         Just _ -> "True"
         Nothing -> "False"
 
-printObjID :: Arch -> ObjMap Word -> IRQMap -> (ObjID, KernelObject Word) -> Doc
-printObjID arch ms irqNode (id, _) =
+printObjID :: ObjectSizeMap -> ObjMap Word -> IRQMap -> (ObjID, KernelObject Word) -> Doc
+printObjID objSizeMap ms irqNode (id, _) =
     constdefs name "cdl_object_id" $+$
     doubleQuotes (printID id <+> equiv <+> obj_id)
     $+$ text ""
     where name = showID id ++ "_id"
-          obj_id = getID arch ms irqNode id
+          obj_id = getID objSizeMap ms irqNode id
 
-printObjIDs :: Arch -> ObjMap Word -> IRQMap -> Doc
-printObjIDs arch ms irqs =
-  vcat (map (printObjID arch ms irqs) (sortObjects arch $ Map.toList ms))
+printObjIDs :: ObjectSizeMap -> ObjMap Word -> IRQMap -> Doc
+printObjIDs objSizeMap ms irqs =
+  vcat (map (printObjID objSizeMap ms irqs) (sortObjects objSizeMap $ Map.toList ms))
   $+$ text ""
 
 printObj' :: ObjMap Word -> ObjID -> KernelObject Word -> Doc
@@ -293,9 +293,9 @@ printEmptyIrqNode = constdefs "empty_irq_node" "cdl_object" $+$
     record (fsep $ punctuate comma $
                 map text ["cdl_cnode_caps = Map.empty", "cdl_cnode_size_bits = 0"]))
 
-printObjs :: Arch -> ObjMap Word -> IRQMap -> CoverMap -> Doc
-printObjs arch ms irqNode covers =
-  vcat (map (printObj ms irqNode covers) (sortObjects arch $ Map.toList ms)) $+$
+printObjs :: ObjectSizeMap -> ObjMap Word -> IRQMap -> CoverMap -> Doc
+printObjs objSizeMap ms irqNode covers =
+  vcat (map (printObj ms irqNode covers) (sortObjects objSizeMap $ Map.toList ms)) $+$
   printEmptyIrqNode $+$ text ""
 
 printObjMapping :: (ObjID, KernelObject Word) -> Doc
@@ -317,17 +317,17 @@ printEmptyIrqObjMap ms irqNode =
     constdefs "empty_irq_objects" "cdl_object_id \\<Rightarrow> cdl_object option" $+$
     doubleQuotes (text "empty_irq_objects" <+> equiv <+> printEmptyIrqObjMapping ms irqNode)
 
-printObjMap :: Arch -> ObjMap Word -> IRQMap -> Doc
-printObjMap arch ms _ = text "empty_irq_objects ++" $+$
-    case map printObjMapping (sortObjects arch $ Map.toList ms) of
+printObjMap :: ObjectSizeMap -> ObjMap Word -> IRQMap -> Doc
+printObjMap objSizeMap ms _ = text "empty_irq_objects ++" $+$
+    case map printObjMapping (sortObjects objSizeMap $ Map.toList ms) of
         [] -> text "Map.empty"
         xs -> brackets $ fsep $ punctuate comma xs
 
-printObjects :: Arch -> ObjMap Word -> IRQMap -> Doc
-printObjects arch ms irqNode =
+printObjects :: ObjectSizeMap -> ObjMap Word -> IRQMap -> Doc
+printObjects objSizeMap ms irqNode =
     printEmptyIrqObjMap ms irqNode $+$ text "" $+$
     constdefs "objects" "cdl_object_id \\<Rightarrow> cdl_object option" $+$
-    doubleQuotes (text "objects" <+> equiv <+> printObjMap arch ms irqNode)
+    doubleQuotes (text "objects" <+> equiv <+> printObjMap objSizeMap ms irqNode)
 
 printIrqMapping :: (Int, Doc) -> Doc
 printIrqMapping (irqID, id) =
@@ -446,8 +446,8 @@ deriveObjectSimps obj_list =
                 (map objects obj_list)
                 ["by (auto simp: objects_alt_equiv map_add_def objects_alt_lookups)"]
 
-printSimps :: Arch -> ObjMap Word -> Doc
-printSimps arch ms =
+printSimps :: ObjectSizeMap -> ObjMap Word -> Doc
+printSimps objSizeMap ms =
     text "lemmas ids = "      $+$ vcat (map obj_ids obj_list) $+$ text "" $+$
     text "lemmas cap_defs = " $+$ vcat (map caps objs_with_caps) $+$ text "" $+$
     text "lemmas obj_defs = " $+$ vcat (map objs obj_list) $+$ text "" $+$
@@ -455,7 +455,7 @@ printSimps arch ms =
     where obj_ids (id, _) = printID id <> text "_def"
           caps (id, _) = text (capsName id) <> text "_def"
           objs (id, _) = text (showID id) <> text "_def"
-          obj_list = sortObjects arch $ Map.toList ms
+          obj_list = sortObjects objSizeMap $ Map.toList ms
           objs_with_caps = filter (\(_, obj) -> hasSlots obj) obj_list
 
 printState :: Arch -> Doc
@@ -475,18 +475,18 @@ printHeader name =
 printFooter :: Doc
 printFooter = text "end"
 
-printIsabelle :: String -> Model Word -> Doc
-printIsabelle name (Model (arch@ARM11) ms irqNode cdt untypedCovers) =
+printIsabelle :: String -> ObjectSizeMap -> Model Word -> Doc
+printIsabelle name objSizeMap (Model (arch@ARM11) ms irqNode cdt untypedCovers) =
     printHeader name $+$ text "" $+$
-    printObjIDs arch ms' irqNode $+$
-    printObjs arch ms' irqNode untypedCovers $+$
-    printObjects arch ms' irqNode $+$ text "" $+$
+    printObjIDs objSizeMap ms' irqNode $+$
+    printObjs objSizeMap ms' irqNode untypedCovers $+$
+    printObjects objSizeMap ms' irqNode $+$ text "" $+$
     printIRQs ms' irqNode $+$ text "" $+$
     printASIDTable ms' irqNode untypedCovers $+$ text "" $+$
     printCDT cdt $+$ text "" $+$
     printState arch $+$ text "" $+$
-    printSimps arch ms' $+$ text "" $+$
+    printSimps objSizeMap ms' $+$ text "" $+$
     printFooter
     where ms' = Map.filter notUntyped ms
-printIsabelle _ (Model _ _ _ _ _) =
+printIsabelle _ _ (Model _ _ _ _ _) =
     error "Currently only the ARM11 architecture is supported when parsing to Isabelle"

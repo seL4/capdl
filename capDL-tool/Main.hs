@@ -33,6 +33,7 @@ import Text.ParserCombinators.Parsec
 import Control.Exception (bracketOnError)
 import Control.Monad
 import Control.Monad.Writer
+import Data.Maybe
 import System.Console.GetOpt
 import Data.String.Utils
 import qualified Data.Map as Map
@@ -103,7 +104,7 @@ options = [
 
     Option [] ["object-sizes"]
         (ReqArg (\arg o -> o {optObjectSizeFile = Just arg}) "FILE")
-        "YAML file containing kernel object sizes."
+        "YAML file containing kernel object sizes. Required for --code and --isabelle output"
   ]
 
 --
@@ -168,6 +169,12 @@ main = do
         error ("unrecognised arguments: " ++ unwords nonOpts ++ "\n" ++ usageInfo usageHeader options)
     let opt = foldr ($) defaultOptions actions
 
+    when (isJust (optOutputIsabelle opt) && isNothing (optObjectSizeFile opt)) $
+        error $ "--isabelle output requires --object-sizes file to be given"
+
+    when (isJust (optOutputHeader opt) && isNothing (optObjectSizeFile opt)) $
+        error $ "--code output requires --object-sizes file to be given"
+
     -- Parse the file.
     let inputFile = nonOpts !! 0
     dump <- isDump inputFile
@@ -176,7 +183,7 @@ main = do
              else genparseFromFile capDLModule emptyMaps inputFile
 
     -- Parse object sizes file, if available.
-    _ <- case optObjectSizeFile opt of
+    objSizeMap <- case optObjectSizeFile opt of
         Nothing -> return Map.empty
         Just f -> do yParse <- Yaml.decodeFileEither f
                      case yParse of
@@ -204,10 +211,10 @@ main = do
     if valid
      then do
         -- Output model in any requested format.
-        let optActions = [(optOutputIsabelle, \f -> writeFile' f $ show $ printIsabelle f m),
+        let optActions = [(optOutputIsabelle, \f -> writeFile' f $ show $ printIsabelle f objSizeMap m),
                           (optOutputXml,      \f -> writeFile' f $ show $ printXml inputFile m),
                           (optOutputDot,      \f -> writeFile' f $ show $ printDot inputFile m),
-                          (optOutputHeader,   \f -> writeFile' f $ show $ printC m i c (optCodeMaxIRQs opt)),
+                          (optOutputHeader,   \f -> writeFile' f $ show $ printC objSizeMap m i c (optCodeMaxIRQs opt)),
                           (optOutputText,     \f -> writeFile' f $ show $ pretty m),
                           (optOutputAnalysis, \f -> do (leakDot, flowDot, newM) <- leakMatrix m
                                                        writeFile (f ++ "-leak.dot") leakDot

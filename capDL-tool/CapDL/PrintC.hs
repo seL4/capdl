@@ -407,8 +407,8 @@ showUntypedDerivations objs untypedCovers =
                                 Map.toList untypedCovers) +++
     "},"
 
-printC :: Model Word -> Idents CapName -> CopyMap -> Word -> Doc
-printC (Model arch objs irqNode cdt untypedCovers) _ _ maxIrqs =
+printC :: ObjectSizeMap -> Model Word -> Idents CapName -> CopyMap -> Word -> Doc
+printC objSizeMap (Model arch objs irqNode cdt untypedCovers) _ _ maxIrqs =
     text $
     "/* Generated file. Your changes will be overwritten. */" +++
     "" +++
@@ -430,5 +430,5 @@ printC (Model arch objs irqNode cdt untypedCovers) _ _ maxIrqs =
     "};"
     where
         objs_sz = length $ Map.toList objs
-        objs' = sortObjects arch $ Map.toList objs
+        objs' = sortObjects objSizeMap $ Map.toList objs
         obj_ids = Map.fromList $ flip zip [0..] $ Prelude.Compat.map fst objs'
