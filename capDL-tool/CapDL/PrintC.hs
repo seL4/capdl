@@ -409,8 +409,13 @@ showUntypedDerivations DynamicAlloc{} _ untypedCovers
   | all null (Map.elems untypedCovers) =
       ".num_untyped = 0," +++
       ".untyped = NULL,"
-  | -- TODO: detect and report earlier?
-    otherwise = error "refusing to generate spec for dynamic allocation because it already has untyped children"
+  | otherwise = error $
+      "refusing to generate spec for dynamic allocation because the " ++
+      "following untypeds already have children:\n" ++
+      Data.List.Utils.join "\n"
+        [ "  " ++ show utID
+        | (utID, utChildren) <- Map.toList untypedCovers
+        , not $ null utChildren ]
 showUntypedDerivations StaticAlloc objs untypedCovers =
     ".num_untyped = " ++ show (Map.size untypedCovers) ++ "," +++
     ".untyped = (CDL_UntypedDerivation[]){" +++
