@@ -22,7 +22,7 @@ import Data.Maybe
 import Data.List.Compat
 import qualified Data.Map as Map
 import qualified Data.Set as Set
-import Text.PrettyPrint
+import Text.PrettyPrint (Doc, text)
 
 type Kernel a = State (Model Word) a
 

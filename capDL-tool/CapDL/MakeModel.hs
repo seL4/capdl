@@ -30,6 +30,8 @@ import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Control.Monad.State as ST
 import Control.Monad
+import Control.Monad.Writer (tell)
+import Text.PrettyPrint (text)
 
 type SlotState = ST.State Word
 
@@ -146,11 +148,19 @@ getUntypedCovers ns objs =
 -- A child of an untyped may be mentioned multiple times in the spec.
 -- When parsing, this creates multiple entries in the cover list.
 -- We normalise the untyped cover by removing duplicates.
-dedupCoverIDs :: CoverMap -> CoverMap
-dedupCoverIDs = Map.map (fastNub Set.empty)
-  where fastNub _ [] = []
-        fastNub seen (x:xs) | Set.member x seen = fastNub seen xs
-                            | otherwise = x : fastNub (Set.insert x seen) xs
+--
+-- This feature is deprecated; generate warnings when we encounter it.
+dedupCoverIDs :: CoverMap -> Logger CoverMap
+dedupCoverIDs = sequenceA . Map.mapWithKey (dedup Set.empty Set.empty)
+  where dedup _ _ _ [] = return [] :: Logger [ObjID]
+                         -- constrain monad type; otherwise we need FlexibleContexts
+        dedup seen reported utID (x:xs)
+          | Set.member x seen = do
+              when (Set.notMember x reported) $ do
+                tell $ text $ "warning: specifying untyped child multiple times is deprecated: " ++
+                              "ut = " ++ printID x ++ ", child = " ++ printID utID ++ "\n"
+              dedup seen (Set.insert x reported) utID xs
+          | otherwise = (x:) <$> dedup (Set.insert x seen) reported utID xs
 
 emptyUntyped :: KernelObject Word
 emptyUntyped = Untyped Nothing Nothing
@@ -952,16 +962,18 @@ addCDTCapDecl _ _ cdt _ = cdt
 addCDTCapDecls :: ObjMap Word -> Idents CapName -> CDT -> [Decl] -> CDT
 addCDTCapDecls objs ids = foldl' (addCDTCapDecl objs ids)
 
-makeModel :: Module -> (Model Word, Idents CapName, CopyMap)
-makeModel (Module arch decls) =
+makeModel :: Module -> Logger (Model Word, Idents CapName, CopyMap)
+makeModel (Module arch decls) = do
     let objs = addObjects Map.empty decls
         objs' = addUntypeds objs decls
         irqs = addIRQNodes objs' Map.empty decls
         ids = capIdents objs' decls
         refs = capCopyGraph objs' ids decls
         copies = getCapCopyDecls ids objs' decls
-        covers = dedupCoverIDs $ getUntypedCovers [] objs' Map.empty decls
         cdt = getCDTDecls ids decls
         cdt' = addCDTCapDecls objs' ids cdt decls
-    in (flip (addCapCopyDecls ids refs) decls .
-        addCapDecls decls $ Model arch objs' irqs cdt' covers, ids, copies)
+    covers <- dedupCoverIDs $ getUntypedCovers [] objs' Map.empty decls
+    return (flip (addCapCopyDecls ids refs) decls .
+                  addCapDecls decls $
+              Model arch objs' irqs cdt' covers,
+            ids, copies)

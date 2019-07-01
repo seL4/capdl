@@ -34,6 +34,7 @@ import Control.Monad
 import Control.Monad.Writer
 import System.Console.GetOpt
 import Data.String.Utils
+import qualified Text.PrettyPrint as PP
 
 data Options = Options {
     optOutputIsabelle :: Maybe String,
@@ -147,7 +148,8 @@ main = do
     res <- case res of
         Left e -> error (show e)
         Right t -> return t
-    let (m, i, c) = makeModel res
+    let ((m, i, c), mmLog) = runWriter (makeModel res)
+    when (not (PP.isEmpty mmLog)) $ hPrint stderr mmLog
 
     let writeFile' "-" s = putStr s
         writeFile' f   s = bracketOnError
