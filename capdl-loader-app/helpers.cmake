@@ -39,3 +39,9 @@ function(BuildCapDLApplication)
     target_include_directories("${CAPDL_BUILD_APP_OUTPUT}" PRIVATE $<TARGET_PROPERTY:capdl_app_properties,INCLUDE_DIRS>)
     target_link_libraries("${CAPDL_BUILD_APP_OUTPUT}" Configuration sel4runtime muslc sel4 elf cpio sel4platsupport sel4utils sel4muslcsys)
 endfunction(BuildCapDLApplication)
+
+# Hook for CAmkES build system. This allows CAmkES projects to
+# propagate the capDL allocation setting into the loader.
+function(SetCapDLLoaderStaticAlloc)
+    set(CapDLLoaderStaticAlloc ON CACHE BOOL "" FORCE)
+endfunction()
