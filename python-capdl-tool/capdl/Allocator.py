@@ -18,7 +18,7 @@ import collections
 import logging
 
 import six
-from sortedcontainers import SortedList, SortedDict
+from sortedcontainers import SortedList, SortedSet, SortedDict
 
 from .Cap import Cap
 from .Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
@@ -312,6 +312,70 @@ class AddressSpaceAllocator(object):
 
 class AllocatorException(Exception):
     pass
+
+class ASIDTableAllocator(object):
+    """
+    Assign ASID table slot numbers for ASID pools.
+
+    While slot numbers are not visible to userland, they are visible in the
+    DSpec verification model, so the capDL loader supports explicit policies
+    for ASID allocation.
+    """
+
+    def allocate(self, spec):
+        """
+        For each ASID pool in the spec, assign it to an unused ASID table slot.
+        This modifies the spec's ASID pool objects in-place.
+
+        Slot 0 is always skipped, because it is used for the init thread's ASID pool.
+        We assume that the C loader also skips slot 0.
+
+        This allocator allows ASID pools that already have assigned asid_high numbers.
+        However, seL4 only allows allocating table slots in sequential order.
+        Therefore, we raise AllocatorException if the spec's asid_high numbers cannot
+        be obtained by the C loader.
+        """
+        assert(isinstance(spec, Spec))
+
+        num_asid_high = get_object_size(ObjectType.seL4_ASID_Table)
+        free_asid_highs = SortedSet(range(num_asid_high))
+        free_asid_highs.remove(0) # Init thread's
+
+        asid_pools = []
+
+        # Get all ASIDPools
+        for obj in spec.objs:
+            if isinstance(obj, ASIDPool):
+                asid_pools.append(obj)
+        # Make deterministic
+        asid_pools = sorted(asid_pools, key=lambda obj: obj.name)
+
+        # Check availability of asid_highs; check existing claims
+        for asid_pool in asid_pools:
+            if asid_pool.asid_high is not None:
+                if asid_pool.asid_high < 0 or asid_pool.asid_high >= num_asid_high:
+                    raise AllocatorException("invalid asid_high of 0x%x, ASID pool %s" %
+                                             (asid_pool.asid_high, asid_pool.name))
+                elif asid_pool.asid_high in free_asid_highs:
+                    raise AllocatorException("asid_high 0x%x already in use, can't give to ASID pool %s" %
+                                             (asid_pool.asid_high, asid_pool.name))
+                else:
+                    free_asid_highs.remove(asid_pool.asid_high)
+
+        # Allocate free_asid_highs
+        for asid_pool in asid_pools:
+            if asid_pool.asid_high is None:
+                if not free_asid_highs:
+                    raise AllocatorException("ran out of asid_highs to allocate (next ASID pool: %s)" %
+                                             asid_pool.name)
+                else:
+                    asid_pool.asid_high = free_asid_highs.pop(0)
+
+        # Check that asid_highs are contiguous
+        for asid_pool in asid_pools:
+            if asid_pool.asid_high > 0 and asid_pool.asid_high - 1 in free_asid_highs:
+                raise AllocatorException("asid_high not contiguous: %s wants 0x%x but 0x%x not assigned" %
+                                         (asid_pool.name, asid_pool.asid_high, asid_pool.asid_high - 1))
 
 class UntypedAllocator(six.with_metaclass(abc.ABCMeta, object)):
     """

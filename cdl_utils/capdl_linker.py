@@ -13,7 +13,7 @@
 
 from simpleeval import EvalWithCompoundTypes
 from capdl.Object import register_object_sizes, Untyped
-from capdl.Allocator import BestFitAllocator
+from capdl.Allocator import ASIDTableAllocator, BestFitAllocator
 from capdl import ELF, lookup_architecture, TCB, valid_architectures
 from jinja2 import Environment, BaseLoader, FileSystemLoader
 import sys
@@ -137,7 +137,8 @@ def main():
         obj_space = final_spec(args, allocator_state.obj_space, allocator_state.cspaces,
                                allocator_state.addr_spaces, targets, args.architecture)
 
-        # Calculate final layout for objects...
+        # Calculate final layout for objects and ASID slots...
+        ASIDTableAllocator().allocate(obj_space.spec)
         if args.static_alloc:
             alloc = BestFitAllocator()
             for ut in yaml.load(args.untyped):

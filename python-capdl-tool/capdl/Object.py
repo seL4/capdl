@@ -92,6 +92,9 @@ class ObjectType(Enum):
 
     seL4_Slot = auto()
 
+    # Only used by ASIDTableAllocator. Note: this counts slots, not bytes.
+    seL4_ASID_Table = auto()
+
 
 class ObjectRights(Flag):
     _order_ = 'seL4_NoRights seL4_CanRead seL4_CanWrite seL4_CanGrant seL4_CanGrantReply seL4_AllRights'
