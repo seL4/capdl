@@ -379,6 +379,11 @@ getPorts n [] = error ("Needs ports parameter: " ++ n)
 getPorts _ (Ports x : _) = x
 getPorts n (_ : xs) = getPorts n xs
 
+getMaybeAsidHigh :: [ObjParam] -> Maybe Word
+getMaybeAsidHigh [] = Nothing
+getMaybeAsidHigh (AsidHigh asidHigh : _) = Just asidHigh
+getMaybeAsidHigh (_ : ps) = getMaybeAsidHigh ps
+
 orderedSubset :: Eq a => [a] -> [a] -> Bool
 orderedSubset [] _ = True
 orderedSubset _ [] = False
@@ -414,6 +419,7 @@ validObjPars (Obj Untyped_T ps _) = subsetConstrs ps [BitSize undefined, Paddr u
 validObjPars (Obj Frame_T ps []) =
   subsetConstrs ps [VMSize undefined, Paddr undefined, FrameExtraParam undefined] &&
   (not (containsConstr (Paddr undefined) ps) || containsConstr (VMSize undefined) ps)
+validObjPars (Obj ASIDPool_T ps []) = subsetConstrs ps [AsidHigh undefined]
 validObjPars (Obj IOPT_T ps []) = subsetConstrs ps [IOPTLevel undefined]
 validObjPars (Obj IOPorts_T ps []) = subsetConstrs ps [Ports undefined]
 validObjPars (Obj IODevice_T ps []) = subsetConstrs ps [DomainID undefined, PCIDevice undefined]
@@ -440,7 +446,7 @@ objectOf n obj =
             TCB Map.empty (getFaultEP ps) (getExtraInfo n ps) (getTCBDom ps) (getInitArguments ps)
         Obj CNode_T ps [] -> CNode Map.empty (getBitSize n ps)
         Obj Untyped_T ps _ -> Untyped (getMaybeBitSize ps) (getMaybePaddr ps)
-        Obj ASIDPool_T _ [] -> ASIDPool Map.empty
+        Obj ASIDPool_T ps [] -> ASIDPool Map.empty (getMaybeAsidHigh ps)
         Obj PT_T _ [] -> PT Map.empty
         Obj PD_T _ [] -> PD Map.empty
         Obj PML4_T _ [] -> PML4 Map.empty
@@ -572,13 +578,6 @@ getMaybeAsid [] = Nothing
 getMaybeAsid (Asid asid : _) = Just asid
 getMaybeAsid (_ : ps) = getMaybeAsid ps
 
-getAsid :: ObjID -> ObjID -> [CapParam] -> Asid
-getAsid containerName objRef ps =
-    case getMaybeAsid ps of
-        Nothing -> error ("Needs asid parameter for cap to " ++ printID objRef ++
-                          " in " ++ printID containerName)
-        Just asid -> asid
-
 getCached :: [CapParam] -> Bool
 getCached [] = True
 getCached (Cached c : _) = c
@@ -607,7 +606,6 @@ validCapPars (PML4 {}) ps = subsetConstrs ps [Asid undefined]
 validCapPars (PDPT {}) ps = subsetConstrs ps [Asid undefined]
 validCapPars (PUD {}) ps = subsetConstrs ps [Asid undefined]
 validCapPars (PGD {}) ps = subsetConstrs ps [Asid undefined]
-validCapPars (ASIDPool {}) ps = subsetConstrs ps [Asid undefined]
 validCapPars _ ps = null ps
 
 objCapOf :: ObjID -> KernelObject Word -> ObjID -> [CapParam] -> Cap
@@ -634,7 +632,7 @@ objCapOf containerName obj objRef params =
         PT {} -> PTCap objRef (getMaybeAsid params)
         PUD {} -> PUDCap objRef (getMaybeAsid params)
         PGD {} -> PGDCap objRef (getMaybeAsid params)
-        ASIDPool {} -> ASIDPoolCap objRef (getAsid containerName objRef params)
+        ASIDPool {} -> ASIDPoolCap objRef
         IOPT {} -> IOPTCap objRef
         IOPorts {} -> IOPortsCap objRef
         IODevice {} -> IOSpaceCap objRef
@@ -645,7 +643,7 @@ objCapOf containerName obj objRef params =
         IOAPICIrq {} -> IRQIOAPICHandlerCap objRef
         MSIIrq {} -> IRQMSIHandlerCap objRef
     else error ("Incorrect params for cap to " ++ printID objRef ++ " in " ++
-                printID containerName)
+                printID containerName ++ "; got " ++ show params)
 
 capOf :: ObjMap Word -> ObjID -> [CapParam] -> ObjID -> Cap
 capOf objs containerName xs id =

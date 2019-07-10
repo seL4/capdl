@@ -173,7 +173,7 @@ showCap objs (PGDCap id _) _ is_orig _ =
     ", .is_orig = " ++ is_orig ++ "}"
 showCap _ ASIDControlCap _ _ _ =
     "{.type = CDL_ASIDControlCap}"
-showCap objs (ASIDPoolCap id _) _ _ _ =
+showCap objs (ASIDPoolCap id) _ _ _ =
     "{.type = CDL_ASIDPoolCap, .obj_id = " ++ showObjID objs id ++ "}"
 showCap objs (IOPortsCap id) _ is_orig _ =
     "{.type = CDL_IOPortsCap, .obj_id = " ++ showObjID objs id ++
@@ -329,8 +329,9 @@ showObjectFields _ _ (IOPorts (start, end)) _ _ _ =
     ".type = CDL_IOPorts," +++
     ".start = " ++ show start ++ "," ++
     ".end = " ++ show end ++ ","
-showObjectFields objs obj_id (ASIDPool slots) _ _ _ =
+showObjectFields objs obj_id (ASIDPool slots asidHigh) _ _ _ =
     ".type = CDL_ASIDPool," +++
+    ".asid_high = " ++ hex (fromMaybe (-1) asidHigh) ++ "," +++
     memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
 showObjectFields _ _ (IODevice _ _ _) _ _ _ =
     ".type = CDL_IODevice,"

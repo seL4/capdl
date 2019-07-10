@@ -112,8 +112,7 @@ data Cap
             capMaybeAsid :: Maybe Asid }
         | ASIDControlCap -- only one ASIDTable in the system
         | ASIDPoolCap {
-            capObj :: ObjID,
-            capAsid :: Asid }
+            capObj :: ObjID }
 
         -- ARM specific caps
         | ARMIOSpaceCap { capObj :: ObjID }
@@ -177,7 +176,8 @@ data KernelObject a
     | RTReply
 
 -- arch specific objects, ARM11, IA32, X86_64, AARCH64 and RISCV mixed
-    | ASIDPool { slots :: CapMap a }
+    | ASIDPool { slots :: CapMap a,
+                 capAsidHigh :: Maybe Word }
     | PT { slots :: CapMap a }
     | PD { slots :: CapMap a }
     | PDPT { slots :: CapMap a }

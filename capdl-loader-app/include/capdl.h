@@ -316,6 +316,7 @@ typedef struct {
         CDL_MSIIRQExtraInfo msiirq_extra;
         CDL_FrameExtraInfo frame_extra;
         seL4_Word paddr; /* Physical address; only relevant for untyped objects. */
+        seL4_Word asid_high; /* for ASID pools */
         CDL_Core core; /* core for sched control */
         struct {
             seL4_Word start;

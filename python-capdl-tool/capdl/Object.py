@@ -245,8 +245,15 @@ class PGD(ContainerObject):
 
 
 class ASIDPool(ContainerObject):
+    def __init__(self, name, asid_high=None):
+        super(ASIDPool, self).__init__(name)
+        self.asid_high = asid_high
+
     def __repr__(self):
-        return '%s = asid_pool' % self.name
+        s = '%s = asid_pool' % self.name
+        if self.asid_high is not None:
+            s += ' (asid_high: 0x%x)' % self.asid_high
+        return s
 
     def get_size_bits(self):
         return get_object_size_bits(ObjectType.seL4_ASID_Pool)

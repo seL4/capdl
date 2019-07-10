@@ -2,7 +2,7 @@ arch arm11
 
 objects {
 
-  asid_pool@0xf0306000 = asid_pool
+  asid_pool@0xf0306000 = asid_pool (asid_high: 0x0)
   cnode@0xf7ff0000 = cnode (12 bits)
   frame@0x10000000[64] = frame (1M)
   frame@0x18000000[32] = frame (1M)
@@ -91,7 +91,7 @@ objects {
     3: pd@0xf7fec000 (asid: (0, 1))
     4: irq_control
     5: asid_control
-    6: asid_pool@0xf0306000 (asid: (0, 0))
+    6: asid_pool@0xf0306000
     9: frame@0xf002f000[1..0] (RW, asid: (0, 1))
     11: frame@0xf0307000[0..15] (RW, asid: (0, 1))
     27: pt@0xf0031000 (asid: (0, 1))

@@ -13,7 +13,7 @@ objects {
   irq_handler[3] = irq
   linux_pd = pd
   nic1_notification = notification
-  rm_ap = asid_pool
+  rm_ap = asid_pool (asid_high: 0x1)
   rm_cn = cnode (10 bits)
   rm_pd = pd
   rm_tcb = tcb (fault_ep: 15, dom: 5, init: [10])
@@ -48,7 +48,7 @@ objects {
     1: rm_tcb
     2: rm_cn
     3: rm_pd (asid: (1, 1))
-    6: rm_ap (asid: (1, 0))
+    6: rm_ap
     11: linux_pd
     12: rm_ut_small[3..5, 7..20, 23, 27..49]
     62: rm_ut_big[0..99]

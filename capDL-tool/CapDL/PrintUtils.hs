@@ -180,6 +180,10 @@ prettyPorts :: (Word, Word) -> Doc
 prettyPorts (start, end) =
     text "ports:" <+> brackets (num start <> text ".." <> num end)
 
+prettyAsidHigh :: Maybe Word -> Doc
+prettyAsidHigh (Just asidHigh) = text "asid_high:" <+> (text $ hex asidHigh)
+prettyAsidHigh Nothing = empty
+
 prettyObjParams obj = case obj of
     Endpoint -> text "ep"
     Notification -> text "notification"
@@ -189,7 +193,7 @@ prettyObjParams obj = case obj of
     CNode _ bits -> text "cnode" <+> maybeParensList [prettyBits bits]
     Untyped mbits paddr -> text "ut" <+> maybeParensList [prettyMBits mbits, prettyPaddr paddr]
 
-    ASIDPool {} -> text "asid_pool"
+    ASIDPool _ asidHigh -> text "asid_pool" <+> maybeParensList [prettyAsidHigh asidHigh]
     PT {} -> text "pt"
     PD {} -> text "pd"
     PML4 {} -> text "pml4"
@@ -305,7 +309,6 @@ maybeCapParams cap = case cap of
         (if cached then [] else [text "uncached"]) ++ maybeFrameMapping mapping)
     PTCap _ asid -> capParams (maybeAsid asid)
     PDCap _ asid -> capParams (maybeAsid asid)
-    ASIDPoolCap _ asid -> capParams (prettyAsid asid)
     SchedControlCap core -> capParams (prettyCore core)
     _ -> empty
 

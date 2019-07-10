@@ -20,7 +20,7 @@ rm_ut = ut {
     rm_cn = cnode (10 bits)
   }
   rm_pd = pd
-  rm_ap = asid_pool
+  rm_ap = asid_pool (asid_high: 0x0)
 
   linux_pd = pd
 
@@ -73,7 +73,7 @@ rm_cn {
   001: rm_tcb
   002: rm_cn ( guard: 0, guard_size: 0)
   003: rm_pd
-  006: rm_ap (asid: (0,0))
+  006: rm_ap
   007: io_ports
 0x00b: linux_pd;
 0x00c: rm_ut_small[3..5];

@@ -654,7 +654,7 @@ isCNode _ = False
 getSlotsFromKernelObject :: KernelObject Word -> Maybe (CapMap Word)
 getSlotsFromKernelObject (TCB slots _ _ _ _) = Just slots
 getSlotsFromKernelObject (CNode slots _) = Just slots
-getSlotsFromKernelObject (ASIDPool slots) = Just slots
+getSlotsFromKernelObject (ASIDPool slots _) = Just slots
 getSlotsFromKernelObject (PT slots) = Just slots
 getSlotsFromKernelObject (PD slots) = Just slots
 getSlotsFromKernelObject (PML4 slots) = Just slots

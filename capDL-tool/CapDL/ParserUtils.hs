@@ -402,6 +402,12 @@ ports_param = do
             end <- number
             return (start, end)
 
+asid_high_param :: MapParser ObjParam
+asid_high_param = do
+    reserved "asid_high"
+    colon
+    AsidHigh <$> number
+
 object_param :: MapParser ObjParam
 object_param =
         try obj_bit_size
@@ -420,6 +426,7 @@ object_param =
     <|> ioapic_irq_extra_param
     <|> msi_irq_extra_param
     <|> ports_param
+    <|> asid_high_param
 
 object_params :: MapParser [ObjParam]
 object_params =

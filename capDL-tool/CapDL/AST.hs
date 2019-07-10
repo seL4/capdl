@@ -119,6 +119,8 @@ data ObjParam =
       faulEP :: Word }
   | Ports {
       theRange :: (Word, Word) }
+  | AsidHigh {
+      asidHigh :: Word }
   deriving (Show, Eq, Ord, Typeable, Data)
 
 data KO = Obj {

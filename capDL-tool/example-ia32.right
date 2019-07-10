@@ -21,7 +21,7 @@ objects {
   nic1_notification = notification
   nic2 = io_device (domainID: 0, 0:0.0)
   nic3 = io_device (domainID: 50, 15:10.3)
-  rm_ap = asid_pool
+  rm_ap = asid_pool (asid_high: 0x0)
   rm_cn = cnode (10 bits)
   rm_pd = pd
   rm_tcb = tcb (dom: 0)
@@ -67,7 +67,7 @@ objects {
     1: rm_tcb
     2: rm_cn
     3: rm_pd
-    6: rm_ap (asid: (0, 0))
+    6: rm_ap
     7: io_ports
     11: linux_pd
     12: rm_ut_small[3..5, 7..20, 23, 27..49]
