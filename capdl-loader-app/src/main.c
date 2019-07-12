@@ -813,7 +813,7 @@ static void create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
             CDL_ObjectType capdl_obj_type = CDL_Obj_Type(obj);
 
             ZF_LOGV("Creating object %s in slot %ld, from untyped %lx...\n",
-                     CDL_Obj_Name(obj), (long)free_slot, (long)untyped_cptr);
+                    CDL_Obj_Name(obj), (long)free_slot, (long)untyped_cptr);
 
             ZF_LOGF_IF(!requires_creation(capdl_obj_type),
                        "object %s is in static allocation, but requires_creation is false",
