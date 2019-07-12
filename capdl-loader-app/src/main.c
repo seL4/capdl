@@ -1933,9 +1933,12 @@ static void fill_frame_with_bootinfo(CDL_Model *spec, CDL_ObjID obj_id, uintptr_
 
     /* Check if the bootinfo has been found */
     if (header) {
-        size_t len = MIN(header->len - block_offset, max);
-        void *start  = (void *) header + block_offset;
-        memcpy((void *) dest, start, len);
+        /* Don't copy past the bootinfo */
+        size_t copy_len = header->len < block_offset ? 0 : header->len - block_offset;
+        /* Don't copy more than what the frame can hold */
+        copy_len = MIN(copy_len, max);
+        void *copy_start = (void *) header + block_offset;
+        memcpy((void *) dest, copy_start, copy_len);
     } else {
         /* Bootinfo hasn't been found.
          * If we're at the start of a block, copy an empty header across, otherwise skip the copy */
