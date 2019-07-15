@@ -378,13 +378,8 @@ prettyArch X86_64 = text "x86_64"
 prettyArch AARCH64 = text "aarch64"
 prettyArch RISCV = text "riscv"
 
--- Helpers for sorting function
-objPaddr :: KernelObject Word -> Maybe Word
-objPaddr (Frame _ paddr _) = paddr
-objPaddr (Untyped _ paddr) = paddr
-objPaddr _ = Nothing
-
--- | Return results in 'Left', so they sort before non-results.
+-- | Helper for sorting function.
+-- Return results in 'Left', so they sort before non-results.
 justLeft :: b -> Maybe a -> Either a b
 justLeft r Nothing = Right r
 justLeft _ (Just l) = Left l

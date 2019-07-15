@@ -220,6 +220,11 @@ data KernelObject a
         fun :: Word }
     deriving (Eq, Show)
 
+objPaddr :: KernelObject a -> Maybe Word
+objPaddr (Frame _ paddr _) = paddr
+objPaddr (Untyped _ paddr) = paddr
+objPaddr _ = Nothing
+
 data KOType
     = Endpoint_T
     | Notification_T

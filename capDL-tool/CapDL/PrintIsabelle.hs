@@ -14,7 +14,7 @@ module CapDL.PrintIsabelle where
 
 import CapDL.Model
 import CapDL.State (koType, lookupSizeMap, objSizeBits)
-import CapDL.PrintUtils (printAsid, objPaddr)
+import CapDL.PrintUtils (printAsid)
 
 import Prelude ()
 import Prelude.Compat
@@ -111,7 +111,7 @@ irq_node_paddr__hack = 0x10000
  -}
 
 -- Check that we allocate objects consistently with their paddrs.
-checkEqPaddr :: KernelObject Word -> Word -> Bool
+checkEqPaddr :: KernelObject a -> Word -> Bool
 checkEqPaddr obj p = maybe True (p ==) (objPaddr obj)
 
 untypedCoverToPaddrs ::
