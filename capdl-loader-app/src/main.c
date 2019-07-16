@@ -875,6 +875,9 @@ static void create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
 
     ZF_LOGD("Creating objects...\n");
 
+    /* First, allocate most objects and update the spec database with
+       the cslot locations. The exception is ASIDPools, where
+       create_object only allocates the backing untypeds. */
     unsigned int obj_id_index = 0;
     unsigned int free_slot_index = 0;
     unsigned int ut_index = 0;
@@ -898,14 +901,6 @@ static void create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
             /* at this point we are definately creating an object - figure out what it is */
             seL4_Error err = create_object(spec, obj, obj_id, bootinfo, untyped_cptr, free_slot);
             if (err == seL4_NoError) {
-                if (capdl_obj_type == CDL_ASIDPool) {
-                    free_slot_index++;
-                    seL4_CPtr asid_slot = free_slot_start + free_slot_index;
-                    err = seL4_ARCH_ASIDControl_MakePool(seL4_CapASIDControl, free_slot,
-                                                         seL4_CapInitThreadCNode, asid_slot, CONFIG_WORD_SIZE);
-                    free_slot = asid_slot;
-                    ZF_LOGF_IFERR(err, "Failed to create asid pool");
-                }
                 add_sel4_cap(obj_id, ORIG, free_slot);
                 free_slot_index++;
             } else if (err == seL4_NotEnoughMemory) {
