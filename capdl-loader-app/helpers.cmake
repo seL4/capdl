@@ -56,7 +56,7 @@ function(BuildCapDLApplication)
         sel4utils
         sel4muslcsys
         capdl_loader_app_Config
-        kernel_autoconf
+        sel4_autoconf
     )
 endfunction(BuildCapDLApplication)
 
