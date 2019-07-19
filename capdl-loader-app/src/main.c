@@ -761,7 +761,7 @@ unsigned int create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_
 #if !CONFIG_CAPDL_LOADER_STATIC_ALLOC
     if (isDeviceObject(obj)) {
         seL4_Word paddr = CDL_Obj_Paddr(obj);
-        ZF_LOGE(" device frame/untyped, paddr = %p, size = %d bits\n", (void *) paddr, obj_size);
+        ZF_LOGD(" device frame/untyped, paddr = %p, size = %d bits", (void *) paddr, obj_size);
 
         /* This is a device object. Look for it in bootinfo. */
         err = find_device_object(paddr, obj_type, obj_size, free_slot, id, info, spec);
