@@ -180,7 +180,7 @@ class AARCH64Arch(Arch):
 
     def levels(self):
         # When on 40-bit PA size on aarch64-hyp the PGD level doesn't exist.
-        if get_object_size(ObjectType.seL4_AARCH64_PGD) > 1:
+        if get_object_size(ObjectType.seL4_AARCH64_PGD):
             return [
                 Level(2 ** 48, [], ObjectType.seL4_AARCH64_PGD, PGD, "pgd"),
                 Level(2 ** 39, [ObjectType.seL4_HugePageObject],

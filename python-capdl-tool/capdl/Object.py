@@ -47,7 +47,10 @@ def get_object_size_bits(object_type):
 
 
 def get_object_size(object_type):
-    return 1 << get_object_size_bits(object_type)
+    size = get_object_size_bits(object_type)
+    if not size:
+        return 0
+    return 1 << size
 
 
 @unique
