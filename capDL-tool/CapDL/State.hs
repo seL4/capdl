@@ -406,6 +406,7 @@ validCapArch X86_64 (IOSpaceCap {}) = True
 validCapArch X86_64 (IOPTCap {}) = True
 validCapArch X86_64 (VCPUCap {}) = True
 validCapArch ARM11 (ARMIOSpaceCap {}) = True
+validCapArch AARCH64 (ARMIOSpaceCap {}) = True
 validCapArch AARCH64 (PUDCap {}) = True
 validCapArch AARCH64 (PGDCap {}) = True
 validCapArch _ _ = False
@@ -460,6 +461,7 @@ validObjArch X86_64 (IOAPICIrq {}) = True
 validObjArch X86_64 (MSIIrq {}) = True
 validObjArch AARCH64 (PUD {}) = True
 validObjArch AARCH64 (PGD {}) = True
+validObjArch AARCH64 (ARMIODevice {}) = True
 validObjArch _ _ = False
 
 checkObjArch :: Arch -> KernelObject Word -> ObjID -> Logger Bool

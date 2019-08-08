@@ -1808,8 +1808,12 @@ static void init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cno
 #endif
 #if defined(CONFIG_ARCH_ARM)
     case CDL_ARMIOSpaceCap:
+#ifdef CONFIG_ARM_SMMU_V2
+        src_index = first_arm_iospace;
+#else
         src_index = first_arm_iospace + target_cap_data;
         target_cap_data = seL4_NilData;
+#endif
         break;
 #endif
     case CDL_IRQHandlerCap:
