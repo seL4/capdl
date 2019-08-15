@@ -31,12 +31,26 @@ from .Spec import Spec
 
 
 
-class AllocatorState():
+class AllocatorState(object):
     def __init__(self, obj_space, cspaces={}, pds={}, addr_spaces={}):
         self.obj_space = obj_space
         self.cspaces = cspaces
         self.pds = pds
         self.addr_spaces = addr_spaces
+
+class RenderState(AllocatorState):
+    '''
+    This bolts extra CAmkES state onto the capDL allocator state.
+    For now, this just tracks extra adjustments to the integrity
+    policy used in cdl-refine.thy.
+
+    FIXME: this ought to go into camkes-tool, but Python pickle
+    doesn't seem to like deserialising locally defined classes.
+    '''
+
+    def __init__(self, *args, **kwargs):
+        super(RenderState, self).__init__(*args, **kwargs)
+        self.policy_extra = set()
 
 
 class ObjectAllocator(object):
