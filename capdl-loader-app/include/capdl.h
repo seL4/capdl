@@ -187,7 +187,7 @@ typedef enum {
     CDL_IOPorts       = seL4_ObjectTypeCount + 3,
     CDL_IODevice      = seL4_ObjectTypeCount + 4,
 #endif
-#ifdef CONFIG_KERNEL_RT
+#ifdef CONFIG_KERNEL_MCS
     CDL_SchedContext  = seL4_SchedContextObject,
     CDL_RTReply  = seL4_ReplyObject,
 #else

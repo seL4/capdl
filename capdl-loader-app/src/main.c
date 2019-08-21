@@ -735,7 +735,7 @@ unsigned int create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_
         obj_type = CDL_Untyped;
         obj_size = seL4_ASIDPoolBits;
         break;
-#ifdef CONFIG_KERNEL_RT
+#ifdef CONFIG_KERNEL_MCS
     case CDL_SchedContext:
         obj_size = kobject_get_size(KOBJECT_SCHED_CONTEXT, obj_size);
         obj_type = (seL4_ArchObjectType) CDL_Obj_Type(obj);
@@ -1048,7 +1048,7 @@ static void duplicate_caps(CDL_Model *spec)
 
 static void create_sched_ctrl_caps(seL4_BootInfo *bi)
 {
-#ifdef CONFIG_KERNEL_RT
+#ifdef CONFIG_KERNEL_MCS
     for (seL4_Word i = 0; i <= bi->schedcontrol.end - bi->schedcontrol.start; i++) {
         add_sel4_cap(i, SCHED_CTRL, i + bi->schedcontrol.start);
     }
@@ -1068,7 +1068,7 @@ static void init_sc(CDL_Model *spec, CDL_ObjID sc, CDL_Core affinity)
 
     seL4_CPtr UNUSED seL4_sc = orig_caps(sc);
     seL4_CPtr UNUSED sched_control = sched_ctrl_caps(affinity);
-#ifdef CONFIG_KERNEL_RT
+#ifdef CONFIG_KERNEL_MCS
     /* Assign the sched context to run on the CPU that the root task runs on. */
     int error = seL4_SchedControl_Configure(sched_control,
                                             seL4_sc, budget, period, 0, data);
@@ -1114,7 +1114,7 @@ static void init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     seL4_CPtr UNUSED sel4_tempfault_ep;
     seL4_CPtr badged_sel4_fault_ep;
 
-    if (config_set(CONFIG_KERNEL_RT)) {
+    if (config_set(CONFIG_KERNEL_MCS)) {
         /* Fault ep cptrs are in the caller's cspace */
 
         CDL_Cap *cdl_fault_ep   = get_cap_at(cdl_tcb, CDL_TCB_FaultEP_Slot);
@@ -1153,7 +1153,7 @@ static void init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     seL4_Word sel4_vspace_root_data = get_capData(CDL_Cap_Data(cdl_vspace_root));
 
     int error;
-#ifdef CONFIG_KERNEL_RT
+#ifdef CONFIG_KERNEL_MCS
     if (sel4_sc) {
         init_sc(spec, CDL_Cap_ObjID(cdl_sc), affinity);
     }
@@ -2098,7 +2098,7 @@ static void init_system(CDL_Model *spec)
     mark_vspace_roots(spec);
 #endif
     create_irq_caps(spec);
-    if (config_set(CONFIG_KERNEL_RT)) {
+    if (config_set(CONFIG_KERNEL_MCS)) {
         create_sched_ctrl_caps(bootinfo);
     }
     duplicate_caps(spec);
