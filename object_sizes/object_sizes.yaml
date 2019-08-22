@@ -12,6 +12,7 @@
 /* We preprocess this file to extract the sizes of objects for use in camkes/capdl */
 #define __ASSEMBLER__
 #include <autoconf.h>
+#include <sel4/constants.h>
 #include <sel4/sel4_arch/constants.h>
 seL4_TCBObject: seL4_TCBBits
 seL4_EndpointObject: seL4_EndpointBits
