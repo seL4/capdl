@@ -126,27 +126,29 @@ addUTDecl objs ut covers names = addUTCover objs covers (refToIDs objs names) ut
 addUTDecls ::  ObjMap Word -> ObjID -> CoverMap -> [NameRef] -> CoverMap
 addUTDecls objs ut = foldl' (addUTDecl objs ut)
 
-getUntypedCover :: [NameRef] -> ObjMap Word -> CoverMap -> Decl -> CoverMap
-getUntypedCover ns objs covers (ObjDecl (KODecl objName obj)) =
+getUntypedCover :: Maybe NameRef -> ObjMap Word -> CoverMap -> Decl -> CoverMap
+getUntypedCover prevName objs covers (ObjDecl (KODecl objName obj)) =
     if null (objDecls obj)
     then
         let (name, num) = refToID $ baseName objName
             qns = qNames objName
         in addUTCovers objs covers (makeIDs name num)
-                       (map refToID (reverse (ns ++ qns)))
+                       (map refToID (reverse (maybeCons prevName qns)))
     else
         let name = refToID $ baseName objName
             qns = qNames objName
             covers' = addUTCovers objs covers [name]
-                                  (map refToID (reverse (ns ++ qns)))
+                                  (map refToID (reverse (maybeCons prevName qns)))
             covers'' = addUTDecls objs name covers' (Either.rights (objDecls obj))
-        in getUntypedCovers (ns ++ objName) objs covers''
-                                        (map ObjDecl (Either.lefts (objDecls obj)))
+        in getUntypedCovers (Just (baseName objName)) objs covers''
+                            (map ObjDecl (Either.lefts (objDecls obj)))
+    where maybeCons (Just x) xs = x:xs
+          maybeCons Nothing xs = xs
 getUntypedCover _ _ covers _ = covers
 
-getUntypedCovers :: [NameRef] -> ObjMap Word -> CoverMap -> [Decl] -> CoverMap
-getUntypedCovers ns objs =
-    foldl' (getUntypedCover ns objs)
+getUntypedCovers :: Maybe NameRef -> ObjMap Word -> CoverMap -> [Decl] -> CoverMap
+getUntypedCovers prevName objs =
+    foldl' (getUntypedCover prevName objs)
 
 -- A child of an untyped may be mentioned multiple times in the spec.
 -- When parsing, this creates multiple entries in the cover list.
@@ -964,7 +966,7 @@ makeModel (Module arch decls) = do
         copies = getCapCopyDecls ids objs' decls
         cdt = getCDTDecls ids decls
         cdt' = addCDTCapDecls objs' ids cdt decls
-    covers <- dedupCoverIDs $ getUntypedCovers [] objs' Map.empty decls
+    covers <- dedupCoverIDs $ getUntypedCovers Nothing objs' Map.empty decls
     return (flip (addCapCopyDecls ids refs) decls .
                   addCapDecls decls $
               Model arch objs' irqs cdt' covers,
