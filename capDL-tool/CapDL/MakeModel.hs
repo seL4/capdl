@@ -161,7 +161,7 @@ dedupCoverIDs = sequenceA . Map.mapWithKey (dedup Set.empty Set.empty)
           | Set.member x seen = do
               when (Set.notMember x reported) $ do
                 tell $ text $ "warning: specifying untyped child multiple times is deprecated: " ++
-                              "ut = " ++ printID x ++ ", child = " ++ printID utID ++ "\n"
+                              "ut = " ++ printID utID ++ ", child = " ++ printID x ++ "\n"
               dedup seen (Set.insert x reported) utID xs
           | otherwise = (x:) <$> dedup (Set.insert x seen) reported utID xs
 
