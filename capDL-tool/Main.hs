@@ -14,6 +14,7 @@ module Main where
 
 import CapDL.Parser
 import CapDL.DumpParser
+import CapDL.PrintUtils
 import CapDL.ParserUtils (emptyMaps)
 import CapDL.Model
 import CapDL.MakeModel
@@ -26,6 +27,7 @@ import CapDL.PrintC
 import CapDL.STCC
 
 import System.Environment
+import System.Exit (exitFailure)
 import System.FilePath
 import System.IO
 import System.Posix (rename, removeLink)
@@ -173,6 +175,18 @@ genObjectSizeMap m =
                       , ("seL4_MSIIRQ",              MSIIrqSlot_T)
                       ]
 
+-- Abort with an error message if 'isFullyAllocated' fails.
+assertIsFullyAllocated :: (PP.Doc -> PP.Doc) -> ObjMap Word -> CoverMap -> IO ()
+assertIsFullyAllocated wrapMessage objs untypedCovers =
+  case isFullyAllocated objs untypedCovers of
+    Right () -> return ()
+    Left (msg, badObjs) -> do
+      hPutStrLn stderr . PP.render . wrapMessage $
+        PP.text (msg ++ ":") PP.$+$
+        -- TODO: maybe limit number of badObjs printed
+        PP.nest 2 (PP.vcat $ PP.text . CapDL.PrintUtils.showID <$> badObjs)
+      exitFailure
+
 main = do
     -- Parse command line arguments.
     args <- getArgs
@@ -185,11 +199,11 @@ main = do
         error ("unrecognised arguments: " ++ unwords nonOpts ++ "\n" ++ usageInfo usageHeader options)
     let opt = foldr ($) defaultOptions actions
 
-    when (isJust (optOutputIsabelle opt) && isNothing (optObjectSizeFile opt)) $
-        error $ "--isabelle output requires --object-sizes file to be given"
-
-    when (isJust (optOutputCSpec opt) && optDynamicAllocCSpec opt && isNothing (optObjectSizeFile opt)) $
-        error $ "--code-dynamic-alloc requires --object-sizes file to be given"
+    let whyNeedObjectSizes = Data.String.Utils.join " and " $ map snd $ filter fst
+          [ (isJust (optOutputIsabelle opt), "--isabelle output")
+          , (isJust (optOutputCSpec opt) && optDynamicAllocCSpec opt, "--code-dynamic-alloc") ]
+    when (not (null whyNeedObjectSizes) && isNothing (optObjectSizeFile opt)) $
+        error $ "--object-sizes file is required for " ++ whyNeedObjectSizes
 
     -- Parse the file.
     let inputFile = nonOpts !! 0
@@ -213,6 +227,14 @@ main = do
         Right t -> return t
     let ((m, i, c), mmLog) = runWriter (makeModel res)
     when (not (PP.isEmpty mmLog)) $ hPrint stderr mmLog
+
+    -- If the task requires a statically allocated spec, check this now.
+    let whyNeedStaticAlloc = Data.String.Utils.join " and " $ map snd $ filter fst
+          [ (isJust (optOutputIsabelle opt), "--isabelle output")
+          , (isJust (optOutputCSpec opt) && not (optDynamicAllocCSpec opt), "--code-static-alloc") ]
+        prefix = "A statically allocated spec is required for " ++ whyNeedStaticAlloc
+    when (not (null whyNeedStaticAlloc)) $
+        assertIsFullyAllocated (PP.text prefix PP.$+$) (objects m) (untypedCovers m)
 
     let writeFile' "-" s = putStr s
         writeFile' f   s = bracketOnError
