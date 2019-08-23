@@ -1,0 +1,352 @@
+arch arm11
+
+objects {
+
+  adder_adder_0_control_tcb = tcb (addr: 1355776, ip: 96804, sp: 1347584, elf: adder_group_bin, prio: 254, max_prio: 254, affinity: 0, fault_ep: 2, dom: 0, init: [1])
+  adder_adder_0_fault_handler_tcb = tcb (addr: 1429504, ip: 96804, sp: 1421312, elf: adder_group_bin, prio: 255, max_prio: 254, affinity: 0, dom: 0, init: [5])
+  adder_adder_a_0000_tcb = tcb (addr: 1392640, ip: 96804, sp: 1384448, elf: adder_group_bin, prio: 254, max_prio: 254, affinity: 0, fault_ep: 4, dom: 0, init: [3])
+  adder_cnode = cnode (4 bits)
+  adder_fault_ep = ep
+  adder_frame__camkes_ipc_buffer_adder_0_control = frame (4k)
+  adder_frame__camkes_ipc_buffer_adder_0_fault_handler = frame (4k)
+  adder_frame__camkes_ipc_buffer_adder_a_0000 = frame (4k)
+  adder_group_bin_pd = pd
+  adder_interface_init_ep = ep
+  adder_post_init_ep = ep
+  adder_pre_init_ep = ep
+  client_client_0_control_tcb = tcb (addr: 1339392, ip: 95584, sp: 1331200, elf: client_group_bin, prio: 254, max_prio: 254, affinity: 0, fault_ep: 2, dom: 0, init: [1])
+  client_client_0_fault_handler_tcb = tcb (addr: 1376256, ip: 95584, sp: 1368064, elf: client_group_bin, prio: 255, max_prio: 254, affinity: 0, dom: 0, init: [3])
+  client_cnode = cnode (4 bits)
+  client_fault_ep = ep
+  client_frame__camkes_ipc_buffer_client_0_control = frame (4k)
+  client_frame__camkes_ipc_buffer_client_0_fault_handler = frame (4k)
+  client_group_bin_pd = pd
+  client_interface_init_ep = ep
+  client_post_init_ep = ep
+  client_pre_init_ep = ep
+  frame_adder_group_bin_0000 = frame (64k)
+  frame_adder_group_bin_0001 = frame (64k)
+  frame_adder_group_bin_0002 = frame (64k)
+  frame_adder_group_bin_0004 = frame (64k)
+  frame_adder_group_bin_0011 = frame (64k)
+  frame_adder_group_bin_0013 = frame (4k)
+  frame_adder_group_bin_0014 = frame (4k)
+  frame_adder_group_bin_0015 = frame (64k)
+  frame_adder_group_bin_0016 = frame (4k)
+  frame_adder_group_bin_0017 = frame (64k)
+  frame_adder_group_bin_0019 = frame (64k)
+  frame_adder_group_bin_0021 = frame (64k)
+  frame_adder_group_bin_0023 = frame (64k)
+  frame_adder_group_bin_0025 = frame (64k)
+  frame_adder_group_bin_0027 = frame (64k)
+  frame_adder_group_bin_0029 = frame (4k)
+  frame_adder_group_bin_0036 = frame (64k)
+  frame_adder_group_bin_0039 = frame (64k)
+  frame_adder_group_bin_0041 = frame (64k)
+  frame_adder_group_bin_0043 = frame (64k)
+  frame_adder_group_bin_0045 = frame (64k)
+  frame_adder_group_bin_0047 = frame (64k)
+  frame_adder_group_bin_0049 = frame (64k)
+  frame_client_group_bin_0000 = frame (64k)
+  frame_client_group_bin_0001 = frame (64k)
+  frame_client_group_bin_0002 = frame (64k)
+  frame_client_group_bin_0003 = frame (64k)
+  frame_client_group_bin_0004 = frame (64k)
+  frame_client_group_bin_0008 = frame (64k)
+  frame_client_group_bin_0010 = frame (64k)
+  frame_client_group_bin_0012 = frame (64k)
+  frame_client_group_bin_0014 = frame (64k)
+  frame_client_group_bin_0016 = frame (64k)
+  frame_client_group_bin_0018 = frame (64k)
+  frame_client_group_bin_0020 = frame (64k)
+  frame_client_group_bin_0029 = frame (64k)
+  frame_client_group_bin_0032 = frame (64k)
+  frame_client_group_bin_0033 = frame (64k)
+  frame_client_group_bin_0034 = frame (64k)
+  frame_client_group_bin_0035 = frame (64k)
+  frame_client_group_bin_0036 = frame (64k)
+  frame_client_group_bin_0037 = frame (64k)
+  p_ep = ep
+  pt_adder_group_bin_0000 = pt
+  pt_adder_group_bin_0003 = pt
+  pt_client_group_bin_0000 = pt
+  pt_client_group_bin_0003 = pt
+  s_data_0_obj = frame (4k)
+  stack__camkes_stack_adder_0_control_0_adder_obj = frame (4k)
+  stack__camkes_stack_adder_0_control_1_adder_obj = frame (4k)
+  stack__camkes_stack_adder_0_control_2_adder_obj = frame (4k)
+  stack__camkes_stack_adder_0_control_3_adder_obj = frame (4k)
+  stack__camkes_stack_adder_0_fault_handler_0_adder_obj = frame (4k)
+  stack__camkes_stack_adder_0_fault_handler_1_adder_obj = frame (4k)
+  stack__camkes_stack_adder_0_fault_handler_2_adder_obj = frame (4k)
+  stack__camkes_stack_adder_0_fault_handler_3_adder_obj = frame (4k)
+  stack__camkes_stack_adder_a_0000_0_adder_obj = frame (4k)
+  stack__camkes_stack_adder_a_0000_1_adder_obj = frame (4k)
+  stack__camkes_stack_adder_a_0000_2_adder_obj = frame (4k)
+  stack__camkes_stack_adder_a_0000_3_adder_obj = frame (4k)
+  stack__camkes_stack_client_0_control_0_client_obj = frame (4k)
+  stack__camkes_stack_client_0_control_1_client_obj = frame (4k)
+  stack__camkes_stack_client_0_control_2_client_obj = frame (4k)
+  stack__camkes_stack_client_0_control_3_client_obj = frame (4k)
+  stack__camkes_stack_client_0_fault_handler_0_client_obj = frame (4k)
+  stack__camkes_stack_client_0_fault_handler_1_client_obj = frame (4k)
+  stack__camkes_stack_client_0_fault_handler_2_client_obj = frame (4k)
+  stack__camkes_stack_client_0_fault_handler_3_client_obj = frame (4k)
+
+  place_holder_0x102cb690 = ut (4 bits, paddr: 0x102cb690)
+  place_holder_0x102cb6a0 = ut (5 bits, paddr: 0x102cb6a0)
+  place_holder_0x102cb6c0 = ut (6 bits, paddr: 0x102cb6c0)
+  place_holder_0x102cb700 = ut (8 bits, paddr: 0x102cb700)
+  place_holder_0x102cb800 = ut (11 bits, paddr: 0x102cb800)
+  place_holder_0x102cc000 = ut (14 bits, paddr: 0x102cc000)
+  place_holder_0x102d0000 = ut (16 bits, paddr: 0x102d0000)
+  place_holder_0x102e0000 = ut (17 bits, paddr: 0x102e0000)
+  place_holder_0x10300000 = ut (20 bits, paddr: 0x10300000)
+  root_untyped_0x10043000 = ut (12 bits, paddr: 0x10043000) {adder_frame__camkes_ipc_buffer_adder_0_control}
+  root_untyped_0x10044000 = ut (14 bits, paddr: 0x10044000) {adder_group_bin_pd}
+  root_untyped_0x10048000 = ut (15 bits, paddr: 0x10048000) {client_group_bin_pd,
+                                                             adder_frame__camkes_ipc_buffer_adder_0_fault_handler,
+                                                             adder_frame__camkes_ipc_buffer_adder_a_0000,
+                                                             client_frame__camkes_ipc_buffer_client_0_control,
+                                                             client_frame__camkes_ipc_buffer_client_0_fault_handler}
+  root_untyped_0x10050000 = ut (16 bits, paddr: 0x10050000) {frame_adder_group_bin_0000}
+  root_untyped_0x10060000 = ut (17 bits, paddr: 0x10060000) {frame_adder_group_bin_0001,
+                                                             frame_adder_group_bin_0002}
+  root_untyped_0x10080000 = ut (19 bits, paddr: 0x10080000) {frame_adder_group_bin_0004,
+                                                             frame_adder_group_bin_0011,
+                                                             frame_adder_group_bin_0015,
+                                                             frame_adder_group_bin_0017,
+                                                             frame_adder_group_bin_0019,
+                                                             frame_adder_group_bin_0021,
+                                                             frame_adder_group_bin_0023,
+                                                             frame_adder_group_bin_0025}
+  root_untyped_0x10100000 = ut (20 bits, paddr: 0x10100000) {frame_adder_group_bin_0027,
+                                                             frame_adder_group_bin_0036,
+                                                             frame_adder_group_bin_0039,
+                                                             frame_adder_group_bin_0041,
+                                                             frame_adder_group_bin_0043,
+                                                             frame_adder_group_bin_0045,
+                                                             frame_adder_group_bin_0047,
+                                                             frame_adder_group_bin_0049,
+                                                             frame_client_group_bin_0000,
+                                                             frame_client_group_bin_0001,
+                                                             frame_client_group_bin_0002,
+                                                             frame_client_group_bin_0003,
+                                                             frame_client_group_bin_0004,
+                                                             frame_client_group_bin_0008,
+                                                             frame_client_group_bin_0010,
+                                                             frame_client_group_bin_0012}
+  root_untyped_0x10200000 = ut (21 bits, paddr: 0x10200000) {frame_client_group_bin_0014,
+                                                             frame_client_group_bin_0016,
+                                                             frame_client_group_bin_0018,
+                                                             frame_client_group_bin_0020,
+                                                             frame_client_group_bin_0029,
+                                                             frame_client_group_bin_0032,
+                                                             frame_client_group_bin_0033,
+                                                             frame_client_group_bin_0034,
+                                                             frame_client_group_bin_0035,
+                                                             frame_client_group_bin_0036,
+                                                             frame_client_group_bin_0037,
+                                                             frame_adder_group_bin_0013,
+                                                             frame_adder_group_bin_0014,
+                                                             frame_adder_group_bin_0016,
+                                                             frame_adder_group_bin_0029,
+                                                             s_data_0_obj,
+                                                             stack__camkes_stack_adder_0_control_0_adder_obj,
+                                                             stack__camkes_stack_adder_0_control_1_adder_obj,
+                                                             stack__camkes_stack_adder_0_control_2_adder_obj,
+                                                             stack__camkes_stack_adder_0_control_3_adder_obj,
+                                                             stack__camkes_stack_adder_0_fault_handler_0_adder_obj,
+                                                             stack__camkes_stack_adder_0_fault_handler_1_adder_obj,
+                                                             stack__camkes_stack_adder_0_fault_handler_2_adder_obj,
+                                                             stack__camkes_stack_adder_0_fault_handler_3_adder_obj,
+                                                             stack__camkes_stack_adder_a_0000_0_adder_obj,
+                                                             stack__camkes_stack_adder_a_0000_1_adder_obj,
+                                                             stack__camkes_stack_adder_a_0000_2_adder_obj,
+                                                             stack__camkes_stack_adder_a_0000_3_adder_obj,
+                                                             stack__camkes_stack_client_0_control_0_client_obj,
+                                                             stack__camkes_stack_client_0_control_1_client_obj,
+                                                             stack__camkes_stack_client_0_control_2_client_obj,
+                                                             stack__camkes_stack_client_0_control_3_client_obj,
+                                                             stack__camkes_stack_client_0_fault_handler_0_client_obj,
+                                                             stack__camkes_stack_client_0_fault_handler_1_client_obj,
+                                                             stack__camkes_stack_client_0_fault_handler_2_client_obj,
+                                                             stack__camkes_stack_client_0_fault_handler_3_client_obj,
+                                                             adder_adder_0_control_tcb,
+                                                             adder_adder_0_fault_handler_tcb,
+                                                             adder_adder_a_0000_tcb,
+                                                             client_client_0_control_tcb,
+                                                             client_client_0_fault_handler_tcb,
+                                                             pt_adder_group_bin_0000,
+                                                             pt_adder_group_bin_0003,
+                                                             pt_client_group_bin_0000,
+                                                             pt_client_group_bin_0003, adder_cnode,
+                                                             client_cnode, adder_fault_ep,
+                                                             adder_interface_init_ep,
+                                                             adder_post_init_ep, adder_pre_init_ep,
+                                                             client_fault_ep,
+                                                             client_interface_init_ep,
+                                                             client_post_init_ep,
+                                                             client_pre_init_ep, p_ep,
+                                                             place_holder_0x102cb690,
+                                                             place_holder_0x102cb6a0,
+                                                             place_holder_0x102cb6c0,
+                                                             place_holder_0x102cb700,
+                                                             place_holder_0x102cb800,
+                                                             place_holder_0x102cc000,
+                                                             place_holder_0x102d0000,
+                                                             place_holder_0x102e0000,
+                                                             place_holder_0x10300000}
+
+} caps {
+
+  adder_adder_0_control_tcb {
+    0: adder_cnode (guard_size: 28)
+    1: adder_group_bin_pd
+    4: adder_frame__camkes_ipc_buffer_adder_0_control (RW)
+  }
+  
+  adder_adder_0_fault_handler_tcb {
+    0: adder_cnode (guard_size: 28)
+    1: adder_group_bin_pd
+    4: adder_frame__camkes_ipc_buffer_adder_0_fault_handler (RW)
+  }
+  
+  adder_adder_a_0000_tcb {
+    0: adder_cnode (guard_size: 28)
+    1: adder_group_bin_pd
+    4: adder_frame__camkes_ipc_buffer_adder_a_0000 (RW)
+  }
+  
+  adder_cnode {
+    1: adder_adder_0_control_tcb
+    2: adder_fault_ep (badge: 1, RWP)
+    3: adder_adder_a_0000_tcb
+    4: adder_fault_ep (badge: 3, RWP)
+    5: adder_adder_0_fault_handler_tcb
+    6: adder_fault_ep (RWP)
+    7: adder_pre_init_ep (RW)
+    8: adder_interface_init_ep (RW)
+    9: adder_post_init_ep (RW)
+    10: p_ep (R)
+  }
+  
+  adder_group_bin_pd {
+    0: pt_adder_group_bin_0000
+    1: pt_adder_group_bin_0003
+  }
+  
+  client_client_0_control_tcb {
+    0: client_cnode (guard_size: 28)
+    1: client_group_bin_pd
+    4: client_frame__camkes_ipc_buffer_client_0_control (RW)
+  }
+  
+  client_client_0_fault_handler_tcb {
+    0: client_cnode (guard_size: 28)
+    1: client_group_bin_pd
+    4: client_frame__camkes_ipc_buffer_client_0_fault_handler (RW)
+  }
+  
+  client_cnode {
+    1: client_client_0_control_tcb
+    2: client_fault_ep (badge: 1, RWP)
+    3: client_client_0_fault_handler_tcb
+    4: client_fault_ep (RWP)
+    5: client_pre_init_ep (RW)
+    6: client_interface_init_ep (RW)
+    7: client_post_init_ep (RW)
+    8: p_ep (badge: 1, WP)
+  }
+  
+  client_group_bin_pd {
+    0: pt_client_group_bin_0000
+    1: pt_client_group_bin_0003
+  }
+  
+  pt_adder_group_bin_0000 {
+    16: frame_adder_group_bin_0000 (RWX)
+    32: frame_adder_group_bin_0001 (RWX)
+    48: frame_adder_group_bin_0004 (RWX)
+    64: frame_adder_group_bin_0011 (RWX)
+    80: frame_adder_group_bin_0036 (RWX)
+    96: frame_adder_group_bin_0015 (RWX)
+    112: frame_adder_group_bin_0039 (RWX)
+    128: frame_adder_group_bin_0017 (RWX)
+    144: frame_adder_group_bin_0041 (RWX)
+    160: frame_adder_group_bin_0019 (RWX)
+    176: frame_adder_group_bin_0043 (RWX)
+    192: frame_adder_group_bin_0021 (RWX)
+    208: frame_adder_group_bin_0045 (RWX)
+    224: frame_adder_group_bin_0023 (RWX)
+    240: frame_adder_group_bin_0047 (RWX)
+  }
+  
+  pt_adder_group_bin_0003 {
+    0: frame_adder_group_bin_0025 (RWX)
+    16: frame_adder_group_bin_0049 (RWX)
+    32: frame_adder_group_bin_0027 (RWX)
+    48: frame_adder_group_bin_0002 (RWX)
+    64: frame_adder_group_bin_0029 (RWX)
+    65: frame_adder_group_bin_0013 (RWX)
+    66: frame_adder_group_bin_0014 (RWX)
+    67: frame_adder_group_bin_0016 (RWX)
+    69: stack__camkes_stack_adder_0_control_0_adder_obj (RW)
+    70: stack__camkes_stack_adder_0_control_1_adder_obj (RW)
+    71: stack__camkes_stack_adder_0_control_2_adder_obj (RW)
+    72: stack__camkes_stack_adder_0_control_3_adder_obj (RW)
+    75: adder_frame__camkes_ipc_buffer_adder_0_control (RW)
+    78: stack__camkes_stack_adder_a_0000_0_adder_obj (RW)
+    79: stack__camkes_stack_adder_a_0000_1_adder_obj (RW)
+    80: stack__camkes_stack_adder_a_0000_2_adder_obj (RW)
+    81: stack__camkes_stack_adder_a_0000_3_adder_obj (RW)
+    84: adder_frame__camkes_ipc_buffer_adder_a_0000 (RW)
+    87: stack__camkes_stack_adder_0_fault_handler_0_adder_obj (RW)
+    88: stack__camkes_stack_adder_0_fault_handler_1_adder_obj (RW)
+    89: stack__camkes_stack_adder_0_fault_handler_2_adder_obj (RW)
+    90: stack__camkes_stack_adder_0_fault_handler_3_adder_obj (RW)
+    93: adder_frame__camkes_ipc_buffer_adder_0_fault_handler (RW)
+    95: s_data_0_obj (RWX, uncached)
+  }
+  
+  pt_client_group_bin_0000 {
+    16: frame_client_group_bin_0000 (RWX)
+    32: frame_client_group_bin_0001 (RWX)
+    48: frame_client_group_bin_0003 (RWX)
+    64: frame_client_group_bin_0004 (RWX)
+    80: frame_client_group_bin_0029 (RWX)
+    96: frame_client_group_bin_0008 (RWX)
+    112: frame_client_group_bin_0032 (RWX)
+    128: frame_client_group_bin_0010 (RWX)
+    144: frame_client_group_bin_0033 (RWX)
+    160: frame_client_group_bin_0012 (RWX)
+    176: frame_client_group_bin_0034 (RWX)
+    192: frame_client_group_bin_0014 (RWX)
+    208: frame_client_group_bin_0035 (RWX)
+    224: frame_client_group_bin_0016 (RWX)
+    240: frame_client_group_bin_0036 (RWX)
+  }
+  
+  pt_client_group_bin_0003 {
+    0: frame_client_group_bin_0018 (RWX)
+    16: frame_client_group_bin_0037 (RWX)
+    32: frame_client_group_bin_0020 (RWX)
+    48: frame_client_group_bin_0002 (RWX)
+    65: stack__camkes_stack_client_0_control_0_client_obj (RW)
+    66: stack__camkes_stack_client_0_control_1_client_obj (RW)
+    67: stack__camkes_stack_client_0_control_2_client_obj (RW)
+    68: stack__camkes_stack_client_0_control_3_client_obj (RW)
+    71: client_frame__camkes_ipc_buffer_client_0_control (RW)
+    74: stack__camkes_stack_client_0_fault_handler_0_client_obj (RW)
+    75: stack__camkes_stack_client_0_fault_handler_1_client_obj (RW)
+    76: stack__camkes_stack_client_0_fault_handler_2_client_obj (RW)
+    77: stack__camkes_stack_client_0_fault_handler_3_client_obj (RW)
+    80: client_frame__camkes_ipc_buffer_client_0_fault_handler (RW)
+    82: s_data_0_obj (RWX, uncached)
+  }
+  
+} cdt {
+
+} irq maps {
+
+}

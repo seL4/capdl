@@ -1,0 +1,1213 @@
+theory "camkes-adder-arm"
+imports
+  "DSpec.Types_D"
+  "Lib.FastMap"
+  "DPolicy.Dpolicy" \<comment> \<open>@{const ptr_range}\<close>
+begin
+
+definition adder_adder_0_control_tcb_id :: "cdl_object_id" where
+"adder_adder_0_control_tcb_id \<equiv> 0x102c9000"
+
+definition adder_adder_0_fault_handler_tcb_id :: "cdl_object_id" where
+"adder_adder_0_fault_handler_tcb_id \<equiv> 0x102c9400"
+
+definition adder_adder_a_0000_tcb_id :: "cdl_object_id" where
+"adder_adder_a_0000_tcb_id \<equiv> 0x102c9800"
+
+definition adder_cnode_id :: "cdl_object_id" where
+"adder_cnode_id \<equiv> 0x102cb400"
+
+definition adder_fault_ep_id :: "cdl_object_id" where
+"adder_fault_ep_id \<equiv> 0x102cb600"
+
+definition adder_frame__camkes_ipc_buffer_adder_0_control_id :: "cdl_object_id" where
+"adder_frame__camkes_ipc_buffer_adder_0_control_id \<equiv> 0x10043000"
+
+definition adder_frame__camkes_ipc_buffer_adder_0_fault_handler_id :: "cdl_object_id" where
+"adder_frame__camkes_ipc_buffer_adder_0_fault_handler_id \<equiv> 0x1004c000"
+
+definition adder_frame__camkes_ipc_buffer_adder_a_0000_id :: "cdl_object_id" where
+"adder_frame__camkes_ipc_buffer_adder_a_0000_id \<equiv> 0x1004d000"
+
+definition adder_group_bin_pd_id :: "cdl_object_id" where
+"adder_group_bin_pd_id \<equiv> 0x10044000"
+
+definition adder_interface_init_ep_id :: "cdl_object_id" where
+"adder_interface_init_ep_id \<equiv> 0x102cb610"
+
+definition adder_post_init_ep_id :: "cdl_object_id" where
+"adder_post_init_ep_id \<equiv> 0x102cb620"
+
+definition adder_pre_init_ep_id :: "cdl_object_id" where
+"adder_pre_init_ep_id \<equiv> 0x102cb630"
+
+definition client_client_0_control_tcb_id :: "cdl_object_id" where
+"client_client_0_control_tcb_id \<equiv> 0x102c9c00"
+
+definition client_client_0_fault_handler_tcb_id :: "cdl_object_id" where
+"client_client_0_fault_handler_tcb_id \<equiv> 0x102ca000"
+
+definition client_cnode_id :: "cdl_object_id" where
+"client_cnode_id \<equiv> 0x102cb500"
+
+definition client_fault_ep_id :: "cdl_object_id" where
+"client_fault_ep_id \<equiv> 0x102cb640"
+
+definition client_frame__camkes_ipc_buffer_client_0_control_id :: "cdl_object_id" where
+"client_frame__camkes_ipc_buffer_client_0_control_id \<equiv> 0x1004e000"
+
+definition client_frame__camkes_ipc_buffer_client_0_fault_handler_id :: "cdl_object_id" where
+"client_frame__camkes_ipc_buffer_client_0_fault_handler_id \<equiv> 0x1004f000"
+
+definition client_group_bin_pd_id :: "cdl_object_id" where
+"client_group_bin_pd_id \<equiv> 0x10048000"
+
+definition client_interface_init_ep_id :: "cdl_object_id" where
+"client_interface_init_ep_id \<equiv> 0x102cb650"
+
+definition client_post_init_ep_id :: "cdl_object_id" where
+"client_post_init_ep_id \<equiv> 0x102cb660"
+
+definition client_pre_init_ep_id :: "cdl_object_id" where
+"client_pre_init_ep_id \<equiv> 0x102cb670"
+
+definition frame_adder_group_bin_0000_id :: "cdl_object_id" where
+"frame_adder_group_bin_0000_id \<equiv> 0x10050000"
+
+definition frame_adder_group_bin_0001_id :: "cdl_object_id" where
+"frame_adder_group_bin_0001_id \<equiv> 0x10060000"
+
+definition frame_adder_group_bin_0002_id :: "cdl_object_id" where
+"frame_adder_group_bin_0002_id \<equiv> 0x10070000"
+
+definition frame_adder_group_bin_0004_id :: "cdl_object_id" where
+"frame_adder_group_bin_0004_id \<equiv> 0x10080000"
+
+definition frame_adder_group_bin_0011_id :: "cdl_object_id" where
+"frame_adder_group_bin_0011_id \<equiv> 0x10090000"
+
+definition frame_adder_group_bin_0013_id :: "cdl_object_id" where
+"frame_adder_group_bin_0013_id \<equiv> 0x102b0000"
+
+definition frame_adder_group_bin_0014_id :: "cdl_object_id" where
+"frame_adder_group_bin_0014_id \<equiv> 0x102b1000"
+
+definition frame_adder_group_bin_0015_id :: "cdl_object_id" where
+"frame_adder_group_bin_0015_id \<equiv> 0x100a0000"
+
+definition frame_adder_group_bin_0016_id :: "cdl_object_id" where
+"frame_adder_group_bin_0016_id \<equiv> 0x102b2000"
+
+definition frame_adder_group_bin_0017_id :: "cdl_object_id" where
+"frame_adder_group_bin_0017_id \<equiv> 0x100b0000"
+
+definition frame_adder_group_bin_0019_id :: "cdl_object_id" where
+"frame_adder_group_bin_0019_id \<equiv> 0x100c0000"
+
+definition frame_adder_group_bin_0021_id :: "cdl_object_id" where
+"frame_adder_group_bin_0021_id \<equiv> 0x100d0000"
+
+definition frame_adder_group_bin_0023_id :: "cdl_object_id" where
+"frame_adder_group_bin_0023_id \<equiv> 0x100e0000"
+
+definition frame_adder_group_bin_0025_id :: "cdl_object_id" where
+"frame_adder_group_bin_0025_id \<equiv> 0x100f0000"
+
+definition frame_adder_group_bin_0027_id :: "cdl_object_id" where
+"frame_adder_group_bin_0027_id \<equiv> 0x10100000"
+
+definition frame_adder_group_bin_0029_id :: "cdl_object_id" where
+"frame_adder_group_bin_0029_id \<equiv> 0x102b3000"
+
+definition frame_adder_group_bin_0036_id :: "cdl_object_id" where
+"frame_adder_group_bin_0036_id \<equiv> 0x10110000"
+
+definition frame_adder_group_bin_0039_id :: "cdl_object_id" where
+"frame_adder_group_bin_0039_id \<equiv> 0x10120000"
+
+definition frame_adder_group_bin_0041_id :: "cdl_object_id" where
+"frame_adder_group_bin_0041_id \<equiv> 0x10130000"
+
+definition frame_adder_group_bin_0043_id :: "cdl_object_id" where
+"frame_adder_group_bin_0043_id \<equiv> 0x10140000"
+
+definition frame_adder_group_bin_0045_id :: "cdl_object_id" where
+"frame_adder_group_bin_0045_id \<equiv> 0x10150000"
+
+definition frame_adder_group_bin_0047_id :: "cdl_object_id" where
+"frame_adder_group_bin_0047_id \<equiv> 0x10160000"
+
+definition frame_adder_group_bin_0049_id :: "cdl_object_id" where
+"frame_adder_group_bin_0049_id \<equiv> 0x10170000"
+
+definition frame_client_group_bin_0000_id :: "cdl_object_id" where
+"frame_client_group_bin_0000_id \<equiv> 0x10180000"
+
+definition frame_client_group_bin_0001_id :: "cdl_object_id" where
+"frame_client_group_bin_0001_id \<equiv> 0x10190000"
+
+definition frame_client_group_bin_0002_id :: "cdl_object_id" where
+"frame_client_group_bin_0002_id \<equiv> 0x101a0000"
+
+definition frame_client_group_bin_0003_id :: "cdl_object_id" where
+"frame_client_group_bin_0003_id \<equiv> 0x101b0000"
+
+definition frame_client_group_bin_0004_id :: "cdl_object_id" where
+"frame_client_group_bin_0004_id \<equiv> 0x101c0000"
+
+definition frame_client_group_bin_0008_id :: "cdl_object_id" where
+"frame_client_group_bin_0008_id \<equiv> 0x101d0000"
+
+definition frame_client_group_bin_0010_id :: "cdl_object_id" where
+"frame_client_group_bin_0010_id \<equiv> 0x101e0000"
+
+definition frame_client_group_bin_0012_id :: "cdl_object_id" where
+"frame_client_group_bin_0012_id \<equiv> 0x101f0000"
+
+definition frame_client_group_bin_0014_id :: "cdl_object_id" where
+"frame_client_group_bin_0014_id \<equiv> 0x10200000"
+
+definition frame_client_group_bin_0016_id :: "cdl_object_id" where
+"frame_client_group_bin_0016_id \<equiv> 0x10210000"
+
+definition frame_client_group_bin_0018_id :: "cdl_object_id" where
+"frame_client_group_bin_0018_id \<equiv> 0x10220000"
+
+definition frame_client_group_bin_0020_id :: "cdl_object_id" where
+"frame_client_group_bin_0020_id \<equiv> 0x10230000"
+
+definition frame_client_group_bin_0029_id :: "cdl_object_id" where
+"frame_client_group_bin_0029_id \<equiv> 0x10240000"
+
+definition frame_client_group_bin_0032_id :: "cdl_object_id" where
+"frame_client_group_bin_0032_id \<equiv> 0x10250000"
+
+definition frame_client_group_bin_0033_id :: "cdl_object_id" where
+"frame_client_group_bin_0033_id \<equiv> 0x10260000"
+
+definition frame_client_group_bin_0034_id :: "cdl_object_id" where
+"frame_client_group_bin_0034_id \<equiv> 0x10270000"
+
+definition frame_client_group_bin_0035_id :: "cdl_object_id" where
+"frame_client_group_bin_0035_id \<equiv> 0x10280000"
+
+definition frame_client_group_bin_0036_id :: "cdl_object_id" where
+"frame_client_group_bin_0036_id \<equiv> 0x10290000"
+
+definition frame_client_group_bin_0037_id :: "cdl_object_id" where
+"frame_client_group_bin_0037_id \<equiv> 0x102a0000"
+
+definition p_ep_id :: "cdl_object_id" where
+"p_ep_id \<equiv> 0x102cb680"
+
+definition place_holder_0x102cb690_id :: "cdl_object_id" where
+"place_holder_0x102cb690_id \<equiv> 0x102cb690"
+
+definition place_holder_0x102cb6a0_id :: "cdl_object_id" where
+"place_holder_0x102cb6a0_id \<equiv> 0x102cb6a0"
+
+definition place_holder_0x102cb6c0_id :: "cdl_object_id" where
+"place_holder_0x102cb6c0_id \<equiv> 0x102cb6c0"
+
+definition place_holder_0x102cb700_id :: "cdl_object_id" where
+"place_holder_0x102cb700_id \<equiv> 0x102cb700"
+
+definition place_holder_0x102cb800_id :: "cdl_object_id" where
+"place_holder_0x102cb800_id \<equiv> 0x102cb800"
+
+definition place_holder_0x102cc000_id :: "cdl_object_id" where
+"place_holder_0x102cc000_id \<equiv> 0x102cc000"
+
+definition place_holder_0x102d0000_id :: "cdl_object_id" where
+"place_holder_0x102d0000_id \<equiv> 0x102d0000"
+
+definition place_holder_0x102e0000_id :: "cdl_object_id" where
+"place_holder_0x102e0000_id \<equiv> 0x102e0000"
+
+definition place_holder_0x10300000_id :: "cdl_object_id" where
+"place_holder_0x10300000_id \<equiv> 0x10300000"
+
+definition pt_adder_group_bin_0000_id :: "cdl_object_id" where
+"pt_adder_group_bin_0000_id \<equiv> 0x102ca400"
+
+definition pt_adder_group_bin_0003_id :: "cdl_object_id" where
+"pt_adder_group_bin_0003_id \<equiv> 0x102ca800"
+
+definition pt_client_group_bin_0000_id :: "cdl_object_id" where
+"pt_client_group_bin_0000_id \<equiv> 0x102cac00"
+
+definition pt_client_group_bin_0003_id :: "cdl_object_id" where
+"pt_client_group_bin_0003_id \<equiv> 0x102cb000"
+
+definition root_untyped_0x10043000_id :: "cdl_object_id" where
+"root_untyped_0x10043000_id \<equiv> 0x10043000"
+
+definition root_untyped_0x10044000_id :: "cdl_object_id" where
+"root_untyped_0x10044000_id \<equiv> 0x10044000"
+
+definition root_untyped_0x10048000_id :: "cdl_object_id" where
+"root_untyped_0x10048000_id \<equiv> 0x10048000"
+
+definition root_untyped_0x10050000_id :: "cdl_object_id" where
+"root_untyped_0x10050000_id \<equiv> 0x10050000"
+
+definition root_untyped_0x10060000_id :: "cdl_object_id" where
+"root_untyped_0x10060000_id \<equiv> 0x10060000"
+
+definition root_untyped_0x10080000_id :: "cdl_object_id" where
+"root_untyped_0x10080000_id \<equiv> 0x10080000"
+
+definition root_untyped_0x10100000_id :: "cdl_object_id" where
+"root_untyped_0x10100000_id \<equiv> 0x10100000"
+
+definition root_untyped_0x10200000_id :: "cdl_object_id" where
+"root_untyped_0x10200000_id \<equiv> 0x10200000"
+
+definition s_data_0_obj_id :: "cdl_object_id" where
+"s_data_0_obj_id \<equiv> 0x102b4000"
+
+definition stack__camkes_stack_adder_0_control_0_adder_obj_id :: "cdl_object_id" where
+"stack__camkes_stack_adder_0_control_0_adder_obj_id \<equiv> 0x102b5000"
+
+definition stack__camkes_stack_adder_0_control_1_adder_obj_id :: "cdl_object_id" where
+"stack__camkes_stack_adder_0_control_1_adder_obj_id \<equiv> 0x102b6000"
+
+definition stack__camkes_stack_adder_0_control_2_adder_obj_id :: "cdl_object_id" where
+"stack__camkes_stack_adder_0_control_2_adder_obj_id \<equiv> 0x102b7000"
+
+definition stack__camkes_stack_adder_0_control_3_adder_obj_id :: "cdl_object_id" where
+"stack__camkes_stack_adder_0_control_3_adder_obj_id \<equiv> 0x102b8000"
+
+definition stack__camkes_stack_adder_0_fault_handler_0_adder_obj_id :: "cdl_object_id" where
+"stack__camkes_stack_adder_0_fault_handler_0_adder_obj_id \<equiv> 0x102b9000"
+
+definition stack__camkes_stack_adder_0_fault_handler_1_adder_obj_id :: "cdl_object_id" where
+"stack__camkes_stack_adder_0_fault_handler_1_adder_obj_id \<equiv> 0x102ba000"
+
+definition stack__camkes_stack_adder_0_fault_handler_2_adder_obj_id :: "cdl_object_id" where
+"stack__camkes_stack_adder_0_fault_handler_2_adder_obj_id \<equiv> 0x102bb000"
+
+definition stack__camkes_stack_adder_0_fault_handler_3_adder_obj_id :: "cdl_object_id" where
+"stack__camkes_stack_adder_0_fault_handler_3_adder_obj_id \<equiv> 0x102bc000"
+
+definition stack__camkes_stack_adder_a_0000_0_adder_obj_id :: "cdl_object_id" where
+"stack__camkes_stack_adder_a_0000_0_adder_obj_id \<equiv> 0x102bd000"
+
+definition stack__camkes_stack_adder_a_0000_1_adder_obj_id :: "cdl_object_id" where
+"stack__camkes_stack_adder_a_0000_1_adder_obj_id \<equiv> 0x102be000"
+
+definition stack__camkes_stack_adder_a_0000_2_adder_obj_id :: "cdl_object_id" where
+"stack__camkes_stack_adder_a_0000_2_adder_obj_id \<equiv> 0x102bf000"
+
+definition stack__camkes_stack_adder_a_0000_3_adder_obj_id :: "cdl_object_id" where
+"stack__camkes_stack_adder_a_0000_3_adder_obj_id \<equiv> 0x102c0000"
+
+definition stack__camkes_stack_client_0_control_0_client_obj_id :: "cdl_object_id" where
+"stack__camkes_stack_client_0_control_0_client_obj_id \<equiv> 0x102c1000"
+
+definition stack__camkes_stack_client_0_control_1_client_obj_id :: "cdl_object_id" where
+"stack__camkes_stack_client_0_control_1_client_obj_id \<equiv> 0x102c2000"
+
+definition stack__camkes_stack_client_0_control_2_client_obj_id :: "cdl_object_id" where
+"stack__camkes_stack_client_0_control_2_client_obj_id \<equiv> 0x102c3000"
+
+definition stack__camkes_stack_client_0_control_3_client_obj_id :: "cdl_object_id" where
+"stack__camkes_stack_client_0_control_3_client_obj_id \<equiv> 0x102c4000"
+
+definition stack__camkes_stack_client_0_fault_handler_0_client_obj_id :: "cdl_object_id" where
+"stack__camkes_stack_client_0_fault_handler_0_client_obj_id \<equiv> 0x102c5000"
+
+definition stack__camkes_stack_client_0_fault_handler_1_client_obj_id :: "cdl_object_id" where
+"stack__camkes_stack_client_0_fault_handler_1_client_obj_id \<equiv> 0x102c6000"
+
+definition stack__camkes_stack_client_0_fault_handler_2_client_obj_id :: "cdl_object_id" where
+"stack__camkes_stack_client_0_fault_handler_2_client_obj_id \<equiv> 0x102c7000"
+
+definition stack__camkes_stack_client_0_fault_handler_3_client_obj_id :: "cdl_object_id" where
+"stack__camkes_stack_client_0_fault_handler_3_client_obj_id \<equiv> 0x102c8000"
+
+
+definition adder_frame__camkes_ipc_buffer_adder_0_control :: "cdl_object" where
+"adder_frame__camkes_ipc_buffer_adder_0_control \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition adder_group_bin_pd_caps :: "cdl_cap_map" where
+"adder_group_bin_pd_caps \<equiv> [0 \<mapsto> Types_D.PageTableCap pt_adder_group_bin_0000_id Fake None,
+                                   1 \<mapsto> Types_D.PageTableCap pt_adder_group_bin_0003_id Fake None]"
+
+definition adder_group_bin_pd :: "cdl_object" where
+"adder_group_bin_pd \<equiv> Types_D.PageDirectory \<lparr> cdl_page_directory_caps = adder_group_bin_pd_caps \<rparr>"
+
+lemma adder_group_bin_pd_object_slots: 
+  "object_slots adder_group_bin_pd = adder_group_bin_pd_caps"
+  by (simp add: adder_group_bin_pd_def object_slots_def)
+
+definition client_group_bin_pd_caps :: "cdl_cap_map" where
+"client_group_bin_pd_caps \<equiv> [0 \<mapsto> Types_D.PageTableCap pt_client_group_bin_0000_id Fake None,
+                                    1 \<mapsto> Types_D.PageTableCap pt_client_group_bin_0003_id Fake None]"
+
+definition client_group_bin_pd :: "cdl_object" where
+"client_group_bin_pd \<equiv> Types_D.PageDirectory \<lparr> cdl_page_directory_caps = client_group_bin_pd_caps \<rparr>"
+
+lemma client_group_bin_pd_object_slots: 
+  "object_slots client_group_bin_pd = client_group_bin_pd_caps"
+  by (simp add: client_group_bin_pd_def object_slots_def)
+
+definition adder_frame__camkes_ipc_buffer_adder_0_fault_handler :: "cdl_object" where
+"adder_frame__camkes_ipc_buffer_adder_0_fault_handler \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition adder_frame__camkes_ipc_buffer_adder_a_0000 :: "cdl_object" where
+"adder_frame__camkes_ipc_buffer_adder_a_0000 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition client_frame__camkes_ipc_buffer_client_0_control :: "cdl_object" where
+"client_frame__camkes_ipc_buffer_client_0_control \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition client_frame__camkes_ipc_buffer_client_0_fault_handler :: "cdl_object" where
+"client_frame__camkes_ipc_buffer_client_0_fault_handler \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition frame_adder_group_bin_0000 :: "cdl_object" where
+"frame_adder_group_bin_0000 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_adder_group_bin_0001 :: "cdl_object" where
+"frame_adder_group_bin_0001 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_adder_group_bin_0002 :: "cdl_object" where
+"frame_adder_group_bin_0002 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_adder_group_bin_0004 :: "cdl_object" where
+"frame_adder_group_bin_0004 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_adder_group_bin_0011 :: "cdl_object" where
+"frame_adder_group_bin_0011 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_adder_group_bin_0015 :: "cdl_object" where
+"frame_adder_group_bin_0015 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_adder_group_bin_0017 :: "cdl_object" where
+"frame_adder_group_bin_0017 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_adder_group_bin_0019 :: "cdl_object" where
+"frame_adder_group_bin_0019 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_adder_group_bin_0021 :: "cdl_object" where
+"frame_adder_group_bin_0021 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_adder_group_bin_0023 :: "cdl_object" where
+"frame_adder_group_bin_0023 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_adder_group_bin_0025 :: "cdl_object" where
+"frame_adder_group_bin_0025 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_adder_group_bin_0027 :: "cdl_object" where
+"frame_adder_group_bin_0027 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_adder_group_bin_0036 :: "cdl_object" where
+"frame_adder_group_bin_0036 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_adder_group_bin_0039 :: "cdl_object" where
+"frame_adder_group_bin_0039 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_adder_group_bin_0041 :: "cdl_object" where
+"frame_adder_group_bin_0041 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_adder_group_bin_0043 :: "cdl_object" where
+"frame_adder_group_bin_0043 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_adder_group_bin_0045 :: "cdl_object" where
+"frame_adder_group_bin_0045 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_adder_group_bin_0047 :: "cdl_object" where
+"frame_adder_group_bin_0047 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_adder_group_bin_0049 :: "cdl_object" where
+"frame_adder_group_bin_0049 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_client_group_bin_0000 :: "cdl_object" where
+"frame_client_group_bin_0000 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_client_group_bin_0001 :: "cdl_object" where
+"frame_client_group_bin_0001 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_client_group_bin_0002 :: "cdl_object" where
+"frame_client_group_bin_0002 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_client_group_bin_0003 :: "cdl_object" where
+"frame_client_group_bin_0003 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_client_group_bin_0004 :: "cdl_object" where
+"frame_client_group_bin_0004 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_client_group_bin_0008 :: "cdl_object" where
+"frame_client_group_bin_0008 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_client_group_bin_0010 :: "cdl_object" where
+"frame_client_group_bin_0010 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_client_group_bin_0012 :: "cdl_object" where
+"frame_client_group_bin_0012 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_client_group_bin_0014 :: "cdl_object" where
+"frame_client_group_bin_0014 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_client_group_bin_0016 :: "cdl_object" where
+"frame_client_group_bin_0016 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_client_group_bin_0018 :: "cdl_object" where
+"frame_client_group_bin_0018 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_client_group_bin_0020 :: "cdl_object" where
+"frame_client_group_bin_0020 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_client_group_bin_0029 :: "cdl_object" where
+"frame_client_group_bin_0029 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_client_group_bin_0032 :: "cdl_object" where
+"frame_client_group_bin_0032 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_client_group_bin_0033 :: "cdl_object" where
+"frame_client_group_bin_0033 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_client_group_bin_0034 :: "cdl_object" where
+"frame_client_group_bin_0034 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_client_group_bin_0035 :: "cdl_object" where
+"frame_client_group_bin_0035 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_client_group_bin_0036 :: "cdl_object" where
+"frame_client_group_bin_0036 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_client_group_bin_0037 :: "cdl_object" where
+"frame_client_group_bin_0037 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 16 \<rparr>"
+
+
+definition frame_adder_group_bin_0013 :: "cdl_object" where
+"frame_adder_group_bin_0013 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition frame_adder_group_bin_0014 :: "cdl_object" where
+"frame_adder_group_bin_0014 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition frame_adder_group_bin_0016 :: "cdl_object" where
+"frame_adder_group_bin_0016 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition frame_adder_group_bin_0029 :: "cdl_object" where
+"frame_adder_group_bin_0029 \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition s_data_0_obj :: "cdl_object" where
+"s_data_0_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition stack__camkes_stack_adder_0_control_0_adder_obj :: "cdl_object" where
+"stack__camkes_stack_adder_0_control_0_adder_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition stack__camkes_stack_adder_0_control_1_adder_obj :: "cdl_object" where
+"stack__camkes_stack_adder_0_control_1_adder_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition stack__camkes_stack_adder_0_control_2_adder_obj :: "cdl_object" where
+"stack__camkes_stack_adder_0_control_2_adder_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition stack__camkes_stack_adder_0_control_3_adder_obj :: "cdl_object" where
+"stack__camkes_stack_adder_0_control_3_adder_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition stack__camkes_stack_adder_0_fault_handler_0_adder_obj :: "cdl_object" where
+"stack__camkes_stack_adder_0_fault_handler_0_adder_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition stack__camkes_stack_adder_0_fault_handler_1_adder_obj :: "cdl_object" where
+"stack__camkes_stack_adder_0_fault_handler_1_adder_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition stack__camkes_stack_adder_0_fault_handler_2_adder_obj :: "cdl_object" where
+"stack__camkes_stack_adder_0_fault_handler_2_adder_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition stack__camkes_stack_adder_0_fault_handler_3_adder_obj :: "cdl_object" where
+"stack__camkes_stack_adder_0_fault_handler_3_adder_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition stack__camkes_stack_adder_a_0000_0_adder_obj :: "cdl_object" where
+"stack__camkes_stack_adder_a_0000_0_adder_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition stack__camkes_stack_adder_a_0000_1_adder_obj :: "cdl_object" where
+"stack__camkes_stack_adder_a_0000_1_adder_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition stack__camkes_stack_adder_a_0000_2_adder_obj :: "cdl_object" where
+"stack__camkes_stack_adder_a_0000_2_adder_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition stack__camkes_stack_adder_a_0000_3_adder_obj :: "cdl_object" where
+"stack__camkes_stack_adder_a_0000_3_adder_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition stack__camkes_stack_client_0_control_0_client_obj :: "cdl_object" where
+"stack__camkes_stack_client_0_control_0_client_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition stack__camkes_stack_client_0_control_1_client_obj :: "cdl_object" where
+"stack__camkes_stack_client_0_control_1_client_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition stack__camkes_stack_client_0_control_2_client_obj :: "cdl_object" where
+"stack__camkes_stack_client_0_control_2_client_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition stack__camkes_stack_client_0_control_3_client_obj :: "cdl_object" where
+"stack__camkes_stack_client_0_control_3_client_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition stack__camkes_stack_client_0_fault_handler_0_client_obj :: "cdl_object" where
+"stack__camkes_stack_client_0_fault_handler_0_client_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition stack__camkes_stack_client_0_fault_handler_1_client_obj :: "cdl_object" where
+"stack__camkes_stack_client_0_fault_handler_1_client_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition stack__camkes_stack_client_0_fault_handler_2_client_obj :: "cdl_object" where
+"stack__camkes_stack_client_0_fault_handler_2_client_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition stack__camkes_stack_client_0_fault_handler_3_client_obj :: "cdl_object" where
+"stack__camkes_stack_client_0_fault_handler_3_client_obj \<equiv> Types_D.Frame \<lparr> cdl_frame_size_bits = 12 \<rparr>"
+
+
+definition adder_adder_0_control_tcb_caps :: "cdl_cap_map" where
+"adder_adder_0_control_tcb_caps \<equiv> [0 \<mapsto> Types_D.CNodeCap adder_cnode_id 0 28 4,
+                                          1 \<mapsto> Types_D.PageDirectoryCap adder_group_bin_pd_id Real None,
+                                          4 \<mapsto> Types_D.FrameCap False adder_frame__camkes_ipc_buffer_adder_0_control_id {Read, Write} 12 Real None ]"
+
+definition adder_adder_0_control_tcb :: "cdl_object" where
+"adder_adder_0_control_tcb \<equiv> Types_D.Tcb \<lparr> cdl_tcb_caps = adder_adder_0_control_tcb_caps,
+                                                         cdl_tcb_fault_endpoint = 2,
+                                                         cdl_tcb_intent = undefined,
+                                                         cdl_tcb_has_fault = True,
+                                                         cdl_tcb_domain = 0 \<rparr>"
+
+lemma adder_adder_0_control_tcb_object_slots: 
+  "object_slots adder_adder_0_control_tcb = adder_adder_0_control_tcb_caps"
+  by (simp add: adder_adder_0_control_tcb_def object_slots_def)
+
+definition adder_adder_0_fault_handler_tcb_caps :: "cdl_cap_map" where
+"adder_adder_0_fault_handler_tcb_caps \<equiv> [0 \<mapsto> Types_D.CNodeCap adder_cnode_id 0 28 4,
+                                                1 \<mapsto> Types_D.PageDirectoryCap adder_group_bin_pd_id Real None,
+                                                4 \<mapsto> Types_D.FrameCap False adder_frame__camkes_ipc_buffer_adder_0_fault_handler_id {Read, Write} 12 Real None ]"
+
+definition adder_adder_0_fault_handler_tcb :: "cdl_object" where
+"adder_adder_0_fault_handler_tcb \<equiv> Types_D.Tcb \<lparr> cdl_tcb_caps = adder_adder_0_fault_handler_tcb_caps,
+                                                               cdl_tcb_fault_endpoint = 0,
+                                                               cdl_tcb_intent = undefined,
+                                                               cdl_tcb_has_fault = False,
+                                                               cdl_tcb_domain = 0 \<rparr>"
+
+lemma adder_adder_0_fault_handler_tcb_object_slots: 
+  "object_slots adder_adder_0_fault_handler_tcb = adder_adder_0_fault_handler_tcb_caps"
+  by (simp add: adder_adder_0_fault_handler_tcb_def object_slots_def)
+
+definition adder_adder_a_0000_tcb_caps :: "cdl_cap_map" where
+"adder_adder_a_0000_tcb_caps \<equiv> [0 \<mapsto> Types_D.CNodeCap adder_cnode_id 0 28 4,
+                                       1 \<mapsto> Types_D.PageDirectoryCap adder_group_bin_pd_id Real None,
+                                       4 \<mapsto> Types_D.FrameCap False adder_frame__camkes_ipc_buffer_adder_a_0000_id {Read, Write} 12 Real None ]"
+
+definition adder_adder_a_0000_tcb :: "cdl_object" where
+"adder_adder_a_0000_tcb \<equiv> Types_D.Tcb \<lparr> cdl_tcb_caps = adder_adder_a_0000_tcb_caps,
+                                                      cdl_tcb_fault_endpoint = 4,
+                                                      cdl_tcb_intent = undefined,
+                                                      cdl_tcb_has_fault = True,
+                                                      cdl_tcb_domain = 0 \<rparr>"
+
+lemma adder_adder_a_0000_tcb_object_slots: 
+  "object_slots adder_adder_a_0000_tcb = adder_adder_a_0000_tcb_caps"
+  by (simp add: adder_adder_a_0000_tcb_def object_slots_def)
+
+definition client_client_0_control_tcb_caps :: "cdl_cap_map" where
+"client_client_0_control_tcb_caps \<equiv> [0 \<mapsto> Types_D.CNodeCap client_cnode_id 0 28 4,
+                                            1 \<mapsto> Types_D.PageDirectoryCap client_group_bin_pd_id Real None,
+                                            4 \<mapsto> Types_D.FrameCap False client_frame__camkes_ipc_buffer_client_0_control_id {Read, Write} 12 Real None ]"
+
+definition client_client_0_control_tcb :: "cdl_object" where
+"client_client_0_control_tcb \<equiv> Types_D.Tcb \<lparr> cdl_tcb_caps = client_client_0_control_tcb_caps,
+                                                           cdl_tcb_fault_endpoint = 2,
+                                                           cdl_tcb_intent = undefined,
+                                                           cdl_tcb_has_fault = True,
+                                                           cdl_tcb_domain = 0 \<rparr>"
+
+lemma client_client_0_control_tcb_object_slots: 
+  "object_slots client_client_0_control_tcb = client_client_0_control_tcb_caps"
+  by (simp add: client_client_0_control_tcb_def object_slots_def)
+
+definition client_client_0_fault_handler_tcb_caps :: "cdl_cap_map" where
+"client_client_0_fault_handler_tcb_caps \<equiv> [0 \<mapsto> Types_D.CNodeCap client_cnode_id 0 28 4,
+                                                  1 \<mapsto> Types_D.PageDirectoryCap client_group_bin_pd_id Real None,
+                                                  4 \<mapsto> Types_D.FrameCap False client_frame__camkes_ipc_buffer_client_0_fault_handler_id {Read, Write} 12 Real None ]"
+
+definition client_client_0_fault_handler_tcb :: "cdl_object" where
+"client_client_0_fault_handler_tcb \<equiv> Types_D.Tcb \<lparr> cdl_tcb_caps = client_client_0_fault_handler_tcb_caps,
+                                                                 cdl_tcb_fault_endpoint = 0,
+                                                                 cdl_tcb_intent = undefined,
+                                                                 cdl_tcb_has_fault = False,
+                                                                 cdl_tcb_domain = 0 \<rparr>"
+
+lemma client_client_0_fault_handler_tcb_object_slots: 
+  "object_slots client_client_0_fault_handler_tcb = client_client_0_fault_handler_tcb_caps"
+  by (simp add: client_client_0_fault_handler_tcb_def object_slots_def)
+
+definition pt_adder_group_bin_0000_caps :: "cdl_cap_map" where
+"pt_adder_group_bin_0000_caps \<equiv> [16 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0000_id {Read, Write, Grant} 16 Fake None ,
+                                        32 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0001_id {Read, Write, Grant} 16 Fake None ,
+                                        48 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0004_id {Read, Write, Grant} 16 Fake None ,
+                                        64 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0011_id {Read, Write, Grant} 16 Fake None ,
+                                        80 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0036_id {Read, Write, Grant} 16 Fake None ,
+                                        96 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0015_id {Read, Write, Grant} 16 Fake None ,
+                                        112 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0039_id {Read, Write, Grant} 16 Fake None ,
+                                        128 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0017_id {Read, Write, Grant} 16 Fake None ,
+                                        144 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0041_id {Read, Write, Grant} 16 Fake None ,
+                                        160 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0019_id {Read, Write, Grant} 16 Fake None ,
+                                        176 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0043_id {Read, Write, Grant} 16 Fake None ,
+                                        192 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0021_id {Read, Write, Grant} 16 Fake None ,
+                                        208 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0045_id {Read, Write, Grant} 16 Fake None ,
+                                        224 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0023_id {Read, Write, Grant} 16 Fake None ,
+                                        240 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0047_id {Read, Write, Grant} 16 Fake None ]"
+
+definition pt_adder_group_bin_0000 :: "cdl_object" where
+"pt_adder_group_bin_0000 \<equiv> Types_D.PageTable \<lparr> cdl_page_table_caps = pt_adder_group_bin_0000_caps \<rparr>"
+
+lemma pt_adder_group_bin_0000_object_slots: 
+  "object_slots pt_adder_group_bin_0000 = pt_adder_group_bin_0000_caps"
+  by (simp add: pt_adder_group_bin_0000_def object_slots_def)
+
+definition pt_adder_group_bin_0003_caps :: "cdl_cap_map" where
+"pt_adder_group_bin_0003_caps \<equiv> [0 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0025_id {Read, Write, Grant} 16 Fake None ,
+                                        16 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0049_id {Read, Write, Grant} 16 Fake None ,
+                                        32 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0027_id {Read, Write, Grant} 16 Fake None ,
+                                        48 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0002_id {Read, Write, Grant} 16 Fake None ,
+                                        64 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0029_id {Read, Write, Grant} 12 Fake None ,
+                                        65 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0013_id {Read, Write, Grant} 12 Fake None ,
+                                        66 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0014_id {Read, Write, Grant} 12 Fake None ,
+                                        67 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0016_id {Read, Write, Grant} 12 Fake None ,
+                                        69 \<mapsto> Types_D.FrameCap False stack__camkes_stack_adder_0_control_0_adder_obj_id {Read, Write} 12 Fake None ,
+                                        70 \<mapsto> Types_D.FrameCap False stack__camkes_stack_adder_0_control_1_adder_obj_id {Read, Write} 12 Fake None ,
+                                        71 \<mapsto> Types_D.FrameCap False stack__camkes_stack_adder_0_control_2_adder_obj_id {Read, Write} 12 Fake None ,
+                                        72 \<mapsto> Types_D.FrameCap False stack__camkes_stack_adder_0_control_3_adder_obj_id {Read, Write} 12 Fake None ,
+                                        75 \<mapsto> Types_D.FrameCap False adder_frame__camkes_ipc_buffer_adder_0_control_id {Read, Write} 12 Fake None ,
+                                        78 \<mapsto> Types_D.FrameCap False stack__camkes_stack_adder_a_0000_0_adder_obj_id {Read, Write} 12 Fake None ,
+                                        79 \<mapsto> Types_D.FrameCap False stack__camkes_stack_adder_a_0000_1_adder_obj_id {Read, Write} 12 Fake None ,
+                                        80 \<mapsto> Types_D.FrameCap False stack__camkes_stack_adder_a_0000_2_adder_obj_id {Read, Write} 12 Fake None ,
+                                        81 \<mapsto> Types_D.FrameCap False stack__camkes_stack_adder_a_0000_3_adder_obj_id {Read, Write} 12 Fake None ,
+                                        84 \<mapsto> Types_D.FrameCap False adder_frame__camkes_ipc_buffer_adder_a_0000_id {Read, Write} 12 Fake None ,
+                                        87 \<mapsto> Types_D.FrameCap False stack__camkes_stack_adder_0_fault_handler_0_adder_obj_id {Read, Write} 12 Fake None ,
+                                        88 \<mapsto> Types_D.FrameCap False stack__camkes_stack_adder_0_fault_handler_1_adder_obj_id {Read, Write} 12 Fake None ,
+                                        89 \<mapsto> Types_D.FrameCap False stack__camkes_stack_adder_0_fault_handler_2_adder_obj_id {Read, Write} 12 Fake None ,
+                                        90 \<mapsto> Types_D.FrameCap False stack__camkes_stack_adder_0_fault_handler_3_adder_obj_id {Read, Write} 12 Fake None ,
+                                        93 \<mapsto> Types_D.FrameCap False adder_frame__camkes_ipc_buffer_adder_0_fault_handler_id {Read, Write} 12 Fake None ,
+                                        95 \<mapsto> Types_D.FrameCap False s_data_0_obj_id {Read, Write, Grant} 12 Fake None \<comment> \<open>uncached\<close>]"
+
+definition pt_adder_group_bin_0003 :: "cdl_object" where
+"pt_adder_group_bin_0003 \<equiv> Types_D.PageTable \<lparr> cdl_page_table_caps = pt_adder_group_bin_0003_caps \<rparr>"
+
+lemma pt_adder_group_bin_0003_object_slots: 
+  "object_slots pt_adder_group_bin_0003 = pt_adder_group_bin_0003_caps"
+  by (simp add: pt_adder_group_bin_0003_def object_slots_def)
+
+definition pt_client_group_bin_0000_caps :: "cdl_cap_map" where
+"pt_client_group_bin_0000_caps \<equiv> [16 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0000_id {Read, Write, Grant} 16 Fake None ,
+                                         32 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0001_id {Read, Write, Grant} 16 Fake None ,
+                                         48 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0003_id {Read, Write, Grant} 16 Fake None ,
+                                         64 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0004_id {Read, Write, Grant} 16 Fake None ,
+                                         80 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0029_id {Read, Write, Grant} 16 Fake None ,
+                                         96 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0008_id {Read, Write, Grant} 16 Fake None ,
+                                         112 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0032_id {Read, Write, Grant} 16 Fake None ,
+                                         128 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0010_id {Read, Write, Grant} 16 Fake None ,
+                                         144 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0033_id {Read, Write, Grant} 16 Fake None ,
+                                         160 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0012_id {Read, Write, Grant} 16 Fake None ,
+                                         176 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0034_id {Read, Write, Grant} 16 Fake None ,
+                                         192 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0014_id {Read, Write, Grant} 16 Fake None ,
+                                         208 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0035_id {Read, Write, Grant} 16 Fake None ,
+                                         224 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0016_id {Read, Write, Grant} 16 Fake None ,
+                                         240 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0036_id {Read, Write, Grant} 16 Fake None ]"
+
+definition pt_client_group_bin_0000 :: "cdl_object" where
+"pt_client_group_bin_0000 \<equiv> Types_D.PageTable \<lparr> cdl_page_table_caps = pt_client_group_bin_0000_caps \<rparr>"
+
+lemma pt_client_group_bin_0000_object_slots: 
+  "object_slots pt_client_group_bin_0000 = pt_client_group_bin_0000_caps"
+  by (simp add: pt_client_group_bin_0000_def object_slots_def)
+
+definition pt_client_group_bin_0003_caps :: "cdl_cap_map" where
+"pt_client_group_bin_0003_caps \<equiv> [0 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0018_id {Read, Write, Grant} 16 Fake None ,
+                                         16 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0037_id {Read, Write, Grant} 16 Fake None ,
+                                         32 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0020_id {Read, Write, Grant} 16 Fake None ,
+                                         48 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0002_id {Read, Write, Grant} 16 Fake None ,
+                                         65 \<mapsto> Types_D.FrameCap False stack__camkes_stack_client_0_control_0_client_obj_id {Read, Write} 12 Fake None ,
+                                         66 \<mapsto> Types_D.FrameCap False stack__camkes_stack_client_0_control_1_client_obj_id {Read, Write} 12 Fake None ,
+                                         67 \<mapsto> Types_D.FrameCap False stack__camkes_stack_client_0_control_2_client_obj_id {Read, Write} 12 Fake None ,
+                                         68 \<mapsto> Types_D.FrameCap False stack__camkes_stack_client_0_control_3_client_obj_id {Read, Write} 12 Fake None ,
+                                         71 \<mapsto> Types_D.FrameCap False client_frame__camkes_ipc_buffer_client_0_control_id {Read, Write} 12 Fake None ,
+                                         74 \<mapsto> Types_D.FrameCap False stack__camkes_stack_client_0_fault_handler_0_client_obj_id {Read, Write} 12 Fake None ,
+                                         75 \<mapsto> Types_D.FrameCap False stack__camkes_stack_client_0_fault_handler_1_client_obj_id {Read, Write} 12 Fake None ,
+                                         76 \<mapsto> Types_D.FrameCap False stack__camkes_stack_client_0_fault_handler_2_client_obj_id {Read, Write} 12 Fake None ,
+                                         77 \<mapsto> Types_D.FrameCap False stack__camkes_stack_client_0_fault_handler_3_client_obj_id {Read, Write} 12 Fake None ,
+                                         80 \<mapsto> Types_D.FrameCap False client_frame__camkes_ipc_buffer_client_0_fault_handler_id {Read, Write} 12 Fake None ,
+                                         82 \<mapsto> Types_D.FrameCap False s_data_0_obj_id {Read, Write, Grant} 12 Fake None \<comment> \<open>uncached\<close>]"
+
+definition pt_client_group_bin_0003 :: "cdl_object" where
+"pt_client_group_bin_0003 \<equiv> Types_D.PageTable \<lparr> cdl_page_table_caps = pt_client_group_bin_0003_caps \<rparr>"
+
+lemma pt_client_group_bin_0003_object_slots: 
+  "object_slots pt_client_group_bin_0003 = pt_client_group_bin_0003_caps"
+  by (simp add: pt_client_group_bin_0003_def object_slots_def)
+
+definition adder_cnode_caps :: "cdl_cap_map" where
+"adder_cnode_caps \<equiv> [1 \<mapsto> Types_D.TcbCap adder_adder_0_control_tcb_id,
+                            2 \<mapsto> Types_D.EndpointCap adder_fault_ep_id 1 {Read, Write, GrantReply},
+                            3 \<mapsto> Types_D.TcbCap adder_adder_a_0000_tcb_id,
+                            4 \<mapsto> Types_D.EndpointCap adder_fault_ep_id 3 {Read, Write, GrantReply},
+                            5 \<mapsto> Types_D.TcbCap adder_adder_0_fault_handler_tcb_id,
+                            6 \<mapsto> Types_D.EndpointCap adder_fault_ep_id 0 {Read, Write, GrantReply},
+                            7 \<mapsto> Types_D.EndpointCap adder_pre_init_ep_id 0 {Read, Write},
+                            8 \<mapsto> Types_D.EndpointCap adder_interface_init_ep_id 0 {Read, Write},
+                            9 \<mapsto> Types_D.EndpointCap adder_post_init_ep_id 0 {Read, Write},
+                            10 \<mapsto> Types_D.EndpointCap p_ep_id 0 {Read}]"
+
+definition adder_cnode :: "cdl_object" where
+"adder_cnode \<equiv> Types_D.CNode \<lparr> cdl_cnode_caps = adder_cnode_caps,
+                                             cdl_cnode_size_bits = 4 \<rparr>"
+
+lemma adder_cnode_object_slots: 
+  "object_slots adder_cnode = adder_cnode_caps"
+  by (simp add: adder_cnode_def object_slots_def)
+
+definition client_cnode_caps :: "cdl_cap_map" where
+"client_cnode_caps \<equiv> [1 \<mapsto> Types_D.TcbCap client_client_0_control_tcb_id,
+                             2 \<mapsto> Types_D.EndpointCap client_fault_ep_id 1 {Read, Write, GrantReply},
+                             3 \<mapsto> Types_D.TcbCap client_client_0_fault_handler_tcb_id,
+                             4 \<mapsto> Types_D.EndpointCap client_fault_ep_id 0 {Read, Write, GrantReply},
+                             5 \<mapsto> Types_D.EndpointCap client_pre_init_ep_id 0 {Read, Write},
+                             6 \<mapsto> Types_D.EndpointCap client_interface_init_ep_id 0 {Read, Write},
+                             7 \<mapsto> Types_D.EndpointCap client_post_init_ep_id 0 {Read, Write},
+                             8 \<mapsto> Types_D.EndpointCap p_ep_id 1 {Write, GrantReply}]"
+
+definition client_cnode :: "cdl_object" where
+"client_cnode \<equiv> Types_D.CNode \<lparr> cdl_cnode_caps = client_cnode_caps,
+                                              cdl_cnode_size_bits = 4 \<rparr>"
+
+lemma client_cnode_object_slots: 
+  "object_slots client_cnode = client_cnode_caps"
+  by (simp add: client_cnode_def object_slots_def)
+
+definition adder_fault_ep :: "cdl_object" where
+"adder_fault_ep \<equiv> Types_D.Endpoint"
+
+
+definition adder_interface_init_ep :: "cdl_object" where
+"adder_interface_init_ep \<equiv> Types_D.Endpoint"
+
+
+definition adder_post_init_ep :: "cdl_object" where
+"adder_post_init_ep \<equiv> Types_D.Endpoint"
+
+
+definition adder_pre_init_ep :: "cdl_object" where
+"adder_pre_init_ep \<equiv> Types_D.Endpoint"
+
+
+definition client_fault_ep :: "cdl_object" where
+"client_fault_ep \<equiv> Types_D.Endpoint"
+
+
+definition client_interface_init_ep :: "cdl_object" where
+"client_interface_init_ep \<equiv> Types_D.Endpoint"
+
+
+definition client_post_init_ep :: "cdl_object" where
+"client_post_init_ep \<equiv> Types_D.Endpoint"
+
+
+definition client_pre_init_ep :: "cdl_object" where
+"client_pre_init_ep \<equiv> Types_D.Endpoint"
+
+
+definition p_ep :: "cdl_object" where
+"p_ep \<equiv> Types_D.Endpoint"
+
+
+
+lemmas ids = 
+adder_adder_0_control_tcb_id_def
+adder_adder_0_fault_handler_tcb_id_def
+adder_adder_a_0000_tcb_id_def
+adder_cnode_id_def
+adder_fault_ep_id_def
+adder_frame__camkes_ipc_buffer_adder_0_control_id_def
+adder_frame__camkes_ipc_buffer_adder_0_fault_handler_id_def
+adder_frame__camkes_ipc_buffer_adder_a_0000_id_def
+adder_group_bin_pd_id_def
+adder_interface_init_ep_id_def
+adder_post_init_ep_id_def
+adder_pre_init_ep_id_def
+client_client_0_control_tcb_id_def
+client_client_0_fault_handler_tcb_id_def
+client_cnode_id_def
+client_fault_ep_id_def
+client_frame__camkes_ipc_buffer_client_0_control_id_def
+client_frame__camkes_ipc_buffer_client_0_fault_handler_id_def
+client_group_bin_pd_id_def
+client_interface_init_ep_id_def
+client_post_init_ep_id_def
+client_pre_init_ep_id_def
+frame_adder_group_bin_0000_id_def
+frame_adder_group_bin_0001_id_def
+frame_adder_group_bin_0002_id_def
+frame_adder_group_bin_0004_id_def
+frame_adder_group_bin_0011_id_def
+frame_adder_group_bin_0013_id_def
+frame_adder_group_bin_0014_id_def
+frame_adder_group_bin_0015_id_def
+frame_adder_group_bin_0016_id_def
+frame_adder_group_bin_0017_id_def
+frame_adder_group_bin_0019_id_def
+frame_adder_group_bin_0021_id_def
+frame_adder_group_bin_0023_id_def
+frame_adder_group_bin_0025_id_def
+frame_adder_group_bin_0027_id_def
+frame_adder_group_bin_0029_id_def
+frame_adder_group_bin_0036_id_def
+frame_adder_group_bin_0039_id_def
+frame_adder_group_bin_0041_id_def
+frame_adder_group_bin_0043_id_def
+frame_adder_group_bin_0045_id_def
+frame_adder_group_bin_0047_id_def
+frame_adder_group_bin_0049_id_def
+frame_client_group_bin_0000_id_def
+frame_client_group_bin_0001_id_def
+frame_client_group_bin_0002_id_def
+frame_client_group_bin_0003_id_def
+frame_client_group_bin_0004_id_def
+frame_client_group_bin_0008_id_def
+frame_client_group_bin_0010_id_def
+frame_client_group_bin_0012_id_def
+frame_client_group_bin_0014_id_def
+frame_client_group_bin_0016_id_def
+frame_client_group_bin_0018_id_def
+frame_client_group_bin_0020_id_def
+frame_client_group_bin_0029_id_def
+frame_client_group_bin_0032_id_def
+frame_client_group_bin_0033_id_def
+frame_client_group_bin_0034_id_def
+frame_client_group_bin_0035_id_def
+frame_client_group_bin_0036_id_def
+frame_client_group_bin_0037_id_def
+p_ep_id_def
+place_holder_0x102cb690_id_def
+place_holder_0x102cb6a0_id_def
+place_holder_0x102cb6c0_id_def
+place_holder_0x102cb700_id_def
+place_holder_0x102cb800_id_def
+place_holder_0x102cc000_id_def
+place_holder_0x102d0000_id_def
+place_holder_0x102e0000_id_def
+place_holder_0x10300000_id_def
+pt_adder_group_bin_0000_id_def
+pt_adder_group_bin_0003_id_def
+pt_client_group_bin_0000_id_def
+pt_client_group_bin_0003_id_def
+root_untyped_0x10043000_id_def
+root_untyped_0x10044000_id_def
+root_untyped_0x10048000_id_def
+root_untyped_0x10050000_id_def
+root_untyped_0x10060000_id_def
+root_untyped_0x10080000_id_def
+root_untyped_0x10100000_id_def
+root_untyped_0x10200000_id_def
+s_data_0_obj_id_def
+stack__camkes_stack_adder_0_control_0_adder_obj_id_def
+stack__camkes_stack_adder_0_control_1_adder_obj_id_def
+stack__camkes_stack_adder_0_control_2_adder_obj_id_def
+stack__camkes_stack_adder_0_control_3_adder_obj_id_def
+stack__camkes_stack_adder_0_fault_handler_0_adder_obj_id_def
+stack__camkes_stack_adder_0_fault_handler_1_adder_obj_id_def
+stack__camkes_stack_adder_0_fault_handler_2_adder_obj_id_def
+stack__camkes_stack_adder_0_fault_handler_3_adder_obj_id_def
+stack__camkes_stack_adder_a_0000_0_adder_obj_id_def
+stack__camkes_stack_adder_a_0000_1_adder_obj_id_def
+stack__camkes_stack_adder_a_0000_2_adder_obj_id_def
+stack__camkes_stack_adder_a_0000_3_adder_obj_id_def
+stack__camkes_stack_client_0_control_0_client_obj_id_def
+stack__camkes_stack_client_0_control_1_client_obj_id_def
+stack__camkes_stack_client_0_control_2_client_obj_id_def
+stack__camkes_stack_client_0_control_3_client_obj_id_def
+stack__camkes_stack_client_0_fault_handler_0_client_obj_id_def
+stack__camkes_stack_client_0_fault_handler_1_client_obj_id_def
+stack__camkes_stack_client_0_fault_handler_2_client_obj_id_def
+stack__camkes_stack_client_0_fault_handler_3_client_obj_id_def
+
+lemmas cap_defs = 
+adder_group_bin_pd_caps_def
+client_group_bin_pd_caps_def
+adder_adder_0_control_tcb_caps_def
+adder_adder_0_fault_handler_tcb_caps_def
+adder_adder_a_0000_tcb_caps_def
+client_client_0_control_tcb_caps_def
+client_client_0_fault_handler_tcb_caps_def
+pt_adder_group_bin_0000_caps_def
+pt_adder_group_bin_0003_caps_def
+pt_client_group_bin_0000_caps_def
+pt_client_group_bin_0003_caps_def
+adder_cnode_caps_def
+client_cnode_caps_def
+
+lemmas obj_defs = 
+adder_frame__camkes_ipc_buffer_adder_0_control_def
+adder_group_bin_pd_def
+client_group_bin_pd_def
+adder_frame__camkes_ipc_buffer_adder_0_fault_handler_def
+adder_frame__camkes_ipc_buffer_adder_a_0000_def
+client_frame__camkes_ipc_buffer_client_0_control_def
+client_frame__camkes_ipc_buffer_client_0_fault_handler_def
+frame_adder_group_bin_0000_def
+frame_adder_group_bin_0001_def
+frame_adder_group_bin_0002_def
+frame_adder_group_bin_0004_def
+frame_adder_group_bin_0011_def
+frame_adder_group_bin_0015_def
+frame_adder_group_bin_0017_def
+frame_adder_group_bin_0019_def
+frame_adder_group_bin_0021_def
+frame_adder_group_bin_0023_def
+frame_adder_group_bin_0025_def
+frame_adder_group_bin_0027_def
+frame_adder_group_bin_0036_def
+frame_adder_group_bin_0039_def
+frame_adder_group_bin_0041_def
+frame_adder_group_bin_0043_def
+frame_adder_group_bin_0045_def
+frame_adder_group_bin_0047_def
+frame_adder_group_bin_0049_def
+frame_client_group_bin_0000_def
+frame_client_group_bin_0001_def
+frame_client_group_bin_0002_def
+frame_client_group_bin_0003_def
+frame_client_group_bin_0004_def
+frame_client_group_bin_0008_def
+frame_client_group_bin_0010_def
+frame_client_group_bin_0012_def
+frame_client_group_bin_0014_def
+frame_client_group_bin_0016_def
+frame_client_group_bin_0018_def
+frame_client_group_bin_0020_def
+frame_client_group_bin_0029_def
+frame_client_group_bin_0032_def
+frame_client_group_bin_0033_def
+frame_client_group_bin_0034_def
+frame_client_group_bin_0035_def
+frame_client_group_bin_0036_def
+frame_client_group_bin_0037_def
+frame_adder_group_bin_0013_def
+frame_adder_group_bin_0014_def
+frame_adder_group_bin_0016_def
+frame_adder_group_bin_0029_def
+s_data_0_obj_def
+stack__camkes_stack_adder_0_control_0_adder_obj_def
+stack__camkes_stack_adder_0_control_1_adder_obj_def
+stack__camkes_stack_adder_0_control_2_adder_obj_def
+stack__camkes_stack_adder_0_control_3_adder_obj_def
+stack__camkes_stack_adder_0_fault_handler_0_adder_obj_def
+stack__camkes_stack_adder_0_fault_handler_1_adder_obj_def
+stack__camkes_stack_adder_0_fault_handler_2_adder_obj_def
+stack__camkes_stack_adder_0_fault_handler_3_adder_obj_def
+stack__camkes_stack_adder_a_0000_0_adder_obj_def
+stack__camkes_stack_adder_a_0000_1_adder_obj_def
+stack__camkes_stack_adder_a_0000_2_adder_obj_def
+stack__camkes_stack_adder_a_0000_3_adder_obj_def
+stack__camkes_stack_client_0_control_0_client_obj_def
+stack__camkes_stack_client_0_control_1_client_obj_def
+stack__camkes_stack_client_0_control_2_client_obj_def
+stack__camkes_stack_client_0_control_3_client_obj_def
+stack__camkes_stack_client_0_fault_handler_0_client_obj_def
+stack__camkes_stack_client_0_fault_handler_1_client_obj_def
+stack__camkes_stack_client_0_fault_handler_2_client_obj_def
+stack__camkes_stack_client_0_fault_handler_3_client_obj_def
+adder_adder_0_control_tcb_def
+adder_adder_0_fault_handler_tcb_def
+adder_adder_a_0000_tcb_def
+client_client_0_control_tcb_def
+client_client_0_fault_handler_tcb_def
+pt_adder_group_bin_0000_def
+pt_adder_group_bin_0003_def
+pt_client_group_bin_0000_def
+pt_client_group_bin_0003_def
+adder_cnode_def
+client_cnode_def
+adder_fault_ep_def
+adder_interface_init_ep_def
+adder_post_init_ep_def
+adder_pre_init_ep_def
+client_fault_ep_def
+client_interface_init_ep_def
+client_post_init_ep_def
+client_pre_init_ep_def
+p_ep_def
+
+
+local_setup {*
+FastMap.define_map (FastMap.name_opts_default "objects")
+    [(@{term "adder_frame__camkes_ipc_buffer_adder_0_control_id"}, @{term "adder_frame__camkes_ipc_buffer_adder_0_control"}),
+     (@{term "adder_group_bin_pd_id"}, @{term "adder_group_bin_pd"}),
+     (@{term "client_group_bin_pd_id"}, @{term "client_group_bin_pd"}),
+     (@{term "adder_frame__camkes_ipc_buffer_adder_0_fault_handler_id"}, @{term "adder_frame__camkes_ipc_buffer_adder_0_fault_handler"}),
+     (@{term "adder_frame__camkes_ipc_buffer_adder_a_0000_id"}, @{term "adder_frame__camkes_ipc_buffer_adder_a_0000"}),
+     (@{term "client_frame__camkes_ipc_buffer_client_0_control_id"}, @{term "client_frame__camkes_ipc_buffer_client_0_control"}),
+     (@{term "client_frame__camkes_ipc_buffer_client_0_fault_handler_id"}, @{term "client_frame__camkes_ipc_buffer_client_0_fault_handler"}),
+     (@{term "frame_adder_group_bin_0000_id"}, @{term "frame_adder_group_bin_0000"}),
+     (@{term "frame_adder_group_bin_0001_id"}, @{term "frame_adder_group_bin_0001"}),
+     (@{term "frame_adder_group_bin_0002_id"}, @{term "frame_adder_group_bin_0002"}),
+     (@{term "frame_adder_group_bin_0004_id"}, @{term "frame_adder_group_bin_0004"}),
+     (@{term "frame_adder_group_bin_0011_id"}, @{term "frame_adder_group_bin_0011"}),
+     (@{term "frame_adder_group_bin_0015_id"}, @{term "frame_adder_group_bin_0015"}),
+     (@{term "frame_adder_group_bin_0017_id"}, @{term "frame_adder_group_bin_0017"}),
+     (@{term "frame_adder_group_bin_0019_id"}, @{term "frame_adder_group_bin_0019"}),
+     (@{term "frame_adder_group_bin_0021_id"}, @{term "frame_adder_group_bin_0021"}),
+     (@{term "frame_adder_group_bin_0023_id"}, @{term "frame_adder_group_bin_0023"}),
+     (@{term "frame_adder_group_bin_0025_id"}, @{term "frame_adder_group_bin_0025"}),
+     (@{term "frame_adder_group_bin_0027_id"}, @{term "frame_adder_group_bin_0027"}),
+     (@{term "frame_adder_group_bin_0036_id"}, @{term "frame_adder_group_bin_0036"}),
+     (@{term "frame_adder_group_bin_0039_id"}, @{term "frame_adder_group_bin_0039"}),
+     (@{term "frame_adder_group_bin_0041_id"}, @{term "frame_adder_group_bin_0041"}),
+     (@{term "frame_adder_group_bin_0043_id"}, @{term "frame_adder_group_bin_0043"}),
+     (@{term "frame_adder_group_bin_0045_id"}, @{term "frame_adder_group_bin_0045"}),
+     (@{term "frame_adder_group_bin_0047_id"}, @{term "frame_adder_group_bin_0047"}),
+     (@{term "frame_adder_group_bin_0049_id"}, @{term "frame_adder_group_bin_0049"}),
+     (@{term "frame_client_group_bin_0000_id"}, @{term "frame_client_group_bin_0000"}),
+     (@{term "frame_client_group_bin_0001_id"}, @{term "frame_client_group_bin_0001"}),
+     (@{term "frame_client_group_bin_0002_id"}, @{term "frame_client_group_bin_0002"}),
+     (@{term "frame_client_group_bin_0003_id"}, @{term "frame_client_group_bin_0003"}),
+     (@{term "frame_client_group_bin_0004_id"}, @{term "frame_client_group_bin_0004"}),
+     (@{term "frame_client_group_bin_0008_id"}, @{term "frame_client_group_bin_0008"}),
+     (@{term "frame_client_group_bin_0010_id"}, @{term "frame_client_group_bin_0010"}),
+     (@{term "frame_client_group_bin_0012_id"}, @{term "frame_client_group_bin_0012"}),
+     (@{term "frame_client_group_bin_0014_id"}, @{term "frame_client_group_bin_0014"}),
+     (@{term "frame_client_group_bin_0016_id"}, @{term "frame_client_group_bin_0016"}),
+     (@{term "frame_client_group_bin_0018_id"}, @{term "frame_client_group_bin_0018"}),
+     (@{term "frame_client_group_bin_0020_id"}, @{term "frame_client_group_bin_0020"}),
+     (@{term "frame_client_group_bin_0029_id"}, @{term "frame_client_group_bin_0029"}),
+     (@{term "frame_client_group_bin_0032_id"}, @{term "frame_client_group_bin_0032"}),
+     (@{term "frame_client_group_bin_0033_id"}, @{term "frame_client_group_bin_0033"}),
+     (@{term "frame_client_group_bin_0034_id"}, @{term "frame_client_group_bin_0034"}),
+     (@{term "frame_client_group_bin_0035_id"}, @{term "frame_client_group_bin_0035"}),
+     (@{term "frame_client_group_bin_0036_id"}, @{term "frame_client_group_bin_0036"}),
+     (@{term "frame_client_group_bin_0037_id"}, @{term "frame_client_group_bin_0037"}),
+     (@{term "frame_adder_group_bin_0013_id"}, @{term "frame_adder_group_bin_0013"}),
+     (@{term "frame_adder_group_bin_0014_id"}, @{term "frame_adder_group_bin_0014"}),
+     (@{term "frame_adder_group_bin_0016_id"}, @{term "frame_adder_group_bin_0016"}),
+     (@{term "frame_adder_group_bin_0029_id"}, @{term "frame_adder_group_bin_0029"}),
+     (@{term "s_data_0_obj_id"}, @{term "s_data_0_obj"}),
+     (@{term "stack__camkes_stack_adder_0_control_0_adder_obj_id"}, @{term "stack__camkes_stack_adder_0_control_0_adder_obj"}),
+     (@{term "stack__camkes_stack_adder_0_control_1_adder_obj_id"}, @{term "stack__camkes_stack_adder_0_control_1_adder_obj"}),
+     (@{term "stack__camkes_stack_adder_0_control_2_adder_obj_id"}, @{term "stack__camkes_stack_adder_0_control_2_adder_obj"}),
+     (@{term "stack__camkes_stack_adder_0_control_3_adder_obj_id"}, @{term "stack__camkes_stack_adder_0_control_3_adder_obj"}),
+     (@{term "stack__camkes_stack_adder_0_fault_handler_0_adder_obj_id"}, @{term "stack__camkes_stack_adder_0_fault_handler_0_adder_obj"}),
+     (@{term "stack__camkes_stack_adder_0_fault_handler_1_adder_obj_id"}, @{term "stack__camkes_stack_adder_0_fault_handler_1_adder_obj"}),
+     (@{term "stack__camkes_stack_adder_0_fault_handler_2_adder_obj_id"}, @{term "stack__camkes_stack_adder_0_fault_handler_2_adder_obj"}),
+     (@{term "stack__camkes_stack_adder_0_fault_handler_3_adder_obj_id"}, @{term "stack__camkes_stack_adder_0_fault_handler_3_adder_obj"}),
+     (@{term "stack__camkes_stack_adder_a_0000_0_adder_obj_id"}, @{term "stack__camkes_stack_adder_a_0000_0_adder_obj"}),
+     (@{term "stack__camkes_stack_adder_a_0000_1_adder_obj_id"}, @{term "stack__camkes_stack_adder_a_0000_1_adder_obj"}),
+     (@{term "stack__camkes_stack_adder_a_0000_2_adder_obj_id"}, @{term "stack__camkes_stack_adder_a_0000_2_adder_obj"}),
+     (@{term "stack__camkes_stack_adder_a_0000_3_adder_obj_id"}, @{term "stack__camkes_stack_adder_a_0000_3_adder_obj"}),
+     (@{term "stack__camkes_stack_client_0_control_0_client_obj_id"}, @{term "stack__camkes_stack_client_0_control_0_client_obj"}),
+     (@{term "stack__camkes_stack_client_0_control_1_client_obj_id"}, @{term "stack__camkes_stack_client_0_control_1_client_obj"}),
+     (@{term "stack__camkes_stack_client_0_control_2_client_obj_id"}, @{term "stack__camkes_stack_client_0_control_2_client_obj"}),
+     (@{term "stack__camkes_stack_client_0_control_3_client_obj_id"}, @{term "stack__camkes_stack_client_0_control_3_client_obj"}),
+     (@{term "stack__camkes_stack_client_0_fault_handler_0_client_obj_id"}, @{term "stack__camkes_stack_client_0_fault_handler_0_client_obj"}),
+     (@{term "stack__camkes_stack_client_0_fault_handler_1_client_obj_id"}, @{term "stack__camkes_stack_client_0_fault_handler_1_client_obj"}),
+     (@{term "stack__camkes_stack_client_0_fault_handler_2_client_obj_id"}, @{term "stack__camkes_stack_client_0_fault_handler_2_client_obj"}),
+     (@{term "stack__camkes_stack_client_0_fault_handler_3_client_obj_id"}, @{term "stack__camkes_stack_client_0_fault_handler_3_client_obj"}),
+     (@{term "adder_adder_0_control_tcb_id"}, @{term "adder_adder_0_control_tcb"}),
+     (@{term "adder_adder_0_fault_handler_tcb_id"}, @{term "adder_adder_0_fault_handler_tcb"}),
+     (@{term "adder_adder_a_0000_tcb_id"}, @{term "adder_adder_a_0000_tcb"}),
+     (@{term "client_client_0_control_tcb_id"}, @{term "client_client_0_control_tcb"}),
+     (@{term "client_client_0_fault_handler_tcb_id"}, @{term "client_client_0_fault_handler_tcb"}),
+     (@{term "pt_adder_group_bin_0000_id"}, @{term "pt_adder_group_bin_0000"}),
+     (@{term "pt_adder_group_bin_0003_id"}, @{term "pt_adder_group_bin_0003"}),
+     (@{term "pt_client_group_bin_0000_id"}, @{term "pt_client_group_bin_0000"}),
+     (@{term "pt_client_group_bin_0003_id"}, @{term "pt_client_group_bin_0003"}),
+     (@{term "adder_cnode_id"}, @{term "adder_cnode"}),
+     (@{term "client_cnode_id"}, @{term "client_cnode"}),
+     (@{term "adder_fault_ep_id"}, @{term "adder_fault_ep"}),
+     (@{term "adder_interface_init_ep_id"}, @{term "adder_interface_init_ep"}),
+     (@{term "adder_post_init_ep_id"}, @{term "adder_post_init_ep"}),
+     (@{term "adder_pre_init_ep_id"}, @{term "adder_pre_init_ep"}),
+     (@{term "client_fault_ep_id"}, @{term "client_fault_ep"}),
+     (@{term "client_interface_init_ep_id"}, @{term "client_interface_init_ep"}),
+     (@{term "client_post_init_ep_id"}, @{term "client_post_init_ep"}),
+     (@{term "client_pre_init_ep_id"}, @{term "client_pre_init_ep"}),
+     (@{term "p_ep_id"}, @{term "p_ep"})]
+  @{term "id :: cdl_object_id \<Rightarrow> cdl_object_id"}
+  @{thms ids}
+  false
+*}
+
+definition irqs :: "cdl_irq \<Rightarrow> cdl_object_id" where
+"irqs \<equiv> undefined"
+
+definition asid_table :: "cdl_cap_map" where
+"asid_table \<equiv> Map.empty"
+
+definition cdt :: "cdl_cdt" where
+"cdt \<equiv> Map.empty"
+
+definition state :: "cdl_state" where
+"state \<equiv> \<lparr> cdl_arch = ARM11, cdl_objects = objects,
+                         cdl_cdt = cdt, cdl_current_thread = undefined, cdl_irq_node = irqs,
+                         cdl_asid_table = asid_table,
+                         cdl_current_domain = undefined \<rparr>"
+
+end
