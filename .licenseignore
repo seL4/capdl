@@ -7,4 +7,9 @@ capDL-tool/.stack-work/*
 *.bin
 capDL-tool/parse-capDL
 capDL-tool/*.right
+capDL-tool/*.parse
+capDL-tool/*.xml
+capDL-tool/*.test-OK
 capDL-tool/doc/imgs/*
+capDL-tool/camkes-adder-arm.*
+python-capdl-tool/.hypothesis
