@@ -714,8 +714,8 @@ objSizeBits objSizeMap ko =
  - Check that all objects belong to an untyped cover and all untyped
  - covers have paddrs. This is required for generating Isabelle output.
  -}
-isFullyAllocated :: ObjMap Word -> CoverMap -> Either (String, [ObjID]) ()
-isFullyAllocated objs untypedCovers =
+isFullyAllocated :: ObjectSizeMap -> ObjMap Word -> CoverMap -> Either (String, [ObjID]) ()
+isFullyAllocated sizeMap objs untypedCovers =
   do
     -- check untypeds
     let missingPaddrs = [ utID | utID <- Map.keys untypedCovers
@@ -725,8 +725,9 @@ isFullyAllocated objs untypedCovers =
 
     -- check objects
     let coveredObjs = Set.fromList $ concat $ Map.elems untypedCovers
-        missingObjs = [ objID | objID <- Map.keys objs
+        missingObjs = [ objID | (objID, obj) <- Map.toList objs
                               , objID `Map.notMember` untypedCovers
+                              , objSizeBits sizeMap obj /= 0
                               , objID `Set.notMember` coveredObjs ]
     unless (null missingObjs) $
         Left ("Object(s) are not allocated from any untyped", missingObjs)

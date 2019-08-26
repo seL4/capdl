@@ -176,9 +176,9 @@ genObjectSizeMap m =
                       ]
 
 -- Abort with an error message if 'isFullyAllocated' fails.
-assertIsFullyAllocated :: (PP.Doc -> PP.Doc) -> ObjMap Word -> CoverMap -> IO ()
-assertIsFullyAllocated wrapMessage objs untypedCovers =
-  case isFullyAllocated objs untypedCovers of
+assertIsFullyAllocated :: (PP.Doc -> PP.Doc) -> ObjectSizeMap -> ObjMap Word -> CoverMap -> IO ()
+assertIsFullyAllocated wrapMessage sizeMap objs untypedCovers =
+  case isFullyAllocated sizeMap objs untypedCovers of
     Right () -> return ()
     Left (msg, badObjs) -> do
       hPutStrLn stderr . PP.render . wrapMessage $
@@ -199,8 +199,11 @@ main = do
         error ("unrecognised arguments: " ++ unwords nonOpts ++ "\n" ++ usageInfo usageHeader options)
     let opt = foldr ($) defaultOptions actions
 
-    let whyNeedObjectSizes = Data.String.Utils.join " and " $ map snd $ filter fst
-          [ (isJust (optOutputIsabelle opt), "--isabelle output")
+    -- Print option names that satisfy a condition
+    let gatherOptions = Data.String.Utils.join " and " . map snd . filter fst
+
+    let whyNeedObjectSizes = gatherOptions
+          [ (isJust (optOutputIsabelle opt), "--isabelle")
           , (isJust (optOutputCSpec opt) && optDynamicAllocCSpec opt, "--code-dynamic-alloc") ]
     when (not (null whyNeedObjectSizes) && isNothing (optObjectSizeFile opt)) $
         error $ "--object-sizes file is required for " ++ whyNeedObjectSizes
@@ -228,13 +231,14 @@ main = do
     let ((m, i, c), mmLog) = runWriter (makeModel res)
     when (not (PP.isEmpty mmLog)) $ hPrint stderr mmLog
 
-    -- If the task requires a statically allocated spec, check this now.
-    let whyNeedStaticAlloc = Data.String.Utils.join " and " $ map snd $ filter fst
-          [ (isJust (optOutputIsabelle opt), "--isabelle output")
-          , (isJust (optOutputCSpec opt) && not (optDynamicAllocCSpec opt), "--code-static-alloc") ]
+    -- `--isabelle` requires a statically allocated spec, so check this now.
+    -- NB: we don't check this for `--code-static-alloc`, because we might not
+    --     have objSizeMap for that mode.
+    let whyNeedStaticAlloc = gatherOptions
+          [ (isJust (optOutputIsabelle opt), "--isabelle") ]
         prefix = "A statically allocated spec is required for " ++ whyNeedStaticAlloc
     when (not (null whyNeedStaticAlloc)) $
-        assertIsFullyAllocated (PP.text prefix PP.$+$) (objects m) (untypedCovers m)
+        assertIsFullyAllocated (PP.text prefix PP.$+$) objSizeMap (objects m) (untypedCovers m)
 
     let writeFile' "-" s = putStr s
         writeFile' f   s = bracketOnError
