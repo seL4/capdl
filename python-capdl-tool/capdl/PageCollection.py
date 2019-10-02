@@ -126,6 +126,13 @@ class PageCollection(object):
                     objects[(level, object_vaddr)] = object
                 parent = parent[object_index].referent
             object_counter += 1
+            if page_cap and page_cap.mapping_deferred:
+                # This cap requires set_mapping to be called on it to provide a reference
+                # to the mapping container and index. This is so the loader can use the same
+                # cap for mapping and then copy it into the target cspace. Otherwise the cap
+                # would be copied and therefore be an unmapped cap.
+                page_cap.set_mapping(parent, level.child_index(page_vaddr))
+                page_cap = Cap(page_cap.referent, read=page_cap.read, write=page_cap.write, grant=page_cap.grant, cached=page_cap.cached)
             parent[level.child_index(page_vaddr)] = page_cap
 
         # Cache the result for next time.

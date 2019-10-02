@@ -35,6 +35,7 @@ class Cap(object):
         self.ports = None
         self.mapping_container = None
         self.mapping_slot = None
+        self.mapping_deferred = False
         for (k, v) in kwargs.items():
             if hasattr(self, k):
                 setattr(self, k, v)
@@ -74,6 +75,14 @@ class Cap(object):
         assert isinstance(self.referent, Frame)
         self.mapping_container = container
         self.mapping_slot = slot
+
+    def set_mapping_deferred(self):
+        """
+        @brief      Indicate that this cap is a mapping cap, but the container
+                    and slot values are to be set later.
+        """
+        assert isinstance(self.referent, Frame)
+        self.mapping_deferred = True
 
     def __repr__(self):
         extra = []
