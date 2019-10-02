@@ -62,6 +62,15 @@ class Cap(object):
         self.cached = cached
 
     def set_mapping(self, container, slot):
+        """
+        @brief      For a frame cap in a cspace, ensure that this is the
+                    cap used for a mapping into a mapping object specified by
+                    container and slot.
+
+        @param      self       A frame cap that is inside a CNode.
+        @param      container  The mapping object the frame is mapped into.
+        @param      slot       The index of the mapping object
+        """
         assert isinstance(self.referent, Frame)
         self.mapping_container = container
         self.mapping_slot = slot
