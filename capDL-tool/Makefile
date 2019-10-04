@@ -50,9 +50,11 @@ sandbox:
 	stack build --only-dependencies
 
 # `stack install` copies the binary out of the build dir
+# --fast compiles with out any optimisations and should be more appropriate
+# for current capDL-tool usage behavior.
 .PHONY: $(TARGET)
 $(TARGET):
-	stack build
+	stack build --fast
 	stack install
 
 .PHONY: install
