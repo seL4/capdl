@@ -23,7 +23,10 @@ from elftools.elf.constants import P_FLAGS
 from .Object import TCB
 from .util import PAGE_SIZE, round_down, page_sizes
 from .PageCollection import PageCollection
-import os, re, six
+import os
+import re
+import six
+
 
 def _decode(data):
     '''
@@ -38,6 +41,7 @@ def _decode(data):
     if isinstance(data, bytes):
         return data.decode('ascii')
     return data
+
 
 class ELF(object):
     def __init__(self, elf, name='', arch=None):
@@ -102,7 +106,8 @@ class ELF(object):
     def check_alignment(self, regions):
         for (vaddr, sizes, caps) in regions:
             for size in sizes:
-                assert vaddr % size == 0, "vaddr: 0x%x is not aligned to frame_size: 0x%x" %(vaddr, size)
+                assert vaddr % size == 0, "vaddr: 0x%x is not aligned to frame_size: 0x%x" % (
+                    vaddr, size)
                 vaddr += size
 
     def regions_in_segment(self, segment, regions):
@@ -115,7 +120,8 @@ class ELF(object):
                 if vaddr >= (seg_end) or (vaddr+size) < seg_start:
                     pass
                 else:
-                    assert vaddr >= seg_start and (vaddr + size) <= seg_end, "Regions overlap segments which is not allowed"
+                    assert vaddr >= seg_start and (
+                        vaddr + size) <= seg_end, "Regions overlap segments which is not allowed"
                     regions_return.append((vaddr, size))
                 vaddr += size
         return regions_return
@@ -156,7 +162,7 @@ class ELF(object):
             relevant_regions = self.regions_in_segment(seg, existing_pages)
             for (reg_vaddr, reg_size) in relevant_regions:
                 region = [x for x in regions if
-                    reg_vaddr >= x['addr'] and reg_vaddr < (x['addr'] + x['size'])]
+                          reg_vaddr >= x['addr'] and reg_vaddr < (x['addr'] + x['size'])]
                 assert len(region) == 1, "section is overlapping which is not allowed"
                 region = region[0]
                 orig_size = region['size']
@@ -201,7 +207,7 @@ class ELF(object):
         return pages
 
     def get_spec(self, infer_tcb=True, infer_asid=True, pd=None,
-            use_large_frames=True, addr_space=None):
+                 use_large_frames=True, addr_space=None):
         """
         Return a CapDL spec with as much information as can be derived from the
         ELF file in isolation.
@@ -212,7 +218,7 @@ class ELF(object):
         if infer_tcb:
             # Create a single TCB.
             tcb = TCB('tcb_%s' % self._safe_name(), ip=self.get_entry_point(),
-                elf=self.name)
+                      elf=self.name)
             spec.add_object(tcb)
             tcb['vspace'] = pages.get_vspace_root()[1]
 

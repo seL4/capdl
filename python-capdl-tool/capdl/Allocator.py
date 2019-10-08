@@ -30,13 +30,13 @@ from capdl.util import ctz
 from .Spec import Spec
 
 
-
 class AllocatorState(object):
     def __init__(self, obj_space, cspaces={}, pds={}, addr_spaces={}):
         self.obj_space = obj_space
         self.cspaces = cspaces
         self.pds = pds
         self.addr_spaces = addr_spaces
+
 
 class RenderState(AllocatorState):
     '''
@@ -325,8 +325,10 @@ class AddressSpaceAllocator(object):
         self._regions = None
         return regions
 
+
 class AllocatorException(Exception):
     pass
+
 
 class ASIDTableAllocator(object):
     """
@@ -354,7 +356,7 @@ class ASIDTableAllocator(object):
 
         num_asid_high = get_object_size(ObjectType.seL4_ASID_Table)
         free_asid_highs = SortedSet(range(num_asid_high))
-        free_asid_highs.remove(0) # Init thread's
+        free_asid_highs.remove(0)  # Init thread's
 
         asid_pools = []
 
@@ -391,6 +393,7 @@ class ASIDTableAllocator(object):
             if asid_pool.asid_high > 0 and asid_pool.asid_high - 1 in free_asid_highs:
                 raise AllocatorException("asid_high not contiguous: %s wants 0x%x but 0x%x not assigned" %
                                          (asid_pool.name, asid_pool.asid_high, asid_pool.asid_high - 1))
+
 
 class UntypedAllocator(six.with_metaclass(abc.ABCMeta, object)):
     """
@@ -623,7 +626,8 @@ class BestFitAllocator(UntypedAllocator):
 
             if paddr < ut.watermark_paddr():
                 # we've gone past the paddr and didn't find a ut!
-                raise AllocatorException("No untyped for object: {0} paddr: {1}".format(unfun.name, paddr))
+                raise AllocatorException(
+                    "No untyped for object: {0} paddr: {1}".format(unfun.name, paddr))
             elif paddr >= ut.watermark_paddr() and \
                     (paddr + unfun.get_size()) <= (ut.paddr + ut.get_size()):
                 # the object we want is in this untyped!
