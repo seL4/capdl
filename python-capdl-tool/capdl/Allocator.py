@@ -311,6 +311,7 @@ class AddressSpaceAllocator(object):
         '''
         assert len(sizes) == len(caps)
         for (size, cap) in zip(sizes, caps):
+            assert vaddr not in self._regions, "duplicate definition: vaddr 0x%x already exists" % vaddr
             self._regions[vaddr] = (size, cap)
             vaddr += size
 
