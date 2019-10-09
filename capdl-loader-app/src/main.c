@@ -1958,17 +1958,17 @@ static void cache_extended_bootinfo_headers(seL4_BootInfo *bi)
 }
 
 static void fill_frame_with_bootinfo(CDL_Model *spec, CDL_ObjID obj_id, uintptr_t base,
-                                     CDL_FrameFill_BootInfoEnum_t bi_type)
+                                     CDL_FrameFill_BootInfoEnum_t bi_type, int fill_index)
 {
-    uintptr_t dest = base + spec->objects[obj_id].frame_extra.dest_offset;
-    ssize_t max = BIT(spec->objects[obj_id].size_bits) - spec->objects[obj_id].frame_extra.dest_offset;
+    uintptr_t dest = base + spec->objects[obj_id].frame_extra.fill[fill_index].dest_offset;
+    ssize_t max = BIT(spec->objects[obj_id].size_bits) - spec->objects[obj_id].frame_extra.fill[fill_index].dest_offset;
 
     /* Determine destination */
     if (max < 0) {
         max = 0;
     }
 
-    size_t block_offset = spec->objects[obj_id].frame_extra.bi_type.src_offset;
+    size_t block_offset = spec->objects[obj_id].frame_extra.fill[fill_index].bi_type.src_offset;
 
     seL4_BootInfoHeader *header = extended_bootinfo_table[bi_type];
 
@@ -1992,7 +1992,7 @@ static void fill_frame_with_bootinfo(CDL_Model *spec, CDL_ObjID obj_id, uintptr_
     }
 }
 
-static void init_frame(CDL_Model *spec, CDL_ObjID obj_id)
+static void init_frame(CDL_Model *spec, CDL_ObjID obj_id, int fill_index)
 {
     seL4_CPtr cap = orig_caps(obj_id);
 
@@ -2010,9 +2010,9 @@ static void init_frame(CDL_Model *spec, CDL_ObjID obj_id)
     ZF_LOGF_IFERR(error, "");
 
     /* Check for which type */
-    if (spec->objects[obj_id].frame_extra.type == CDL_FrameFill_BootInfo) {
+    if (spec->objects[obj_id].frame_extra.fill[fill_index].type == CDL_FrameFill_BootInfo) {
         /* Ask simple to fill it in */
-        CDL_FrameFill_BootInfoEnum_t bi_type = spec->objects[obj_id].frame_extra.bi_type.type;
+        CDL_FrameFill_BootInfoEnum_t bi_type = spec->objects[obj_id].frame_extra.fill[fill_index].bi_type.type;
         switch (bi_type) {
         case CDL_FrameFill_BootInfo_X86_VBE:
         case CDL_FrameFill_BootInfo_X86_TSC_Freq:
@@ -2023,9 +2023,9 @@ static void init_frame(CDL_Model *spec, CDL_ObjID obj_id)
                     bi_type);
         }
 
-        fill_frame_with_bootinfo(spec, obj_id, base, bi_type);
+        fill_frame_with_bootinfo(spec, obj_id, base, bi_type, fill_index);
     } else {
-        ZF_LOGF("Unsupported frame fill type %"PRIuPTR, spec->objects[obj_id].frame_extra.type);
+        ZF_LOGF("Unsupported frame fill type %"PRIuPTR, spec->objects[obj_id].frame_extra.fill[fill_index].type);
     }
 
     /* Unmap the frame */
@@ -2036,8 +2036,11 @@ static void init_frame(CDL_Model *spec, CDL_ObjID obj_id)
 static void init_frames(CDL_Model *spec)
 {
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
-        if (spec->objects[obj_id].type == CDL_Frame && spec->objects[obj_id].frame_extra.type != CDL_FrameFill_None) {
-            init_frame(spec, obj_id);
+        if (spec->objects[obj_id].type == CDL_Frame) {
+            for (int i = 0; i < CONFIG_CAPDL_LOADER_FILLS_PER_FRAME
+                 && spec->objects[obj_id].frame_extra.fill[i].type != CDL_FrameFill_None; i++) {
+                init_frame(spec, obj_id, i);
+            }
         }
     }
 }

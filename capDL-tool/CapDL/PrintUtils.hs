@@ -25,7 +25,6 @@ import qualified Data.Set as Set
 import Data.Word
 import Numeric
 import Data.List
-import Data.List.Utils
 import Data.Ord (comparing, Down(..))
 
 listSucc :: Enum a => [a] -> [a]
@@ -173,9 +172,9 @@ prettyMSIPCIFun fun = text "msi_pci_fun:" <+> (text $ show fun)
 prettyARMIODevice :: Word -> Doc
 prettyARMIODevice iospace = text "iospace:" <+> (text $ show iospace)
 
-prettyFill :: Maybe [String] -> Doc
-prettyFill (Just fill) = text "fill:" <+> braces (text $ Data.List.Utils.join " " fill)
-prettyFill Nothing = empty
+prettyFills :: Maybe [[String]] -> Doc
+prettyFills (Just fills) = text "fill:" <+> brackets (hsep (punctuate comma (map (braces . text . unwords) fills)))
+prettyFills Nothing = empty
 
 prettyPorts :: (Word, Word) -> Doc
 prettyPorts (start, end) =
@@ -201,7 +200,7 @@ prettyObjParams obj = case obj of
     PDPT {} -> text "pdpt"
     PUD {} -> text "pud"
     PGD {} -> text "pgd"
-    Frame vmSzBits paddr fill -> text "frame" <+> maybeParensList [prettyVMSize vmSzBits, prettyPaddr paddr, prettyFill fill]
+    Frame vmSzBits paddr fill -> text "frame" <+> maybeParensList [prettyVMSize vmSzBits, prettyPaddr paddr, prettyFills fill]
 
     IOPT _ level -> text "io_pt" <+> maybeParensList [prettyLevel level]
     IOPorts ports -> text "io_ports" <+> maybeParensList [prettyPorts ports]

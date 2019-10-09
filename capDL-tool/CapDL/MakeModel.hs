@@ -354,7 +354,7 @@ getMaybePaddr [] = Nothing
 getMaybePaddr (Paddr x : _) = Just x
 getMaybePaddr (_ : xs) = getMaybePaddr xs
 
-getMaybeFill :: [ObjParam] -> Maybe [String]
+getMaybeFill :: [ObjParam] -> Maybe [[String]]
 getMaybeFill [] = Nothing
 getMaybeFill (FrameExtraParam (Fill f) : _) = Just f
 getMaybeFill(_ : xs) = getMaybeFill xs

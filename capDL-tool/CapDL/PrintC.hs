@@ -226,18 +226,24 @@ printInit :: [Word] -> String
 printInit argv =
     "{" ++ joinBy ", " (map show argv) ++ "}"
 
-showFrameFill :: Maybe [String] -> String
-showFrameFill (Just (dest_offset:dest_len:info_type:extra))  =
-    ".type = " ++ info_type ++ "," +++
+showFrameFill :: [String] -> String
+showFrameFill (dest_offset:dest_len:info_type:extra)  =
+    "{.type = " ++ info_type ++ "," +++
     ".dest_offset = " ++ dest_offset ++ "," +++
     ".dest_len = " ++ dest_len ++ "," +++
     case (info_type,extra) of
         ("CDL_FrameFill_BootInfo",(bi_type:src_offset:[])) ->
             ".bi_type = {.type = " ++ bi_type ++ "," +++
             ".src_offset = " ++ src_offset +++
-            "}"
+            "}},"
         _ -> "#error Bad CDL_FrameFill_BootInfo args"
-showFrameFill _ = ""
+showFrameFill _  = ""
+
+showFrameFills :: Maybe [[String]] -> String
+showFrameFills (Just fills)  =
+    ".fill = { " ++ unwords (map showFrameFill fills) ++ "}"
+showFrameFills _ = ""
+
 
 showFramePaddr :: Maybe Word -> String
 showFramePaddr paddr =
@@ -328,7 +334,7 @@ showObjectFields objs obj_id (PGD slots) _ _ _ =
 showObjectFields _ _ (Frame size paddr extra) _ _ _ =
     ".type = CDL_Frame," +++
     ".size_bits = " ++ show size ++ "," +++
-    ".frame_extra = { " ++ showFramePaddr paddr ++ showFrameFill extra +++ " },"
+    ".frame_extra = { " ++ showFramePaddr paddr ++ showFrameFills extra +++ " },"
 showObjectFields _ _ (IOPorts (start, end)) _ _ _ =
     ".type = CDL_IOPorts," +++
     ".start = " ++ show start ++ "," ++

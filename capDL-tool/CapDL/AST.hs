@@ -52,7 +52,7 @@ data TCBExtraParam =
    deriving (Show, Eq, Ord, Typeable, Data)
 
 data FrameExtraParam =
-    Fill { fill :: [String] }
+    Fill { fill :: [[String]] }
   deriving (Show, Eq, Ord, Typeable, Data)
 
 data SCExtraParam =

@@ -379,7 +379,7 @@ fill_param :: MapParser FrameExtraParam
 fill_param = do
     reserved "fill"
     colon
-    fill_args <- braces (sepBy1 (many1 notFillEnd) whiteSpace)
+    fill_args <- brackets (sepBy (braces (sepBy1 (many1 notFillEnd) whiteSpace)) comma)
     return $ Fill fill_args
     where
         notFillEnd = satisfy (\x -> not (isSpace x || x == '}'))

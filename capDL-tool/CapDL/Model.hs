@@ -189,7 +189,7 @@ data KernelObject a
     | Frame {
         vmSizeBits :: Word,
         maybePaddr :: Maybe Word,
-        maybeFill :: Maybe [String] }
+        maybeFill :: Maybe [[String]] }
 
 -- ARM specific objects
     | ARMIODevice {

@@ -311,6 +311,10 @@ typedef struct {
     union {
         CDL_FrameFill_BootInfoType_t bi_type;
     };
+} CDL_FrameFill_Element_t;
+
+typedef struct {
+    CDL_FrameFill_Element_t fill[CONFIG_CAPDL_LOADER_FILLS_PER_FRAME];
     seL4_Word paddr;
 } CDL_FrameExtraInfo;
 

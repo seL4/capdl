@@ -31,6 +31,12 @@ config_string(CapDLLoaderMaxObjects CAPDL_LOADER_MAX_OBJECTS
     UNQUOTE
 )
 
+config_string(CapDLLoaderFillsPerFrame CAPDL_LOADER_FILLS_PER_FRAME
+    "Maximum number of fill commands per frame."
+    DEFAULT 1
+    UNQUOTE
+)
+
 config_option(CapDLLoaderAllowNoCSpace CAPDL_LOADER_ALLOW_NO_CSPACE
     "Allow threads to be specified in CapDL with no CSpace and have them
     configured as such by the initialiser. Note that this requires a kernel
