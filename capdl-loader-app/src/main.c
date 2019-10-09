@@ -20,9 +20,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
-#include <elf/elf.h>
-#include <elf/elf32.h>
-#include <elf/elf64.h>
 #include <sel4platsupport/platsupport.h>
 #include <cpio/cpio.h>
 #include <simple-default/simple-default.h>
@@ -380,107 +377,6 @@ void init_copy_frame(seL4_BootInfo *bootinfo)
     for (int i = 0; i < sizeof(copy_addr_with_pt) / PAGE_SIZE_4K; i++) {
         error = seL4_ARCH_Page_Unmap(copy_addr_frame + i);
         ZF_LOGF_IFERR(error, "");
-    }
-}
-
-static void elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
-                            seL4_BootInfo *bootinfo)
-{
-    unsigned long elf_size;
-    unsigned long cpio_size = _capdl_archive_end - _capdl_archive;
-    void *elf_file = cpio_get_file(_capdl_archive, cpio_size, elf_name, &elf_size);
-
-    if (elf_file == NULL) {
-        ZF_LOGF("ELF file %s not found", elf_name);
-    }
-
-    elf_t elf;
-    int ret = elf_newFile(elf_file, elf_size, &elf);
-    if (ret < 0) {
-        ZF_LOGF("ELF %s is invalid", elf_name);
-    }
-
-    ZF_LOGD("   ELF loading %s (from %p)... \n", elf_name, elf_file);
-
-    for (int i = 0; i < elf_getNumProgramHeaders(&elf); i++) {
-        ZF_LOGD("    to %p... ", (void *) elf_getProgramHeaderVaddr(&elf, i));
-
-        size_t f_len = elf_getProgramHeaderFileSize(&elf, i);
-        uintptr_t dest = elf_getProgramHeaderVaddr(&elf, i);
-        uintptr_t src = (uintptr_t) elf_getProgramSegment(&elf, i);
-
-        //Skip non loadable headers
-        if (elf_getProgramHeaderType(&elf, i) != PT_LOAD) {
-            ZF_LOGD("Skipping non loadable header\n");
-            continue;
-        }
-        uintptr_t vaddr = dest;
-
-        while (vaddr < dest + f_len) {
-            ZF_LOGD(".");
-
-            /* map frame into the loader's address space so we can write to it */
-            seL4_CPtr sel4_page = get_frame_cap(pd, vaddr, spec);
-            seL4_CPtr sel4_page_pt = get_frame_pt(pd, vaddr, spec);
-            size_t sel4_page_size = get_frame_size(pd, vaddr, spec);
-
-            seL4_ARCH_VMAttributes attribs = seL4_ARCH_Default_VMAttributes;
-#ifdef CONFIG_ARCH_ARM
-            attribs |= seL4_ARM_ExecuteNever;
-#endif
-
-            int error = seL4_ARCH_Page_Map(sel4_page, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
-                                           seL4_ReadWrite, attribs);
-            if (error == seL4_FailedLookup) {
-                error = seL4_ARCH_PageTable_Map(sel4_page_pt, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
-                                                seL4_ARCH_Default_VMAttributes);
-                ZF_LOGF_IFERR(error, "");
-                error = seL4_ARCH_Page_Map(sel4_page, seL4_CapInitThreadPD, (seL4_Word)copy_addr,
-                                           seL4_ReadWrite, attribs);
-            }
-            if (error) {
-                /* Try and retrieve some useful information to help the user
-                 * diagnose the error.
-                 */
-                ZF_LOGD("Failed to map frame ");
-                seL4_ARCH_Page_GetAddress_t addr UNUSED = seL4_ARCH_Page_GetAddress(sel4_page);
-                if (addr.error) {
-                    ZF_LOGD("<unknown physical address (error = %d)>", addr.error);
-                } else {
-                    ZF_LOGD("%p", (void *)addr.paddr);
-                }
-                ZF_LOGD(" -> %p (error = %d)\n", (void *)copy_addr, error);
-                ZF_LOGF_IFERR(error, "");
-            }
-
-            /* copy until end of section or end of page */
-            size_t len = dest + f_len - vaddr;
-            if (len > sel4_page_size - (vaddr % sel4_page_size)) {
-                len = sel4_page_size - (vaddr % sel4_page_size);
-            }
-            memcpy((void *)(copy_addr + vaddr % sel4_page_size), (void *)(src + vaddr - dest), len);
-
-            error = seL4_ARCH_Page_Unmap(sel4_page);
-            ZF_LOGF_IFERR(error, "");
-
-            if (sel4_page_pt != 0) {
-                error = seL4_ARCH_PageTable_Unmap(sel4_page_pt);
-                ZF_LOGF_IFERR(error, "");
-            }
-
-            vaddr += len;
-        }
-
-        /* Overwrite the section type so that next time this section is
-         * encountered it will be skipped as it is not considered loadable. A
-         * bit of a hack, but fine for now.
-         */
-        ZF_LOGD(" Marking header as loaded\n");
-        if (elf.elfClass == ELFCLASS32) {
-            elf32_getProgramHeaderTable(&elf)[i].p_type = PT_NULL;
-        } else if (elf.elfClass == ELFCLASS64) {
-            elf64_getProgramHeaderTable(&elf)[i].p_type = PT_NULL;
-        }
     }
 }
 
@@ -1376,40 +1272,6 @@ static void init_tcbs(CDL_Model *spec)
     }
 }
 
-static void init_elf(CDL_Model *spec, CDL_ObjID tcb, seL4_BootInfo *bootinfo)
-{
-    CDL_Object *cdl_tcb = get_spec_object(spec, tcb);
-
-    CDL_Cap *cdl_vspace_root = get_cap_at(cdl_tcb, CDL_TCB_VTable_Slot);
-    if (cdl_vspace_root == NULL) {
-        ZF_LOGF("Could not find VSpace cap for %s", CDL_Obj_Name(cdl_tcb));
-    }
-
-    elf_load_frames(CDL_TCB_ElfName(cdl_tcb), CDL_Cap_ObjID(cdl_vspace_root), spec, bootinfo);
-}
-
-static void init_elfs(CDL_Model *spec, seL4_BootInfo *bootinfo)
-{
-    ZF_LOGD("Initialising ELFs...\n");
-    ZF_LOGD(" Available ELFs:\n");
-    for (int j = 0; ; j++) {
-        const char *name = NULL;
-        unsigned long size;
-        unsigned long cpio_size = _capdl_archive_end - _capdl_archive;
-        void *ptr = cpio_get_entry(_capdl_archive, cpio_size, j, &name, &size);
-        if (ptr == NULL) {
-            break;
-        }
-        ZF_LOGD("  %d: %s, offset: %p, size: %lu\n", j, name,
-                (void *)((uintptr_t)ptr - (uintptr_t)_capdl_archive), size);
-    }
-    for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
-        if (spec->objects[obj_id].type == CDL_TCB) {
-            ZF_LOGD(" Initialising ELF for %s...\n", CDL_Obj_Name(&spec->objects[obj_id]));
-            init_elf(spec, obj_id, bootinfo);
-        }
-    }
-}
 
 static void init_irq(CDL_Model *spec, CDL_IRQ irq_no)
 {
@@ -2119,7 +1981,6 @@ static void init_system(CDL_Model *spec)
 
     init_irqs(spec);
     init_pd_asids(spec);
-    // init_elfs(spec, bootinfo);
     init_frames(spec);
     init_vspace(spec);
     init_scs(spec);

@@ -51,7 +51,6 @@ function(BuildCapDLApplication)
         sel4runtime
         muslc
         sel4
-        elf
         cpio
         sel4platsupport
         sel4utils
