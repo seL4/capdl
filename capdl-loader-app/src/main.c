@@ -1958,7 +1958,7 @@ static void cache_extended_bootinfo_headers(seL4_BootInfo *bi)
 }
 
 static void fill_frame_with_bootinfo(CDL_Model *spec, CDL_ObjID obj_id, uintptr_t base,
-                                     CDL_FrameFill_BootInfoType_t bi_type)
+                                     CDL_FrameFill_BootInfoEnum_t bi_type)
 {
     uintptr_t dest = base + spec->objects[obj_id].frame_extra.dest_offset;
     ssize_t max = BIT(spec->objects[obj_id].size_bits) - spec->objects[obj_id].frame_extra.dest_offset;
@@ -1968,7 +1968,7 @@ static void fill_frame_with_bootinfo(CDL_Model *spec, CDL_ObjID obj_id, uintptr_
         max = 0;
     }
 
-    size_t block_offset = spec->objects[obj_id].frame_extra.src_offset;
+    size_t block_offset = spec->objects[obj_id].frame_extra.bi_type.src_offset;
 
     seL4_BootInfoHeader *header = extended_bootinfo_table[bi_type];
 
@@ -2012,7 +2012,7 @@ static void init_frame(CDL_Model *spec, CDL_ObjID obj_id)
     /* Check for which type */
     if (spec->objects[obj_id].frame_extra.type == CDL_FrameFill_BootInfo) {
         /* Ask simple to fill it in */
-        CDL_FrameFill_BootInfoType_t bi_type = spec->objects[obj_id].frame_extra.bi_type;
+        CDL_FrameFill_BootInfoEnum_t bi_type = spec->objects[obj_id].frame_extra.bi_type.type;
         switch (bi_type) {
         case CDL_FrameFill_BootInfo_X86_VBE:
         case CDL_FrameFill_BootInfo_X86_TSC_Freq:
@@ -2020,7 +2020,7 @@ static void init_frame(CDL_Model *spec, CDL_ObjID obj_id)
             break;
         default:
             ZF_LOGF("Unable to parse extra information for \"bootinfo\", given \"%d\"",
-                    spec->objects[obj_id].frame_extra.bi_type);
+                    bi_type);
         }
 
         fill_frame_with_bootinfo(spec, obj_id, base, bi_type);

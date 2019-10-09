@@ -227,12 +227,16 @@ printInit argv =
     "{" ++ joinBy ", " (map show argv) ++ "}"
 
 showFrameFill :: Maybe [String] -> String
-showFrameFill (Just (info_type:dest_offset:extra:src_offset:[]))  =
+showFrameFill (Just (dest_offset:dest_len:info_type:extra))  =
     ".type = " ++ info_type ++ "," +++
     ".dest_offset = " ++ dest_offset ++ "," +++
-    ".src_offset = " ++ src_offset ++ "," +++
-    case info_type of "CDL_FrameFill_BootInfo" -> ".bi_type = " ++ extra
-                      _ -> ""
+    ".dest_len = " ++ dest_len ++ "," +++
+    case (info_type,extra) of
+        ("CDL_FrameFill_BootInfo",(bi_type:src_offset:[])) ->
+            ".bi_type = {.type = " ++ bi_type ++ "," +++
+            ".src_offset = " ++ src_offset +++
+            "}"
+        _ -> "#error Bad CDL_FrameFill_BootInfo args"
 showFrameFill _ = ""
 
 showFramePaddr :: Maybe Word -> String

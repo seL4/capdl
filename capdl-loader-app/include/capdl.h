@@ -297,12 +297,17 @@ typedef enum {
     CDL_FrameFill_BootInfo_X86_Framebuffer = SEL4_BOOTINFO_HEADER_X86_FRAMEBUFFER,
     CDL_FrameFill_BootInfo_X86_TSC_Freq = SEL4_BOOTINFO_HEADER_X86_TSC_FREQ,
     CDL_FrameFill_BootInfo_FDT = SEL4_BOOTINFO_HEADER_FDT
+} CDL_FrameFill_BootInfoEnum_t;
+
+typedef struct {
+    CDL_FrameFill_BootInfoEnum_t type;
+    size_t src_offset;
 } CDL_FrameFill_BootInfoType_t;
 
 typedef struct {
     CDL_FrameFillType_t type;
     size_t dest_offset;
-    size_t src_offset;
+    size_t dest_len;
     union {
         CDL_FrameFill_BootInfoType_t bi_type;
     };
