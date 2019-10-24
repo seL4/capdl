@@ -88,7 +88,9 @@ extern char _end[];
 /* In the case where we just want a 4K page and we cannot allocate
  * a page table ourselves, we use this pre allocated region that
  * is guaranteed to have a pagetable */
-static char copy_addr_with_pt[PAGE_SIZE_4K] __attribute__((aligned(PAGE_SIZE_4K)));
+/* Make this slot large enough for 64KiB frames which is the largest
+ * last-level page size across all architectures that we support. */
+static char copy_addr_with_pt[PAGE_SIZE_4K * 16] __attribute__((aligned(PAGE_SIZE_4K * 16)));
 
 static seL4_BootInfoHeader *extended_bootinfo_table[SEL4_BOOTINFO_HEADER_NUM] = {0};
 
@@ -378,11 +380,6 @@ void init_copy_frame(seL4_BootInfo *bootinfo)
     for (int i = 0; i < sizeof(copy_addr_with_pt) / PAGE_SIZE_4K; i++) {
         error = seL4_ARCH_Page_Unmap(copy_addr_frame + i);
         ZF_LOGF_IFERR(error, "");
-
-        if ((i + 1) % BIT(seL4_PageTableIndexBits) == 0) {
-            error = seL4_ARCH_PageTable_Unmap(copy_addr_pt + i / BIT(seL4_PageTableIndexBits));
-            ZF_LOGF_IFERR(error, "");
-        }
     }
 }
 
