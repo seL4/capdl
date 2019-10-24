@@ -41,8 +41,6 @@ data TCBExtraParam =
       ip :: Word }
   | SP {
       sp :: Word }
-  | Elf {
-      elf :: String }
   | Prio {
       prio :: Integer }
   | MaxPrio {

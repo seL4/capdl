@@ -323,13 +323,12 @@ class Notification(Object):
 
 
 class TCB(ContainerObject):
-    def __init__(self, name, ipc_buffer_vaddr=0x0, ip=0x0, sp=0x0, elf=None,
+    def __init__(self, name, ipc_buffer_vaddr=0x0, ip=0x0, sp=0x0,
                  prio=254, max_prio=254, affinity=0, init=None, domain=None, fault_ep_slot=None):
         super(TCB, self).__init__(name)
         self.addr = ipc_buffer_vaddr
         self.ip = ip
         self.sp = sp
-        self.elf = elf or ''
         self.prio = prio
         self.max_prio = max_prio
         self.affinity = affinity
@@ -342,7 +341,6 @@ class TCB(ContainerObject):
             'addr: 0x%(addr)x',
             'ip: 0x%(ip)x',
             'sp: 0x%(sp)x',
-            'elf: %(elf)s',
             'prio: %(prio)s',
             'max_prio: %(max_prio)s',
             'affinity: %(affinity)s',

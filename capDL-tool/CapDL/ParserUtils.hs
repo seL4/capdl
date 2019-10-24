@@ -192,13 +192,6 @@ tcb_sp = do
     n <- number
     return $ SP n
 
-tcb_elf :: MapParser TCBExtraParam
-tcb_elf = do
-    reserved "elf"
-    colon
-    n <- name
-    return $ Elf n
-
 tcb_prio :: MapParser TCBExtraParam
 tcb_prio = do
     reserved "prio"
@@ -225,7 +218,6 @@ tcb_extra_param = do
     param <-   (tcb_addr
             <|> tcb_ip
             <|> tcb_sp
-            <|> tcb_elf
             <|> tcb_prio
             <|> tcb_max_prio
             <|> tcb_affinity)

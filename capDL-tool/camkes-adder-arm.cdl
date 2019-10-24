@@ -3,9 +3,9 @@
 arch arm11
 
 objects {
-adder_adder_0_control_tcb = tcb (addr: 0x14b000,ip: 0x17a24,sp: 0x149000,elf: adder_group_bin,prio: 254,max_prio: 254,affinity: 0,init: [1],fault_ep: 0x00000002)
-adder_adder_0_fault_handler_tcb = tcb (addr: 0x15d000,ip: 0x17a24,sp: 0x15b000,elf: adder_group_bin,prio: 255,max_prio: 254,affinity: 0,init: [5])
-adder_adder_a_0000_tcb = tcb (addr: 0x154000,ip: 0x17a24,sp: 0x152000,elf: adder_group_bin,prio: 254,max_prio: 254,affinity: 0,init: [3],fault_ep: 0x00000004)
+adder_adder_0_control_tcb = tcb (addr: 0x14b000,ip: 0x17a24,sp: 0x149000,prio: 254,max_prio: 254,affinity: 0,init: [1],fault_ep: 0x00000002)
+adder_adder_0_fault_handler_tcb = tcb (addr: 0x15d000,ip: 0x17a24,sp: 0x15b000,prio: 255,max_prio: 254,affinity: 0,init: [5])
+adder_adder_a_0000_tcb = tcb (addr: 0x154000,ip: 0x17a24,sp: 0x152000,prio: 254,max_prio: 254,affinity: 0,init: [3],fault_ep: 0x00000004)
 adder_cnode = cnode (4 bits)
 adder_fault_ep = ep
 adder_frame__camkes_ipc_buffer_adder_0_control = frame (4k)
@@ -15,8 +15,8 @@ adder_group_bin_pd = pd
 adder_interface_init_ep = ep
 adder_post_init_ep = ep
 adder_pre_init_ep = ep
-client_client_0_control_tcb = tcb (addr: 0x147000,ip: 0x17560,sp: 0x145000,elf: client_group_bin,prio: 254,max_prio: 254,affinity: 0,init: [1],fault_ep: 0x00000002)
-client_client_0_fault_handler_tcb = tcb (addr: 0x150000,ip: 0x17560,sp: 0x14e000,elf: client_group_bin,prio: 255,max_prio: 254,affinity: 0,init: [3])
+client_client_0_control_tcb = tcb (addr: 0x147000,ip: 0x17560,sp: 0x145000,prio: 254,max_prio: 254,affinity: 0,init: [1],fault_ep: 0x00000002)
+client_client_0_fault_handler_tcb = tcb (addr: 0x150000,ip: 0x17560,sp: 0x14e000,prio: 255,max_prio: 254,affinity: 0,init: [3])
 client_cnode = cnode (4 bits)
 client_fault_ep = ep
 client_frame__camkes_ipc_buffer_client_0_control = frame (4k)

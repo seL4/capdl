@@ -218,11 +218,6 @@ getTCBsp [] = Nothing
 getTCBsp (TCBExtraParam (SP sp) : _) = Just sp
 getTCBsp (_ : xs ) = getTCBsp xs
 
-getTCBelf :: [ObjParam] -> Maybe String
-getTCBelf [] = Nothing
-getTCBelf (TCBExtraParam (Elf elf) : _) = Just elf
-getTCBelf (_ : xs ) = getTCBelf xs
-
 getTCBprio :: [ObjParam] -> Maybe Integer
 getTCBprio [] = Nothing
 getTCBprio (TCBExtraParam (Prio prio) : _) = Just prio
@@ -241,14 +236,12 @@ getTCBaffinity (_ : xs) = getTCBaffinity xs
 getExtraInfo :: Name -> [ObjParam] -> Maybe TCBExtraInfo
 getExtraInfo n params =
     -- FIXME: This is really hacky hardcoding the acceptable combinations of attributes.
-    case (getTCBAddr params, getTCBip params, getTCBsp params, getTCBelf params, getTCBprio params, getTCBmax_prio params, getTCBaffinity params) of
-        (Just addr, Just ip, Just sp, Just elf, Just prio, Just max_prio, Just affinity) ->
-            Just $ TCBExtraInfo addr (Just ip) (Just sp) (Just elf) (Just prio) (Just max_prio) (Just affinity)
-        (Just addr, Just ip, Just sp, Nothing, Just prio, Just max_prio, Just affinity) ->
-            Just $ TCBExtraInfo addr (Just ip) (Just sp) Nothing (Just prio) (Just max_prio) (Just affinity)
-        (Just addr, Nothing, Nothing, Nothing, Nothing, Nothing, Just affinity) ->
-            Just $ TCBExtraInfo addr Nothing Nothing Nothing Nothing Nothing (Just affinity)
-        (Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing) -> Nothing
+    case (getTCBAddr params, getTCBip params, getTCBsp params, getTCBprio params, getTCBmax_prio params, getTCBaffinity params) of
+        (Just addr, Just ip, Just sp, Just prio, Just max_prio, Just affinity) ->
+            Just $ TCBExtraInfo addr (Just ip) (Just sp) (Just prio) (Just max_prio) (Just affinity)
+        (Just addr, Nothing, Nothing, Nothing, Nothing, Just affinity) ->
+            Just $ TCBExtraInfo addr Nothing Nothing Nothing Nothing (Just affinity)
+        (Nothing, Nothing, Nothing, Nothing, Nothing, Nothing) -> Nothing
         params -> error $ "Incorrect extra tcb parameters: " ++ n ++ show params
 
 getTCBDom :: [ObjParam] -> Integer

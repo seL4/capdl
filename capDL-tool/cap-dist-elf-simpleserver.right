@@ -9,7 +9,7 @@ objects {
   frame[6] = frame (4k)
   pd1 = pd
   pt1 = pt
-  tcb = tcb (addr: 86016, ip: 65536, sp: 77824, elf: sel4_simpleserver, prio: 42, max_prio: 254, affinity: 0, fault_ep: 1, dom: 0, init: [10, 15])
+  tcb = tcb (addr: 86016, ip: 65536, sp: 77824, prio: 42, max_prio: 254, affinity: 0, fault_ep: 1, dom: 0, init: [10, 15])
 
 
 } caps {

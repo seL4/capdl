@@ -236,8 +236,7 @@ class ELF(object):
 
         if infer_tcb:
             # Create a single TCB.
-            tcb = TCB('tcb_%s' % self._safe_name(), ip=self.get_entry_point(),
-                      elf=self.name)
+            tcb = TCB('tcb_%s' % self._safe_name(), ip=self.get_entry_point())
             spec.add_object(tcb)
             tcb['vspace'] = pages.get_vspace_root()[1]
 
