@@ -463,10 +463,6 @@ static void elf_load_frames(const char *elf_name, CDL_ObjID pd, CDL_Model *spec,
             }
             memcpy((void *)(copy_addr + vaddr % sel4_page_size), (void *)(src + vaddr - dest), len);
 
-#ifdef CONFIG_ARCH_ARM
-            error = seL4_ARM_Page_Unify_Instruction(sel4_page, 0, sel4_page_size);
-            ZF_LOGF_IFERR(error, "");
-#endif
             error = seL4_ARCH_Page_Unmap(sel4_page);
             ZF_LOGF_IFERR(error, "");
 
@@ -1567,10 +1563,15 @@ static void map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
          * unify the mapping here, flushing the cached data from the kernel's
          * mapping.
          */
+        seL4_Word size_bits = spec->objects[page].size_bits;
+        assert(size_bits <= sizeof(uintptr_t) * CHAR_BIT - 1 && "illegal object size");
         if (!(vm_attribs & seL4_ARM_PageCacheable) && CDL_Obj_Paddr(&spec->objects[page]) == 0) {
-            seL4_Word size_bits = spec->objects[page].size_bits;
-            assert(size_bits <= sizeof(uintptr_t) * CHAR_BIT - 1 && "illegal object size");
             error = seL4_ARM_Page_CleanInvalidate_Data(sel4_page, 0, BIT(size_bits));
+            ZF_LOGF_IFERR(error, "");
+        }
+
+        if (seL4_CapRights_get_capAllowGrant(rights)) {
+            error = seL4_ARM_Page_Unify_Instruction(sel4_page, 0, BIT(size_bits));
             ZF_LOGF_IFERR(error, "");
         }
 #endif
