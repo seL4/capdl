@@ -1996,6 +1996,14 @@ static void fill_frame_with_bootinfo(uintptr_t base, CDL_FrameFill_Element_t fra
     }
 }
 
+static void fill_frame_with_filedata(uintptr_t base, CDL_FrameFill_Element_t frame_fill)
+{
+    unsigned long file_size;
+    unsigned long cpio_size = _capdl_archive_end - _capdl_archive;
+    void *file = cpio_get_file(_capdl_archive, cpio_size, frame_fill.file_data_type.filename, &file_size);
+    memcpy((void *)base + frame_fill.dest_offset, file + frame_fill.file_data_type.file_offset, frame_fill.dest_len);
+}
+
 static void init_frame(CDL_Model *spec, CDL_ObjID obj_id, CDL_FrameFill_Element_t frame_fill)
 {
     seL4_CPtr cap = orig_caps(obj_id);
@@ -2020,6 +2028,9 @@ static void init_frame(CDL_Model *spec, CDL_ObjID obj_id, CDL_FrameFill_Element_
     switch (frame_fill.type) {
     case CDL_FrameFill_BootInfo:
         fill_frame_with_bootinfo(base, frame_fill);
+        break;
+    case CDL_FrameFill_FileData:
+        fill_frame_with_filedata(base, frame_fill);
         break;
     default:
         ZF_LOGF("Unsupported frame fill type %"PRIuPTR, frame_fill.type);

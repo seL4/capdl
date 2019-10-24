@@ -236,6 +236,10 @@ showFrameFill (dest_offset:dest_len:info_type:extra)  =
             ".bi_type = {.type = " ++ bi_type ++ "," +++
             ".src_offset = " ++ src_offset +++
             "}},"
+        ("CDL_FrameFill_FileData",(filename:file_offset:[])) ->
+            ".file_data_type = {.filename = " ++ filename ++ "," +++
+            ".file_offset = " ++ file_offset +++
+            "}},"
         _ -> "#error Bad CDL_FrameFill_BootInfo args"
 showFrameFill _  = ""
 

@@ -286,7 +286,8 @@ typedef struct {
 
 typedef enum {
     CDL_FrameFill_None = 0,
-    CDL_FrameFill_BootInfo
+    CDL_FrameFill_BootInfo,
+    CDL_FrameFill_FileData,
 } CDL_FrameFillType_t;
 
 typedef enum {
@@ -305,11 +306,17 @@ typedef struct {
 } CDL_FrameFill_BootInfoType_t;
 
 typedef struct {
+    char *filename;
+    size_t file_offset;
+} CDL_FrameFill_FileDataType_t;
+
+typedef struct {
     CDL_FrameFillType_t type;
     size_t dest_offset;
     size_t dest_len;
     union {
         CDL_FrameFill_BootInfoType_t bi_type;
+        CDL_FrameFill_FileDataType_t file_data_type;
     };
 } CDL_FrameFill_Element_t;
 
