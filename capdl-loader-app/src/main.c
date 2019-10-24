@@ -2119,7 +2119,7 @@ static void init_system(CDL_Model *spec)
 
     init_irqs(spec);
     init_pd_asids(spec);
-    init_elfs(spec, bootinfo);
+    // init_elfs(spec, bootinfo);
     init_frames(spec);
     init_vspace(spec);
     init_scs(spec);

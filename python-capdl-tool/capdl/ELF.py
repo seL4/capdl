@@ -126,6 +126,22 @@ class ELF(object):
                 vaddr += size
         return regions_return
 
+    def compute_elf_fill_frame(self, vaddr, size, seg_p_vaddr, seg_p_filesz, seg_p_offset):
+        dest_offset = 0 if vaddr >= seg_p_vaddr else seg_p_vaddr - vaddr
+        assert dest_offset < size, "There is no section in this frame: %p" % vaddr
+
+        target_vaddr_start = vaddr + dest_offset
+        section_offset = target_vaddr_start - seg_p_vaddr
+        if section_offset >= seg_p_filesz:
+            # Past the end of the data to load
+            return []
+        # length to copy
+        length = min(size-dest_offset, seg_p_filesz-section_offset)
+        src_offset = seg_p_offset + section_offset
+
+        return ["%d %d CDL_FrameFill_FileData \"%s\" %d" % (dest_offset, length, self.name, src_offset)]
+
+
     def get_pages(self, infer_asid=True, pd=None, use_large_frames=True, addr_space=None):
         """
         Returns a dictionary of pages keyed on base virtual address, that are
@@ -156,7 +172,10 @@ class ELF(object):
             if seg['p_memsz'] == 0:
                 continue
 
-            regions = [{'addr': seg['p_vaddr'],
+            seg_p_vaddr = seg['p_vaddr']
+            seg_p_filesz = seg['p_filesz']
+            seg_p_offset = seg['p_offset']
+            regions = [{'addr': seg_p_vaddr,
                         'size': seg['p_memsz'],
                         'type': 0}]
             relevant_regions = self.regions_in_segment(seg, existing_pages)
@@ -187,7 +206,7 @@ class ELF(object):
             for reg in regions:
                 if reg['type']:
                     vaddr = reg['addr']
-                    pages.add_page(vaddr, r, w, x, reg['size'])
+                    pages.add_page(vaddr, r, w, x, reg['size'], self.compute_elf_fill_frame(vaddr, reg['size'], seg_p_vaddr, seg_p_filesz, seg_p_offset))
                 else:
                     # A range that is eligible for promotion.
                     possible_pages = list(reversed(page_sizes(self.arch)))
@@ -200,7 +219,7 @@ class ELF(object):
                                 if remain >= p and vaddr % p == 0:
                                     size = p
                                     break
-                        pages.add_page(vaddr, r, w, x, size)
+                        pages.add_page(vaddr, r, w, x, size, self.compute_elf_fill_frame(vaddr, size, seg_p_vaddr, seg_p_filesz, seg_p_offset))
                         vaddr += size
                         remain -= size
 

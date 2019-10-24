@@ -41,7 +41,7 @@ class PageCollection(object):
         self.infer_asid = infer_asid
         self._spec = None
 
-    def add_page(self, vaddr, read=False, write=False, execute=False, size=PAGE_SIZE):
+    def add_page(self, vaddr, read=False, write=False, execute=False, size=PAGE_SIZE, elffill=[]):
         if vaddr not in self._pages:
             # Only create this page if we don't already have it.
             self._pages[vaddr] = {
@@ -49,12 +49,14 @@ class PageCollection(object):
                 'write':False,
                 'execute':False,
                 'size':PAGE_SIZE,
+                'elffill': [],
             }
         # Now upgrade this page's permissions to meet our current requirements.
         self._pages[vaddr]['read'] |= read
         self._pages[vaddr]['write'] |= write
         self._pages[vaddr]['execute'] |= execute
         self._pages[vaddr]['size'] = size
+        self._pages[vaddr]['elffill'].extend(elffill)
 
     def __getitem__(self, key):
         return self._pages[key]
@@ -134,6 +136,10 @@ class PageCollection(object):
                 page_cap.set_mapping(parent, level.child_index(page_vaddr))
                 page_cap = Cap(page_cap.referent, read=page_cap.read, write=page_cap.write, grant=page_cap.grant, cached=page_cap.cached)
             parent[level.child_index(page_vaddr)] = page_cap
+            if page_cap:
+                page["elffill"].extend(page_cap.referent.fill)
+                page_cap.referent.fill = page["elffill"]
+
 
         # Cache the result for next time.
         assert self._spec is None
