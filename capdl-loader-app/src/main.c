@@ -1957,19 +1957,22 @@ static void cache_extended_bootinfo_headers(seL4_BootInfo *bi)
     }
 }
 
-static void fill_frame_with_bootinfo(CDL_Model *spec, CDL_ObjID obj_id, uintptr_t base,
-                                     CDL_FrameFill_BootInfoEnum_t bi_type, int fill_index)
+static void fill_frame_with_bootinfo(uintptr_t base, CDL_FrameFill_Element_t frame_fill)
 {
-    uintptr_t dest = base + spec->objects[obj_id].frame_extra.fill[fill_index].dest_offset;
-    ssize_t max = BIT(spec->objects[obj_id].size_bits) - spec->objects[obj_id].frame_extra.fill[fill_index].dest_offset;
-
-    /* Determine destination */
-    if (max < 0) {
-        max = 0;
+    CDL_FrameFill_BootInfoEnum_t bi_type = frame_fill.bi_type.type;
+    switch (bi_type) {
+    case CDL_FrameFill_BootInfo_X86_VBE:
+    case CDL_FrameFill_BootInfo_X86_TSC_Freq:
+    case CDL_FrameFill_BootInfo_FDT:
+        break;
+    default:
+        ZF_LOGF("Unable to parse extra information for \"bootinfo\", given \"%d\"",
+                bi_type);
     }
 
-    size_t block_offset = spec->objects[obj_id].frame_extra.fill[fill_index].bi_type.src_offset;
-
+    uintptr_t dest = base + frame_fill.dest_offset;
+    size_t max_len = frame_fill.dest_len;
+    size_t block_offset = frame_fill.bi_type.src_offset;
     seL4_BootInfoHeader *header = extended_bootinfo_table[bi_type];
 
     /* Check if the bootinfo has been found */
@@ -1977,7 +1980,7 @@ static void fill_frame_with_bootinfo(CDL_Model *spec, CDL_ObjID obj_id, uintptr_
         /* Don't copy past the bootinfo */
         size_t copy_len = header->len < block_offset ? 0 : header->len - block_offset;
         /* Don't copy more than what the frame can hold */
-        copy_len = MIN(copy_len, max);
+        copy_len = MIN(copy_len, max_len);
         void *copy_start = (void *) header + block_offset;
         memcpy((void *) dest, copy_start, copy_len);
     } else {
@@ -1987,12 +1990,13 @@ static void fill_frame_with_bootinfo(CDL_Model *spec, CDL_ObjID obj_id, uintptr_
             seL4_BootInfoHeader empty = (seL4_BootInfoHeader) {
                 .id = -1, .len = -1
             };
-            memcpy((void *)base, &empty, sizeof(empty));
+            size_t copy_len = MIN(sizeof(empty), max_len);
+            memcpy((void *)base, &empty, copy_len);
         }
     }
 }
 
-static void init_frame(CDL_Model *spec, CDL_ObjID obj_id, int fill_index)
+static void init_frame(CDL_Model *spec, CDL_ObjID obj_id, CDL_FrameFill_Element_t frame_fill)
 {
     seL4_CPtr cap = orig_caps(obj_id);
 
@@ -2009,23 +2013,16 @@ static void init_frame(CDL_Model *spec, CDL_ObjID obj_id, int fill_index)
     }
     ZF_LOGF_IFERR(error, "");
 
-    /* Check for which type */
-    if (spec->objects[obj_id].frame_extra.fill[fill_index].type == CDL_FrameFill_BootInfo) {
-        /* Ask simple to fill it in */
-        CDL_FrameFill_BootInfoEnum_t bi_type = spec->objects[obj_id].frame_extra.fill[fill_index].bi_type.type;
-        switch (bi_type) {
-        case CDL_FrameFill_BootInfo_X86_VBE:
-        case CDL_FrameFill_BootInfo_X86_TSC_Freq:
-        case CDL_FrameFill_BootInfo_FDT:
-            break;
-        default:
-            ZF_LOGF("Unable to parse extra information for \"bootinfo\", given \"%d\"",
-                    bi_type);
-        }
+    ssize_t max = BIT(spec->objects[obj_id].size_bits) - frame_fill.dest_offset;
+    ZF_LOGF_IF(frame_fill.dest_len > max, "Bad spec, fill frame with len larger than frame size");
 
-        fill_frame_with_bootinfo(spec, obj_id, base, bi_type, fill_index);
-    } else {
-        ZF_LOGF("Unsupported frame fill type %"PRIuPTR, spec->objects[obj_id].frame_extra.fill[fill_index].type);
+    /* Check for which type */
+    switch (frame_fill.type) {
+    case CDL_FrameFill_BootInfo:
+        fill_frame_with_bootinfo(base, frame_fill);
+        break;
+    default:
+        ZF_LOGF("Unsupported frame fill type %"PRIuPTR, frame_fill.type);
     }
 
     /* Unmap the frame */
@@ -2039,7 +2036,8 @@ static void init_frames(CDL_Model *spec)
         if (spec->objects[obj_id].type == CDL_Frame) {
             for (int i = 0; i < CONFIG_CAPDL_LOADER_FILLS_PER_FRAME
                  && spec->objects[obj_id].frame_extra.fill[i].type != CDL_FrameFill_None; i++) {
-                init_frame(spec, obj_id, i);
+                CDL_FrameFill_Element_t frame_fill = spec->objects[obj_id].frame_extra.fill[i];
+                init_frame(spec, obj_id, frame_fill);
             }
         }
     }
