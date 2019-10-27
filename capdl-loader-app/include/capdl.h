@@ -323,7 +323,6 @@ typedef struct {
         CDL_FrameExtraInfo frame_extra;
         seL4_Word paddr; /* Physical address; only relevant for untyped objects. */
         seL4_Word asid_high; /* for ASID pools */
-        CDL_Core core; /* core for sched control */
         struct {
             seL4_Word start;
             seL4_Word end;
@@ -530,9 +529,4 @@ static inline uint64_t CDL_SC_Budget(CDL_Object *obj)
 static inline seL4_Word CDL_SC_Data(CDL_Object *obj)
 {
     return obj->sc_extra.data;
-}
-
-static inline CDL_Core CDL_SchedControl_Core(CDL_Object *obj)
-{
-    return obj->core;
 }

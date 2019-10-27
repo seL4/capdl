@@ -1830,7 +1830,7 @@ static void init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cno
         is_irq_handler_cap = true;
         break;
     case CDL_SchedControlCap:
-        src_index = sched_ctrl_caps(CDL_SchedControl_Core(get_spec_object(spec, target_cap_obj)));
+        src_index = sched_ctrl_caps(CDL_Cap_ObjID(target_cap));
         break;
     case CDL_DomainCap:
         /* there's only one */

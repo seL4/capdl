@@ -192,8 +192,8 @@ showCap objs (ARMIOSpaceCap id) _ is_orig ms =
     ", .data = { .tag = CDL_CapData_Raw, .data = " ++ show iospace ++ "}}"
     where iospace = armiospace $ fromJust $ Map.lookup id ms
 showCap objs (VCPUCap id) _ _ _ = "{.type = CDL_VCPUCap, .obj_id = " ++ showObjID objs id ++ "}"
-showCap _ (SchedControlCap _) _ _ _ =
-    "{.type = CDL_SchedControlCap}"
+showCap _ (SchedControlCap affinity) _ _ _ =
+    "{.type = CDL_SchedControlCap, .obj_id = " ++ (hex affinity) ++ " }"
 showCap objs (RTReplyCap id) _ _ _ =
     "{.type = CDL_RTReplyCap, .obj_id = " ++ showObjID objs id ++ "}"
 showCap objs (SCCap id) _ is_orig _ =
