@@ -986,7 +986,7 @@ static void create_irq_caps(CDL_Model *spec)
 {
     ZF_LOGD("Creating irq handler caps...\n");
 
-    for (CDL_IRQ irq = 0; irq < CONFIG_CAPDL_LOADER_MAX_IRQS; irq++) {
+    for (CDL_IRQ irq = 0; irq < spec->num_irqs; irq++) {
         if (spec->irqs[irq] != INVALID_OBJ_ID) {
             seL4_CPtr free_slot = get_free_slot();
 
@@ -1451,7 +1451,7 @@ static void init_irqs(CDL_Model *spec)
 {
     ZF_LOGD("Initialising IRQ handler caps...\n");
 
-    for (CDL_IRQ irq = 0; irq < CONFIG_CAPDL_LOADER_MAX_IRQS; irq++) {
+    for (CDL_IRQ irq = 0; irq < spec->num_irqs; irq++) {
         if (spec->irqs[irq] != INVALID_OBJ_ID) {
             ZF_LOGD(" Initialising handler for IRQ %d...\n", irq);
             init_irq(spec, irq);

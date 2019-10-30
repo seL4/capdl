@@ -48,7 +48,6 @@ data Options = Options {
     optOutputDot :: Maybe String,
     optOutputCSpec :: Maybe String,
     optDynamicAllocCSpec :: Bool,
-    optCodeMaxIRQs :: Word,
     optOutputText :: Maybe String,
     optOutputAnalysis :: Maybe String,
     optDumpAST :: Maybe String,
@@ -63,7 +62,6 @@ defaultOptions = Options {
     optOutputDot = Nothing,
     optOutputCSpec = Nothing,
     optDynamicAllocCSpec = True,
-    optCodeMaxIRQs = 256,
     optOutputText = Nothing,
     optOutputAnalysis = Nothing,
     optDumpAST = Nothing,
@@ -93,10 +91,6 @@ options = [
     Option [] ["code-static-alloc"]
         (NoArg (\o -> o {optDynamicAllocCSpec = False}))
         "assume static allocation for C initialiser (must have untyped covers)",
-
-    Option [] ["code-max-irqs"]
-        (ReqArg (\arg -> \o -> o {optCodeMaxIRQs = read arg}) "IRQ_NUM")
-        "Set IRQ array we emit to size IRQ_NUM. Default: 256",
 
     Option ['x'] ["xml"]
         (ReqArg (\arg -> \o -> o {optOutputXml = Just arg }) "FILE")
@@ -260,7 +254,7 @@ main = do
                                                           | optDynamicAllocCSpec opt = DynamicAlloc objSizeMap
                                                           | otherwise = StaticAlloc
                                                     in writeFile' f $ show $
-                                                       printC allocType m i c (optCodeMaxIRQs opt)),
+                                                       printC allocType m i c),
                           (optOutputText,     \f -> writeFile' f $ show $ pretty m),
                           (optOutputAnalysis, \f -> do (leakDot, flowDot, newM) <- leakMatrix m
                                                        writeFile (f ++ "-leak.dot") leakDot

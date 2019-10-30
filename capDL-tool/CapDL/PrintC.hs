@@ -386,14 +386,19 @@ memberObjects obj_ids obj_list irqNode cdt objs =
 -- Emit an array where each entry represents a given interrupt. Each is -1 if
 -- that interrupt has no handler or else the object ID of the interrupt
 -- (0-sized CNode).
-memberIRQs :: Map ObjID Int -> IRQMap -> Arch -> Word -> String
-memberIRQs objs irqNode _ maxIrqs =
-    ".irqs = {" +++
+memberIRQs :: Map ObjID Int -> IRQMap -> Arch -> String
+memberIRQs objs irqNode _ =
+    let maxIrq = case Map.null irqNode of
+            False -> fst $ Map.findMax irqNode
+            True -> 0
+    in
+    ".num_irqs = " ++ show (maxIrq + 1) ++ "," +++
+    ".irqs = (CDL_ObjID[]){" +++
     joinBy ", "
         [ case Map.lookup k irqNode of
               Just i -> show $ fromJust $ Map.lookup i objs
               _ -> "-1"
-        | k <- [0 .. maxIrqs - 1]
+        | k <- [0 .. maxIrq]
         ] +++
     "},"
 
@@ -460,8 +465,8 @@ showASIDPoolDerivations objs ms =
            joinBy ",\n" ["    " ++ idStr | idStr <- array] +++
        "},"
 
-printC :: AllocationType -> Model Word -> Idents CapName -> CopyMap -> Word -> Doc
-printC allocType (Model arch objs irqNode cdt untypedCovers) _ _ maxIrqs =
+printC :: AllocationType -> Model Word -> Idents CapName -> CopyMap -> Doc
+printC allocType (Model arch objs irqNode cdt untypedCovers) _ _ =
     text $
     "/* Generated file. Your changes will be overwritten. */" +++
     "" +++
@@ -477,7 +482,7 @@ printC allocType (Model arch objs irqNode cdt untypedCovers) _ _ maxIrqs =
     "CDL_Model capdl_spec = {" +++
     memberArch arch +++
     memberNum objs_sz +++
-    memberIRQs obj_ids irqNode arch maxIrqs +++
+    memberIRQs obj_ids irqNode arch +++
     memberObjects obj_ids obj_list irqNode cdt objs +++
     showUntypedDerivations allocType obj_ids untypedCovers +++
     showASIDPoolDerivations obj_ids objs +++

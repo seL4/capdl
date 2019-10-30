@@ -31,13 +31,6 @@ config_string(CapDLLoaderMaxObjects CAPDL_LOADER_MAX_OBJECTS
     UNQUOTE
 )
 
-config_string(CapDLLoaderMaxIRQs CAPDL_LOADER_MAX_IRQS
-    "Maximum number of interrupts supported. The initialiser will only
-    create interrupt handlers for interrupts up to this maximum."
-    DEFAULT 256
-    UNQUOTE
-)
-
 config_option(CapDLLoaderAllowNoCSpace CAPDL_LOADER_ALLOW_NO_CSPACE
     "Allow threads to be specified in CapDL with no CSpace and have them
     configured as such by the initialiser. Note that this requires a kernel

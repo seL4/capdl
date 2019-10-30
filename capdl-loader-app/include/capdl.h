@@ -349,7 +349,8 @@ typedef struct {
 typedef struct {
     seL4_Word num;
     CDL_Object *objects;
-    CDL_ObjID irqs[CONFIG_CAPDL_LOADER_MAX_IRQS];
+    seL4_Word num_irqs;
+    CDL_ObjID *irqs;
 
     seL4_Word num_untyped;
     CDL_UntypedDerivation *untyped;
