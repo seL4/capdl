@@ -399,9 +399,6 @@ printObjs ms irqNode covers isaCdlObjects =
 printObjMapping :: (ObjID, KernelObject Word) -> Doc
 printObjMapping (id, _) = printID id <+> text ("\\<mapsto> " ++ showID id)
 
-numberOfIRQs :: Int
-numberOfIRQs = 2^10
-
 printObjMap :: ObjMap Word -> [(ObjID, KernelObject Word)] -> Doc
 printObjMap _ isaCdlObjects =
     case map printObjMapping isaCdlObjects of
