@@ -578,7 +578,12 @@ class BestFitAllocator(UntypedAllocator):
         assert(untyped.remaining() >= size_bytes)
 
         while size_bytes:
-            size_bits = min(ctz(size_bytes), ctz(untyped.watermark_paddr()))
+            # size_bits is calculated from the minimum alignment between the goal
+            # size_bytes and the watermark. If the watermark is 0 (which is valid)
+            # then just take the alignment of the size_bytes as it's guaranteed to
+            # be smaller.
+            size_bits = min(ctz(size_bytes), ctz(untyped.watermark_paddr())
+                            ) if untyped.watermark_paddr() else ctz(size_bytes)
             if is_device:
                 self._add_placeholder(untyped, size_bits, spec)
             else:
