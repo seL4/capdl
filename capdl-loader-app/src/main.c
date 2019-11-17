@@ -455,8 +455,8 @@ static void parse_bootinfo(seL4_BootInfo *bootinfo, CDL_Model *spec)
 
     /* We need to be able to actual store caps to the maximum number of objects
      * we may be dealing with.
-     * This check can still pass and initialisation fail as we need extra slots for duplicates
-     * for CNodes and TCBs.
+     * This check can still pass and initialisation fail as we need extra slots
+     * for duplicates for CNodes and TCBs.
      */
     assert(free_slot_end - free_slot_start >= CONFIG_CAPDL_LOADER_MAX_OBJECTS);
 
