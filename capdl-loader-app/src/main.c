@@ -1278,12 +1278,13 @@ static void init_irq(CDL_Model *spec, CDL_IRQ irq_no)
     seL4_CPtr irq_handler_cap = irq_caps(irq_no);
 
     CDL_Object *cdl_irq = get_spec_object(spec, spec->irqs[irq_no]);
+    assert(cdl_irq != NULL);
+
 #ifdef CONFIG_ARCH_X86
     assert(cdl_irq->type == CDL_Interrupt || cdl_irq->type == CDL_IOAPICInterrupt || cdl_irq->type == CDL_MSIInterrupt);
 #else
     assert(cdl_irq->type == CDL_Interrupt);
 #endif
-    assert(cdl_irq != NULL);
 
     if (cdl_irq->size_bits != 0) {
         ZF_LOGF("Misconfigured IRQ; an IRQ must have a size of 0.\n");
