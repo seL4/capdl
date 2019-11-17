@@ -448,6 +448,11 @@ static void parse_bootinfo(seL4_BootInfo *bootinfo, CDL_Model *spec)
      */
     free_slot_start += 16;
 
+    ZF_LOGD("  %ld free cap slots, from %ld to %ld\n",
+            (long)(free_slot_end - free_slot_start),
+            (long)free_slot_start,
+            (long)free_slot_end);
+
     /* We need to be able to actual store caps to the maximum number of objects
      * we may be dealing with.
      * This check can still pass and initialisation fail as we need extra slots for duplicates
@@ -455,8 +460,6 @@ static void parse_bootinfo(seL4_BootInfo *bootinfo, CDL_Model *spec)
      */
     assert(free_slot_end - free_slot_start >= CONFIG_CAPDL_LOADER_MAX_OBJECTS);
 
-    ZF_LOGD("  %ld free cap slots, from %ld to %ld\n", (long)(free_slot_end - free_slot_start), (long)free_slot_start,
-            (long)free_slot_end);
 
 #if CONFIG_CAPDL_LOADER_STATIC_ALLOC
     /*
