@@ -1,0 +1,62 @@
+Revision history for capDL
+
+This file should be word wrapped to 120 characters
+
+---
+Upcoming release
+
+## Changes
+
+* Add GrantReply access right for endpoint capabilities.
+  - This is a new right available on seL4 Endpoint object capabilities.
+  - A capDL spec can now describe an endpoint capability with the 'P' GrantReply access right.
+  - The capdl-loader-app will create capabilities with these rights based on the translated spec.
+  - python-capdl-tool supports creating endpoint caps with GrantReply rights.
+* Add object_sizes target.
+  - This target generates a YAML file describing the object size of each seL4 object.
+  - It is based on the current build configuration of the kernel.
+  - This file can be used as an input to tools performing allocation of seL4 objects from untypeds.
+* Add untyped_gen.py in cdl_utils.
+  - This is only supported on Arm architectures currently.
+  - This tool generates a predicted list of untypeds that the kernel will provide to userlevel
+  - This list is calculated from an input of memory regions for the platform and sizes of the kernel image and device
+    tree binary.
+  - The list is intended to be used as an input for an allocator to perform allocation of initial system resources.
+* capDL untyped allocation
+  - Add support for generating a capDL spec that specifies which untyped object each object and capability is allocated
+    from. This is intended to be used when implementing trustworthy system initialisers as it removes online allocation
+    decisions and results in a simpler init program.
+  - This is only supported on Arm.
+* Static allocator
+  - Updates capdl-loader-app to load static specs with all objects allocated from a predicted list of untypeds.
+  - This simpler version of the loader app will act as a reference implementation for a more trustworthy implementation
+    that is in development.
+  - This is only supported on Arm.
+* RISC-V support added
+  - Support for generating, translating and loading RISC-V applications.
+* seL4runtime updates
+  - Port capdl-loader-app to sel4runtime
+* cdl-refine
+  - This support is closely tied to CAmkES and L4V.
+  - The capDL-tool can translate specs into Isabelle .thy file formats. These are then used to calculate which access
+    rights different parts of the system have to each other.
+  - It is used to check that the capDL system spec implements certain access policies as specified by an external
+    source.
+  - See cdl-refine in the context of CAmkES for more information.
+* 40-bit PA for aarch64 hyp
+  - When seL4 is running in EL2 on aarch64, VSpace objects are an abstraction of stage 2 translations.
+    These translations have different input address restrictions based on the physical address range the CPU supports.
+    40-bit PA support supports platforms that have 40-bit stage 2 input address ranges when in hyp-mode.
+* Remove --code-max-irqs from capDL tool
+  - The capDL-tool that translates capDL formats no longer requires --code-max-irqs as an option for generating C specs.
+    It now infers the total IRQs from the input spec and specifies this value in the generated C spec.
+* Add FrameFill mechanism for files and use this to implement ELF loading
+  - The FrameFill mechanism allows Frame objects to be annotated with an attribute describing a way to initialise
+    their contents by a loader.
+  - The new file FrameFill mechanism allows frames to be initialised from the contents of a file provided to the loader
+    in a cpio archive.
+  - This mechanism is used to remove ELF loader support from the initialiser. Instead a spec describes how frames are
+    initialised via copies from offsets into a provided ELF file.
+  - This allows a loader to load program data from different file formats also.
+
+---

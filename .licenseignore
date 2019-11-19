@@ -1,5 +1,7 @@
 capDL-tool/.stack-work/*
 .git*
+VERSION
+CHANGES
 *LICENSE_*.txt
 .licenseignore
 *.pyc
