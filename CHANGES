@@ -7,6 +7,14 @@ Upcoming release
 
 ## Changes
 
+
+## Upgrade Notes
+---
+0.1.0 2019-11-19
+Using seL4 version 11.0.0
+
+## Changes
+
 * Add GrantReply access right for endpoint capabilities.
   - This is a new right available on seL4 Endpoint object capabilities.
   - A capDL spec can now describe an endpoint capability with the 'P' GrantReply access right.
