@@ -13,6 +13,7 @@
 set(CapDLToolDirectory ${CMAKE_CURRENT_LIST_DIR})
 
 include(make)
+include(debug)
 # Build and install capDL-tool
 # Path of installed tool will be returned in program_path
 # This assumes that there are no other dependencies.
@@ -32,6 +33,7 @@ function(CapDLToolInstall target program_path)
             cp -a ${CapDLToolDirectory}/* .
         COMMAND
             ${CMAKE_COMMAND} -E env make
+        ${USES_TERMINAL_DEBUG}
     )
     add_custom_target(${target} DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/parse-capDL")
     set(${program_path} "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/parse-capDL" PARENT_SCOPE)
