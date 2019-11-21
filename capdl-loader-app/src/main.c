@@ -72,15 +72,9 @@ extern char _capdl_archive_end[];
 extern char __executable_start[];
 extern char _end[];
 
-/* We need a page sized and aligned region at which to map the
- * destination frame during loading. We know we have free memory
- * after the end of our binary image + any additional frames
- * the kernel has mapped. The kernel maps 1 frame for IPC buffer
- * 1 frame for bootinfo, and on some platforms an additional 1
- * frame of bootinfo. So we skip three frames and then round up
- * to the next 16mb alignment where we can map in a pagetable.
- */
-#define copy_addr ( ROUND_UP(((uintptr_t)_end) + (PAGE_SIZE_4K * 3), 0x1000000))
+/* A region at which to map destination frames during loading
+ * This is expected to be initialised by 'init_copy_addr' on system init */
+uintptr_t copy_addr;
 
 /* In the case where we just want a 4K page and we cannot allocate
  * a page table ourselves, we use this pre allocated region that
@@ -1809,6 +1803,21 @@ static void start_threads(CDL_Model *spec)
     }
 }
 
+
+static void init_copy_addr(seL4_BootInfo *bi)
+{
+    /* We need a page sized and aligned region at which to map the
+     * destination frame during loading. We know we have free memory
+     * after the end of our binary image + any additional frames
+     * the kernel has mapped. The kernel maps 1 frame for IPC buffer
+     * 1 frame for bootinfo and on some platforms additional extended
+     * bootinfo frames. So we skip these frames and then round up to
+     * the next 16mb alignment where we can map in a pagetable.
+     */
+    uintptr_t bi_start = (uintptr_t)bi;
+    copy_addr = ROUND_UP(bi_start + PAGE_SIZE_4K + bi->extraLen, 0x1000000);
+}
+
 static void cache_extended_bootinfo_headers(seL4_BootInfo *bi)
 {
     uintptr_t cur = (uintptr_t)bi + PAGE_SIZE_4K;
@@ -1962,6 +1971,7 @@ static void init_system(CDL_Model *spec)
     simple_t simple;
 
     cache_extended_bootinfo_headers(bootinfo);
+    init_copy_addr(bootinfo);
 
     simple_default_init_bootinfo(&simple, bootinfo);
 
