@@ -17,6 +17,7 @@ without elftools installed by not importing this particular file.
 """
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
+from future.utils import iteritems
 
 from elftools.elf.elffile import ELFFile
 from elftools.elf.constants import P_FLAGS
@@ -156,7 +157,7 @@ class ELF(object):
         if addr_space:
             # Update symbols with their vaddrs in the AddressSpaceAllocator if we were given one
             existing_pages = []
-            for (symbol, (sizes, caps)) in addr_space.get_symbols_and_clear().iteritems():
+            for (symbol, (sizes, caps)) in iteritems(addr_space.get_symbols_and_clear()):
                 assert self.get_symbol_size(symbol) >= sum(sizes), \
                     "Symbol (%s:%d) must have same or greater size than supplied cap range (%d)" % (
                         symbol, self.get_symbol_size(symbol), sum(sizes))

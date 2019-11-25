@@ -105,7 +105,7 @@ def main():
     parser_b.add_argument('--fno-provide-tcb-caps', action='store_false',
                           dest='fprovide_tcb_caps', help='Do not hand out TCB caps, causing '
                           'components to fault on exiting.')
-    parser_b.add_argument('--save-object-state', type=argparse.FileType('w'))
+    parser_b.add_argument('--save-object-state', type=argparse.FileType('wb'))
     parser_b.add_argument('--static-alloc', action='store_true',
                           help='Perform static object allocation (requires --untyped)')
     parser_b.add_argument('--dynamic-alloc', action='store_false', dest='static_alloc',

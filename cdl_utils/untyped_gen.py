@@ -184,7 +184,7 @@ if __name__ == '__main__':
                         help='Yaml file with kernel object sizes')
     parser.add_argument('--extra-bi-size-bits', default=0, type=int,
                         help='Size_bits of extra bootinfo frame (0 if none)')
-    parser.add_argument('--kernel-elf', type=argparse.FileType('r'),
+    parser.add_argument('--kernel-elf', type=argparse.FileType('rb'),
                         help='Kernel elf file', required=False)
     parser.add_argument('--paddr-top', type=int_or_hex,
                         help='Kernel\'s PADDR_TOP (highest usable physical memory addr)')
