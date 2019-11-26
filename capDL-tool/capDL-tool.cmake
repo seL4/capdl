@@ -25,7 +25,11 @@ function(CapDLToolInstall target program_path)
         "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/parse-capDL.d"
         "${CapDLToolDirectory}/"
     )
-    add_custom_command(
+
+    include(memoize)
+    # memoize this installation rule which will save the resulting artifact in a cache and reuse it across builds.
+    # This will rebuild from source if the git directory has changes or has a changed commit hash.
+    memoize_add_custom_command(capDL-tool "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/" "${CapDLToolDirectory}" "" "parse-capDL"
         OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/parse-capDL"
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/
         ${depfile_commands}
