@@ -14,6 +14,7 @@
 #include <autoconf.h>
 #include <sel4/constants.h>
 #include <sel4/sel4_arch/constants.h>
+#include <sel4/mode/types.h>
 seL4_TCBObject: seL4_TCBBits
 seL4_EndpointObject: seL4_EndpointBits
 seL4_NotificationObject: seL4_NotificationBits
@@ -24,6 +25,7 @@ seL4_ASID_Table: seL4_ASIDPoolIndexBits
 seL4_Slot: seL4_SlotBits
 seL4_Value_MinUntypedBits: seL4_MinUntypedBits
 seL4_Value_MaxUntypedBits: seL4_MaxUntypedBits
+seL4_Value_BadgeBits: seL4_BadgeBits
 #ifdef seL4_ReplyBits
 seL4_RTReplyObject: seL4_ReplyBits
 #endif
