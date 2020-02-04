@@ -36,6 +36,16 @@ def register_object_sizes(sizes):
     object_sizes = sizes
 
 
+def get_libsel4_constant(name):
+    global object_sizes
+    try:
+        return object_sizes[name]
+    except KeyError:
+        if not object_sizes:
+            logging.fatal("No object sizes registered!")
+        logging.fatal("No value for key {}".format(name))
+
+
 def get_object_size_bits(object_type):
     global object_sizes
     try:
