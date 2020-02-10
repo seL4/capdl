@@ -25,7 +25,7 @@ from .Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
     Notification, TCB, Untyped, IOPageTable, Object, IRQ, IOPorts, IODevice, \
     ARMIODevice, VCPU, ASIDPool, SC, SchedControl, RTReply, ObjectType, \
     ObjectRights, IOAPICIRQ, MSIIRQ, IRQControl, get_object_size, ASIDControl, \
-    DomainControl, is_aligned
+    DomainControl, is_aligned, ARMIRQMode, ARMIRQ
 from capdl.util import ctz
 from .Spec import Spec
 
@@ -130,7 +130,14 @@ class ObjectAllocator(object):
         elif type == ObjectType.seL4_VCPU:
             o = VCPU(name)
         elif type == ObjectType.seL4_IRQHandler:
-            if 'number' in kwargs:
+            notification = None
+            if 'notification' in kwargs:
+                notification = kwargs['notification']
+                del kwargs['notification']
+
+            if 'trigger' in kwargs or 'target' in kwargs:
+                o = ARMIRQ(name, **kwargs)
+            elif 'number' in kwargs:
                 o = IRQ(name, kwargs['number'])
             elif 'vector' in kwargs and 'ioapic' in kwargs \
                     and 'ioapic_pin' in kwargs and 'level' in kwargs and 'polarity' in kwargs:
@@ -144,8 +151,8 @@ class ObjectAllocator(object):
                 raise ValueError("IRQHandler objects must define (number|vector,ioapic,ioapic_pin,level,"
                                  "polarity|vector,handle,pci_bus,pci_dev,pci_fun)")
 
-            if 'notification' in kwargs:
-                o.set_notification(kwargs['notification'])
+            if notification is not None:
+                o.set_notification(notification)
         elif type == ObjectType.seL4_IRQControl:
             o = IRQControl(name)
         elif type == ObjectType.seL4_ASID_Control:

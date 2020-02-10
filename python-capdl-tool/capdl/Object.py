@@ -22,7 +22,7 @@ import math
 import six
 from functools import total_ordering
 
-from aenum import Enum, Flag, unique, auto
+from aenum import Enum, Flag, unique, auto, IntEnum
 import logging
 
 # dict of all object sizes, must be registered before using any Object in this file.
@@ -116,6 +116,11 @@ class ObjectRights(Flag):
     seL4_CanGrant = auto()
     seL4_CanGrantReply = auto()
     seL4_AllRights = seL4_CanRead | seL4_CanWrite | seL4_CanGrant | seL4_CanGrantReply
+
+
+class ARMIRQMode(IntEnum):
+    seL4_ARM_IRQ_LEVEL = 0
+    seL4_ARM_IRQ_EDGE = 1
 
 
 class Object(six.with_metaclass(abc.ABCMeta, object)):
@@ -529,6 +534,16 @@ class MSIIRQ(IRQ):
     def __repr__(self):
         return '%s = msi_irq (msi_handle:%d, msi_pci_bus:%d, msi_pci_dev:%d, msi_pci_fun:%d)' % (self.name,
                                                                                                  self.handle, self.bus, self.dev, self.fun)
+
+
+class ARMIRQ(IRQ):
+    def __init__(self, name, number, trigger=ARMIRQMode.seL4_ARM_IRQ_LEVEL, target=0):
+        super(ARMIRQ, self).__init__(name, number=number)
+        self.trigger = trigger
+        self.target = target
+
+    def __repr__(self):
+        return '%s = arm_irq (trigger:%s, target:%d)' % (self.name, "level" if self.trigger == ARMIRQMode.seL4_ARM_IRQ_LEVEL else "edge", self.target)
 
 
 class VCPU(Object):

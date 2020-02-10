@@ -325,6 +325,16 @@ getMSIIrqPCIFun [] = error $ "Incorrect msi irq parameters"
 getMSIIrqPCIFun (MSIIRQExtraParam (MSIPCIFun fun) : _) = fun
 getMSIIrqPCIFun (_ : xs) = getMSIIrqPCIFun xs
 
+getARMIrqTrigger :: Name -> [ObjParam] -> Word
+getARMIrqTrigger n [] = error ("Incorrect Arm irq parameters: missing 'trigger': " ++ n)
+getARMIrqTrigger _ (ARMIRQExtraParam (ARMIRQTrigger trigger) : _) = trigger
+getARMIrqTrigger n (_ : xs) = getARMIrqTrigger n xs
+
+getARMIrqTarget :: Name -> [ObjParam] -> Word
+getARMIrqTarget n [] = error ("Incorrect Arm irq parameters: missing 'target': " ++ n)
+getARMIrqTarget _ (ARMIRQExtraParam (ARMIRQTarget target) : _) = target
+getARMIrqTarget n (_ : xs) = getARMIrqTarget n xs
+
 getMaybeBitSize :: [ObjParam] -> Maybe Word
 getMaybeBitSize [] = Nothing
 getMaybeBitSize (BitSize x : _) = Just x
@@ -419,6 +429,8 @@ validObjPars (Obj IOAPICIrqSlot_T ps []) =
   subsetConstrs ps (replicate (numConstrs (Addr undefined)) (IOAPICIRQExtraParam undefined))
 validObjPars (Obj MSIIrqSlot_T ps []) =
   subsetConstrs ps (replicate (numConstrs (Addr undefined)) (MSIIRQExtraParam undefined))
+validObjPars (Obj ARMIrqSlot_T ps []) =
+  subsetConstrs ps (replicate (numConstrs (Addr undefined)) (ARMIRQExtraParam undefined))
 validObjPars obj = null (params obj)
 
 -- For converting frame sizes to size bits
@@ -455,6 +467,7 @@ objectOf n obj =
         Obj IrqSlot_T [] [] -> CNode Map.empty 0
         Obj IOAPICIrqSlot_T ps [] -> IOAPICIrq Map.empty (getIOAPICIrqIoapic ps) (getIOAPICIrqPin ps) (getIOAPICIrqLevel ps) (getIOAPICIrqPolarity ps)
         Obj MSIIrqSlot_T ps [] -> MSIIrq Map.empty (getMSIIrqHandle ps) (getMSIIrqPCIBus ps) (getMSIIrqPCIDev ps) (getMSIIrqPCIFun ps)
+        Obj ARMIrqSlot_T ps [] -> ARMIrq Map.empty (getARMIrqTrigger n ps) (getARMIrqTarget n ps)
         Obj VCPU_T [] [] -> VCPU
         Obj SC_T ps [] -> SC (getSCExtraInfo n ps) (getMaybeBitSize ps)
         Obj RTReply_T [] [] -> RTReply
@@ -631,6 +644,7 @@ objCapOf containerName obj objRef params =
         RTReply {} -> RTReplyCap objRef
         IOAPICIrq {} -> IRQIOAPICHandlerCap objRef
         MSIIrq {} -> IRQMSIHandlerCap objRef
+        ARMIrq {} -> ARMIRQHandlerCap objRef
     else error ("Incorrect params for cap to " ++ printID objRef ++ " in " ++
                 printID containerName ++ "; got " ++ show params)
 

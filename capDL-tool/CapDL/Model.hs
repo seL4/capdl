@@ -118,6 +118,8 @@ data Cap
 
         -- ARM specific caps
         | ARMIOSpaceCap { capObj :: ObjID }
+        | ARMIRQHandlerCap {
+            capObj :: ObjID }
 
         -- X86 specific caps
         | IOPortsCap {
@@ -194,6 +196,10 @@ data KernelObject a
     | ARMIODevice {
         slots  :: CapMap a,
         armiospace :: Word}
+    | ARMIrq {
+        slots :: CapMap a,
+        trigger :: Word,
+        target :: Word }
 
 -- X86 specific objects
     | IOPorts { ports :: (Word, Word) }
@@ -233,6 +239,7 @@ data KOType
     | IrqSlot_T
     | IOAPICIrqSlot_T
     | MSIIrqSlot_T
+    | ARMIrqSlot_T
     | ASIDPool_T
     | PT_T
     | PD_T
@@ -416,4 +423,5 @@ hasSlots (ARMIODevice {}) = True
 hasSlots (IOPT {})      = True
 hasSlots (IOAPICIrq {}) = True
 hasSlots (MSIIrq {})    = True
+hasSlots (ARMIrq {})    = True
 hasSlots _              = False

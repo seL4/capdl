@@ -138,6 +138,10 @@ showCap _ (IRQMSIHandlerCap id) irqNode is_orig _ =
     "{.type = CDL_IRQHandlerCap, .obj_id = INVALID_OBJ_ID" ++
     ", .is_orig = " ++ is_orig ++
     ", .irq = " ++ show (lookupByValue (== id) irqNode) ++ "}"
+showCap _ (ARMIRQHandlerCap id) irqNode is_orig _ =
+    "{.type = CDL_IRQHandlerCap, .obj_id = INVALID_OBJ_ID" ++
+    ", .is_orig = " ++ is_orig ++
+    ", .irq = " ++ show (lookupByValue (== id) irqNode) ++ "}"
     -- Caps have obj_ids, or IRQs, but not both.
 showCap objs (FrameCap id rights _ cached maybe_mapping) _ is_orig _ =
     "{.type = CDL_FrameCap, .obj_id = " ++ showObjID objs id ++
@@ -310,6 +314,13 @@ showObjectFields objs obj_id (MSIIrq slots handle bus dev fun) irqNode cdt ms =
         ".pci_bus = " ++ show bus ++ "," +++
         ".pci_dev = " ++ show dev ++ "," +++
         ".pci_fun = " ++ show fun ++ "," +++
+    "},"
+showObjectFields objs obj_id (ARMIrq slots trigger target) irqNode cdt ms =
+    ".type = CDL_ARMInterrupt, " +++
+    memberSlots objs obj_id slots irqNode cdt ms +++
+    ".armirq_extra = {" +++
+        ".trigger = " ++ show trigger ++ "," +++
+        ".target = " ++ show target ++ "," +++
     "},"
 showObjectFields _ _ (Untyped size_bits paddr) _ _ _ =
     ".type = CDL_Untyped," +++

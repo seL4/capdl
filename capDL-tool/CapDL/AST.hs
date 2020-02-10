@@ -84,6 +84,13 @@ data MSIIRQExtraParam =
         fun :: Word }
     deriving (Show, Eq, Ord, Typeable, Data)
 
+data ARMIRQExtraParam =
+    ARMIRQTrigger {
+        trigger :: Word }
+  | ARMIRQTarget {
+        target_core :: Word }
+    deriving (Show, Eq, Ord, Typeable, Data)
+
 data ObjParam =
     BitSize {
       bits :: Word }
@@ -103,6 +110,8 @@ data ObjParam =
       ioapic_irq_extraParam :: IOAPICIRQExtraParam }
   | MSIIRQExtraParam {
       msi_irq_extraParam :: MSIIRQExtraParam }
+  | ARMIRQExtraParam {
+      arm_irq_extraParam :: ARMIRQExtraParam }
   | InitArguments {
       arguments :: [Word] }
   | DomainID {

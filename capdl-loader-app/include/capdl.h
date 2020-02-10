@@ -200,6 +200,7 @@ typedef enum {
 #endif
 #if defined(CONFIG_ARCH_ARM)
     CDL_ARMIODevice   = seL4_ObjectTypeCount + 9,
+    CDL_ARMInterrupt = seL4_ObjectTypeCount + 11,
 #endif
 #ifdef CONFIG_ARCH_RISCV
     CDL_Frame = seL4_RISCV_4K_Page,
@@ -284,6 +285,11 @@ typedef struct {
     int pci_fun;
 } CDL_MSIIRQExtraInfo;
 
+typedef struct {
+    int trigger;
+    int target;
+} CDL_ARMIRQExtraInfo;
+
 typedef enum {
     CDL_FrameFill_None = 0,
     CDL_FrameFill_BootInfo,
@@ -336,6 +342,7 @@ typedef struct {
         CDL_SCExtraInfo sc_extra;
         CDL_IOAPICIRQExtraInfo ioapicirq_extra;
         CDL_MSIIRQExtraInfo msiirq_extra;
+        CDL_ARMIRQExtraInfo armirq_extra;
         CDL_FrameExtraInfo frame_extra;
         seL4_Word paddr; /* Physical address; only relevant for untyped objects. */
         seL4_Word asid_high; /* for ASID pools */

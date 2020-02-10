@@ -165,6 +165,12 @@ prettyMSIPCIDev dev = text "msi_pci_dev:" <+> (text $ show dev)
 prettyMSIPCIFun :: Word -> Doc
 prettyMSIPCIFun fun = text "msi_pci_fun:" <+> (text $ show fun)
 
+prettyARMIRQTrigger :: Word -> Doc
+prettyARMIRQTrigger trigger = text "irq_trigger:" <+> (text $ show trigger)
+
+prettyARMIRQTarget :: Word -> Doc
+prettyARMIRQTarget target = text "irq_target:" <+> (text $ show target)
+
 prettyARMIODevice :: Word -> Doc
 prettyARMIODevice iospace = text "iospace:" <+> (text $ show iospace)
 
@@ -208,6 +214,7 @@ prettyObjParams obj = case obj of
     RTReply -> text "rtreply"
     IOAPICIrq _ ioapic pin level polarity -> text "ioapic_irq" <+> maybeParensList[prettyIOAPICNum ioapic, prettyIOAPICPin pin, prettyIOAPICLevel level, prettyIOAPICPolarity polarity]
     MSIIrq _ handle bus dev fun -> text "msi_irq" <+> maybeParensList[prettyMSIHandle handle, prettyMSIPCIBus bus, prettyMSIPCIDev dev, prettyMSIPCIFun fun]
+    ARMIrq _ trigger target -> text "arm_irq" <+> maybeParensList[prettyARMIRQTrigger trigger, prettyARMIRQTarget target]
 
 capParams [] = empty
 capParams xs = parens (hsep $ punctuate comma xs)

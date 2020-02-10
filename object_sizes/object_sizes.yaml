@@ -73,3 +73,4 @@ seL4_ARMIODevice: 0
 seL4_IRQ: 0
 seL4_IOAPICIRQ: 0
 seL4_MSIIRQ: 0
+seL4_ARMIRQ: 0

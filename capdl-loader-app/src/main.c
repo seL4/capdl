@@ -676,6 +676,7 @@ static int requires_creation(CDL_ObjectType type)
 #endif /* CONFIG_ARCH_X86 */
 #ifdef CONFIG_ARCH_ARM
     case CDL_ARMIODevice:
+    case CDL_ARMInterrupt:
 #endif /* CONFIG_ARCH_ARM */
         return false;
     default:
@@ -859,6 +860,16 @@ static void create_irq_cap(CDL_IRQ irq, CDL_Object *obj, seL4_CPtr free_slot)
         error = seL4_IRQControl_GetMSI(seL4_CapIRQControl, root, index, depth,
                                        obj->msiirq_extra.pci_bus, obj->msiirq_extra.pci_dev,
                                        obj->msiirq_extra.pci_fun, obj->msiirq_extra.handle, irq);
+        break;
+#elif defined(CONFIG_ARCH_ARM)
+    case CDL_ARMInterrupt:
+#if CONFIG_MAX_NUM_NODES > 1
+        error = seL4_IRQControl_GetTriggerCore(seL4_CapIRQControl, irq, obj->armirq_extra.trigger,
+                                               root, index, depth, obj->armirq_extra.target);
+#else
+        error = seL4_IRQControl_GetTrigger(seL4_CapIRQControl, irq, obj->armirq_extra.trigger,
+                                           root, index, depth);
+#endif
         break;
 #endif
     default:
@@ -1279,6 +1290,8 @@ static void init_irq(CDL_Model *spec, CDL_IRQ irq_no)
 
 #ifdef CONFIG_ARCH_X86
     assert(cdl_irq->type == CDL_Interrupt || cdl_irq->type == CDL_IOAPICInterrupt || cdl_irq->type == CDL_MSIInterrupt);
+#elif CONFIG_ARCH_ARM
+    assert(cdl_irq->type == CDL_Interrupt || cdl_irq->type == CDL_ARMInterrupt);
 #else
     assert(cdl_irq->type == CDL_Interrupt);
 #endif

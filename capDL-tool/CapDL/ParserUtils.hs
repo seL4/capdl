@@ -125,6 +125,7 @@ object_type =
     <|> keyw "irq" IrqSlot_T
     <|> keyw "ioapic_irq" IOAPICIrqSlot_T
     <|> keyw "msi_irq" MSIIrqSlot_T
+    <|> keyw "arm_irq" ARMIrqSlot_T
     <|> keyw "asid_pool" ASIDPool_T
     <|> keyw "pt" PT_T
     <|> keyw "pd" PD_T
@@ -367,6 +368,27 @@ msi_irq_extra_param = do
             <|> msi_irq_pci_fun)
     return $ MSIIRQExtraParam param
 
+arm_irq_trigger :: MapParser ARMIRQExtraParam
+arm_irq_trigger = do
+    reserved "trigger"
+    colon
+    n <- keyw "level" 0 <|> keyw "edge" 1
+    return $ ARMIRQTrigger n
+
+arm_irq_target :: MapParser ARMIRQExtraParam
+arm_irq_target = do
+    reserved "target"
+    colon
+    n <- number
+    return $ ARMIRQTarget n
+
+arm_irq_extra_param :: MapParser ObjParam
+arm_irq_extra_param = do
+    param <-   (arm_irq_trigger
+            <|> arm_irq_target)
+    return $ ARMIRQExtraParam param
+
+
 fill_param :: MapParser FrameExtraParam
 fill_param = do
     reserved "fill"
@@ -417,6 +439,7 @@ object_param =
     <|> sc_extra_param
     <|> ioapic_irq_extra_param
     <|> msi_irq_extra_param
+    <|> arm_irq_extra_param
     <|> ports_param
     <|> asid_high_param
 

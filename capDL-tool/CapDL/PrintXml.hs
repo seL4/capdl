@@ -122,6 +122,7 @@ showObjectName SC {} = "SC"
 showObjectName RTReply {} = "RTReply"
 showObjectName IOAPICIrq {} = "IOAPICIrq"
 showObjectName MSIIrq {} = "MSIIrq"
+showObjectName ARMIrq {} = "ARMIrq"
 
 --
 -- Get a cap's name.
@@ -139,6 +140,7 @@ showCapName IRQControlCap = "IRQControlCap"
 showCapName IRQHandlerCap {} = "IRQHandlerCap"
 showCapName IRQIOAPICHandlerCap {} = "IRQIOAPICHandlerCap"
 showCapName IRQMSIHandlerCap {} = "IRQMSIHandlerCap"
+showCapName ARMIRQHandlerCap {} = "ARMIRQHandlerCap"
 showCapName DomainCap = "DomainCap"
 showCapName FrameCap {} = "FrameCap"
 showCapName PTCap {} = "PTCap"
