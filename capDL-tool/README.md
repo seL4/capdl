@@ -9,8 +9,7 @@
 
   @TAG(DATA61_BSD)
 -->
-capDL-tool
-==========
+# capDL-tool
 
 This tool is intended to be used with capDL textual specifications. In
 particular, it can parse input files into a variety of different output
@@ -22,16 +21,14 @@ For usage instructions run 'make' and then './parse-capDL'.
 For details of the Capability Distribution Language, see the specification in
 the 'doc/' directory. Run 'make' in that directory to generate 'capDL.pdf'.
 
-Repository overview
--------------------
+## Repository overview
 
   * 'CapDL': Haskell source code of the tool
   * '*.cdl': Toy examples used as test files
   * '*.right': Canonical representations of the examples used in testing
   * 'doc': Latex source of the capDL Specification
 
-Dependencies
--------------
+## Dependencies
 
 [Stack][1] should automatically retrieve all necessary Haskell dependencies to
 build this tool, but if you need exact dependency information it is available
@@ -55,8 +52,7 @@ To place the capdl binary in the top level directory of this project, run
 
     make install
 
-Related papers
---------------
+## Related papers
 
 The Capability Distribution Language is also documented in
 
@@ -67,8 +63,7 @@ The Capability Distribution Language is also documented in
 
   [CapDL]: https://ts.data61.csiro.au/publications/papers/Kuz_KLW_10.pdf
 
-License
-========
+## License
 
 The files in this repository are released under standard open source licenses.
 Please see individual file headers and the `LICENSE_BSD2`.txt file for details.
