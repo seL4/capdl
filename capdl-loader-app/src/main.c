@@ -1730,6 +1730,7 @@ static void init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cno
         }
     } else if (mode == COPY && !move_cap) {
         if (is_frame_cap && target_cap->mapping_container_id != INVALID_OBJ_ID) {
+            ZF_LOGD("moving mapped...");
             /* The spec requires the frame cap in the current slot be the same one
              * used to perform the mapping of the frame in some container (either
              * a page table or page directory). */
@@ -1758,7 +1759,7 @@ static void init_cnode_slot(CDL_Model *spec, init_cnode_mode mode, CDL_ObjID cno
             ZF_LOGF_IFERR(error, "");
         }
     } else {
-        ZF_LOGD("skipping");
+        ZF_LOGV("skipping");
     }
 }
 
