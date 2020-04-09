@@ -1242,16 +1242,12 @@ static void configure_tcb(CDL_Model *spec, CDL_ObjID tcb)
         .a3 = argc > 3 ? argv[3] : 0,
 #endif
     };
-    ZF_LOGD("  Setting up _start(");
+    ZF_LOGD("  Setting up _start()");
+    ZF_LOGD("   pc   = %p", (void *)pc);
+    ZF_LOGD("   sp   = %p", (void *)sp);
     for (int i = 0; i < argc; i++) {
-        ZF_LOGD("%p", (void *)argv[i]);
-        if (i != argc - 1) {
-            ZF_LOGD(", ");
-        }
+        ZF_LOGD("   arg%d = %p", i, (void *)argv[i]);
     }
-    ZF_LOGD(")...");
-    ZF_LOGD("pc = %p", (void *)pc);
-    ZF_LOGD("sp = %p", (void *)sp);
 
     global_user_context = regs;
 
