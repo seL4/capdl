@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include <inttypes.h>
 #include <sel4platsupport/platsupport.h>
 #include <cpio/cpio.h>
 #include <simple-default/simple-default.h>
@@ -984,11 +985,11 @@ static void init_tcb(CDL_Model *spec, CDL_ObjID tcb)
 
     CDL_Cap *cdl_cspace_root = get_cap_at(cdl_tcb, CDL_TCB_CTable_Slot);
     if (cdl_cspace_root == NULL) {
-        ZF_LOGF("Could not find CSpace cap for %s", CDL_Obj_Name(cdl_tcb));
+        ZF_LOGD("Could not find CSpace cap for %s", CDL_Obj_Name(cdl_tcb));
     }
     CDL_Cap *cdl_vspace_root = get_cap_at(cdl_tcb, CDL_TCB_VTable_Slot);
     if (cdl_vspace_root == NULL) {
-        ZF_LOGF("Could not find VSpace cap for %s", CDL_Obj_Name(cdl_tcb));
+        ZF_LOGD("Could not find VSpace cap for %s", CDL_Obj_Name(cdl_tcb));
     }
     CDL_Cap *cdl_ipcbuffer   = get_cap_at(cdl_tcb, CDL_TCB_IPCBuffer_Slot);
     if (cdl_ipcbuffer == NULL) {
@@ -1005,7 +1006,7 @@ static void init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     seL4_CPtr sel4_tcb = orig_caps(tcb);
 
     seL4_CPtr sel4_cspace_root = cdl_cspace_root == NULL ? 0 : orig_caps(CDL_Cap_ObjID(cdl_cspace_root));
-    seL4_CPtr sel4_vspace_root = orig_caps(CDL_Cap_ObjID(cdl_vspace_root));
+    seL4_CPtr sel4_vspace_root = cdl_vspace_root ? orig_caps(CDL_Cap_ObjID(cdl_vspace_root)) : 0;
     seL4_CPtr sel4_ipcbuffer   = cdl_ipcbuffer ? orig_caps(CDL_Cap_ObjID(cdl_ipcbuffer)) : 0;
     seL4_CPtr UNUSED sel4_sc   = cdl_sc ? orig_caps(CDL_Cap_ObjID(cdl_sc)) : 0;
 
@@ -1046,22 +1047,46 @@ static void init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     }
 
     seL4_Word sel4_cspace_root_data = seL4_NilData;
+    seL4_Word sel4_vspace_root_data = seL4_NilData;
     if (cdl_cspace_root != NULL) {
         sel4_cspace_root_data = get_capData(CDL_Cap_Data(cdl_cspace_root));
     }
-    seL4_Word sel4_vspace_root_data = get_capData(CDL_Cap_Data(cdl_vspace_root));
+    if (cdl_vspace_root != NULL) {
+        sel4_vspace_root_data = get_capData(CDL_Cap_Data(cdl_vspace_root));
+    }
 
+    /*
+     * seL4_TCB_Configure requires a valid CSpace, VSpace and IPC buffer cap to
+     * succeed at assigning any of them. We first try and perform seL4_TCB_Configure
+     * but if any of these objects are missing we fall back to only trying to assign
+     * an IPC buffer if we have one using seL4_TCB_SetIPCBuffer.  We print an error
+     * if a CSpace is available but a VSpace is not or if there is a VSpace but no CSpace.
+     */
     int error;
 #ifdef CONFIG_KERNEL_MCS
     if (sel4_sc) {
         init_sc(spec, CDL_Cap_ObjID(cdl_sc), affinity);
     }
 
-    error = seL4_TCB_Configure(sel4_tcb,
-                               sel4_cspace_root, sel4_cspace_root_data,
-                               sel4_vspace_root, sel4_vspace_root_data,
-                               ipcbuffer_addr, sel4_ipcbuffer);
-    ZF_LOGF_IFERR(error, "");
+    if (cdl_cspace_root && cdl_vspace_root && sel4_ipcbuffer) {
+        error = seL4_TCB_Configure(sel4_tcb,
+                                   sel4_cspace_root, sel4_cspace_root_data,
+                                   sel4_vspace_root, sel4_vspace_root_data,
+                                   ipcbuffer_addr, sel4_ipcbuffer);
+        ZF_LOGF_IFERR(error, "");
+    } else {
+        ZF_LOGE_IFERR(cdl_cspace_root || cdl_vspace_root || sel4_ipcbuffer,
+                      "Could not call seL4_TCB_Configure as not all required objects provided: "
+                      "VSpace: %"PRIxPTR", CSpace: %"PRIxPTR", IPC Buffer: %"PRIxPTR, cdl_vspace_root, cdl_cspace_root, sel4_ipcbuffer);
+
+        if (sel4_ipcbuffer) {
+            error = seL4_TCB_SetIPCBuffer(sel4_tcb, ipcbuffer_addr, sel4_ipcbuffer);
+            ZF_LOGF_IFERR(error, "");
+        }
+    }
+
+
+    ZF_LOGE_IF(cdl_cspace_root && cdl_vspace_root)
 
 
     error = seL4_TCB_SetSchedParams(sel4_tcb, seL4_CapInitThreadTCB, max_priority, priority,
@@ -1070,11 +1095,22 @@ static void init_tcb(CDL_Model *spec, CDL_ObjID tcb)
 
     error = seL4_TCB_SetTimeoutEndpoint(sel4_tcb, sel4_tempfault_ep);
 #else
-    error = seL4_TCB_Configure(sel4_tcb, sel4_fault_ep,
-                               sel4_cspace_root, sel4_cspace_root_data,
-                               sel4_vspace_root, sel4_vspace_root_data,
-                               ipcbuffer_addr, sel4_ipcbuffer);
-    ZF_LOGF_IFERR(error, "");
+    if (cdl_cspace_root && cdl_vspace_root && sel4_ipcbuffer) {
+        error = seL4_TCB_Configure(sel4_tcb, sel4_fault_ep,
+                                   sel4_cspace_root, sel4_cspace_root_data,
+                                   sel4_vspace_root, sel4_vspace_root_data,
+                                   ipcbuffer_addr, sel4_ipcbuffer);
+        ZF_LOGF_IFERR(error, "");
+    } else {
+        ZF_LOGE_IFERR(cdl_cspace_root || cdl_vspace_root || sel4_ipcbuffer,
+                      "Could not call seL4_TCB_Configure as not all required objects provided: "
+                      "VSpace: %"PRIxPTR", CSpace: %"PRIxPTR", IPC Buffer: %"PRIxPTR, cdl_vspace_root, cdl_cspace_root, sel4_ipcbuffer);
+
+        if (sel4_ipcbuffer) {
+            error = seL4_TCB_SetIPCBuffer(sel4_tcb, ipcbuffer_addr, sel4_ipcbuffer);
+            ZF_LOGF_IFERR(error, "");
+        }
+    }
 
     error = seL4_TCB_SetSchedParams(sel4_tcb, seL4_CapInitThreadTCB, max_priority, priority);
 #endif
