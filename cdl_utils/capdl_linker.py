@@ -64,7 +64,7 @@ def final_spec(args, obj_space, cspaces, addr_spaces, targets, architecture):
         obj_space.merge(elf_spec, label=key)
         for (slot, tcb) in [(k, v.referent) for (k, v) in cspace.cnode.slots.items()
                             if v is not None and isinstance(v.referent, TCB)]:
-            if tcb['cspace'] and tcb['cspace'].referent is not cspace.cnode:
+            if 'cspace' in tcb and tcb['cspace'] and tcb['cspace'].referent is not cspace.cnode:
                 # We exclude TCBs that refer to a different CSpace
                 continue
             funcs = {"get_vaddr": lambda x: elf.get_symbol_vaddr(x)}
