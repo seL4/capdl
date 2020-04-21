@@ -37,13 +37,6 @@ config_string(CapDLLoaderFillsPerFrame CAPDL_LOADER_FILLS_PER_FRAME
     UNQUOTE
 )
 
-config_option(CapDLLoaderAllowNoCSpace CAPDL_LOADER_ALLOW_NO_CSPACE
-    "Allow threads to be specified in CapDL with no CSpace and have them
-    configured as such by the initialiser. Note that this requires a kernel
-    that supports threads without CSpaces."
-    DEFAULT OFF
-)
-
 config_option(CapDLLoaderWriteablePages CAPDL_LOADER_WRITEABLE_PAGES
     "CapDL Loader will map all pages as writeable if the cap has grant permissions.
     This is currently used to enable instruction and data rewriting by an external debugger such as GDB."

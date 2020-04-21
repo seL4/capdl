@@ -983,11 +983,9 @@ static void init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     CDL_Object *cdl_tcb = get_spec_object(spec, tcb);
 
     CDL_Cap *cdl_cspace_root = get_cap_at(cdl_tcb, CDL_TCB_CTable_Slot);
-#ifndef CONFIG_CAPDL_LOADER_ALLOW_NO_CSPACE
     if (cdl_cspace_root == NULL) {
         ZF_LOGF("Could not find CSpace cap for %s", CDL_Obj_Name(cdl_tcb));
     }
-#endif
     CDL_Cap *cdl_vspace_root = get_cap_at(cdl_tcb, CDL_TCB_VTable_Slot);
     if (cdl_vspace_root == NULL) {
         ZF_LOGF("Could not find VSpace cap for %s", CDL_Obj_Name(cdl_tcb));
