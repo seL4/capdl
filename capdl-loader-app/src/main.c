@@ -1838,7 +1838,7 @@ static void start_threads(CDL_Model *spec)
 {
     ZF_LOGD("Starting threads...");
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
-        if (spec->objects[obj_id].type == CDL_TCB) {
+        if (spec->objects[obj_id].type == CDL_TCB && spec->objects[obj_id].tcb_extra.resume) {
             ZF_LOGD(" Starting %s...", CDL_Obj_Name(&spec->objects[obj_id]));
             seL4_CPtr tcb = orig_caps(obj_id);
             int error = seL4_TCB_Resume(tcb);

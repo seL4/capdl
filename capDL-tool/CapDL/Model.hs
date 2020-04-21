@@ -141,7 +141,8 @@ data TCBExtraInfo = TCBExtraInfo {
     sp :: Maybe Word,
     prio :: Maybe Integer,
     max_prio :: Maybe Integer,
-    affin :: Maybe Integer }
+    affin :: Maybe Integer,
+    resume :: Maybe Bool }
     deriving (Eq, Show)
 
 data SCExtraInfo = SCExtraInfo {

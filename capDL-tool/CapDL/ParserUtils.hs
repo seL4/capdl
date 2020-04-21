@@ -214,6 +214,12 @@ tcb_affinity = do
     n <- integer
     return $ Affinity n
 
+tcb_resume :: MapParser TCBExtraParam
+tcb_resume = do
+    reserved "resume"
+    colon
+    keyw "True" (Resume True) <|> keyw "False" (Resume False)
+
 tcb_extra_param :: MapParser ObjParam
 tcb_extra_param = do
     param <-   (tcb_addr
@@ -221,6 +227,7 @@ tcb_extra_param = do
             <|> tcb_sp
             <|> tcb_prio
             <|> tcb_max_prio
+            <|> tcb_resume
             <|> tcb_affinity)
     return $ TCBExtraParam param
 

@@ -47,6 +47,8 @@ data TCBExtraParam =
       max_prio :: Integer }
   | Affinity {
       affinity :: Integer }
+  | Resume {
+      resume :: Bool }
    deriving (Show, Eq, Ord, Typeable, Data)
 
 data FrameExtraParam =

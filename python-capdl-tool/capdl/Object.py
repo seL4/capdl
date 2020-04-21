@@ -339,7 +339,7 @@ class Notification(Object):
 
 class TCB(ContainerObject):
     def __init__(self, name, ipc_buffer_vaddr=0x0, ip=0x0, sp=0x0,
-                 prio=254, max_prio=254, affinity=0, init=None, domain=None, fault_ep_slot=None):
+                 prio=254, max_prio=254, affinity=0, init=None, domain=None, fault_ep_slot=None, resume=True):
         super(TCB, self).__init__(name)
         self.addr = ipc_buffer_vaddr
         self.ip = ip
@@ -350,6 +350,7 @@ class TCB(ContainerObject):
         self.init = init or []
         self.domain = domain
         self.fault_ep_slot = fault_ep_slot
+        self.resume = resume
 
     def __repr__(self):
         fields = [
@@ -365,6 +366,8 @@ class TCB(ContainerObject):
             fields += ['fault_ep: 0x%(fault_ep_slot)0.8x']
         if self.domain is not None:
             fields += ['dom: %(domain)d']
+        if self.resume is False:
+            fields += ['resume: %(resume)s']
         return ('%(name)s = tcb (' + ','.join(fields) + ')') % self.__dict__
 
     def set_affinity(self, affinity):

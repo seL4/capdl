@@ -263,6 +263,7 @@ typedef struct {
     seL4_Word init_sz;
     seL4_CPtr fault_ep;
     seL4_Word ipcbuffer_addr;
+    bool resume;
 } CDL_TCBExtraInfo;
 
 typedef struct {

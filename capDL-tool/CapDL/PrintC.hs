@@ -275,6 +275,7 @@ showObjectFields objs obj_id (TCB slots faultEndpoint info domain argv) _ _ _ =
     ".init = (const seL4_Word[])" ++ printInit argv ++ "," +++
     ".init_sz = " ++ show (length argv) ++ "," +++
     ".domain = " ++ show domain ++ "," +++
+    ".resume = " ++ show resume' ++ "," +++
     ".fault_ep = " ++ show fault_ep ++ "," +++
     "}," +++
     memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
@@ -283,6 +284,7 @@ showObjectFields objs obj_id (TCB slots faultEndpoint info domain argv) _ _ _ =
         priority = case info of {Just i -> case prio i of {Just p -> p; _ -> 125}; _ -> 125}
         max_priority = case info of {Just i -> case max_prio i of {Just p -> p; _ -> 125}; _ -> 125}
         affinity = case info of {Just i -> case affin i of {Just p -> p; _ -> 0}; _ -> 0}
+        resume' = case info of {Just i -> case resume i of {Just True -> 1; Just False -> 0; _ -> 1}; _ -> 1}
         pc = case info of {Just i -> case ip i of {Just v -> v; _ -> 0}; _ -> 0}
         stack = case info of {Just i -> case sp i of {Just v -> v; _ -> 0}; _ -> 0}
         fault_ep = case faultEndpoint of {Just w -> w; _ -> 0}
