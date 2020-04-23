@@ -1085,10 +1085,6 @@ static void init_tcb(CDL_Model *spec, CDL_ObjID tcb)
         }
     }
 
-
-    ZF_LOGE_IF(cdl_cspace_root && cdl_vspace_root)
-
-
     error = seL4_TCB_SetSchedParams(sel4_tcb, seL4_CapInitThreadTCB, max_priority, priority,
                                     sel4_sc, sel4_fault_ep);
     ZF_LOGF_IFERR(error, "");
