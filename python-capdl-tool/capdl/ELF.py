@@ -154,6 +154,11 @@ class ELF(object):
                     "Symbol (%s:%d) must have same or greater size than supplied cap range (%d)" % (
                         symbol, self.get_symbol_size(symbol), sum(sizes))
                 existing_pages.append((self.get_symbol_vaddr(symbol), sizes, caps))
+            for (vaddr, (sizes, caps)) in iteritems(addr_space.get_external_regions_and_clear()):
+                existing_pages.append((vaddr, sizes, caps))
+                for (size, cap) in zip(sizes, caps):
+                    pages.add_page(vaddr, read=cap.read, write=cap.write, size=size)
+                    vaddr += size
 
             existing_pages.sort(key=lambda phys_addr: phys_addr[0])
             self.check_alignment(existing_pages)
