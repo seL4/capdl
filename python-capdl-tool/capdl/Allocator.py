@@ -276,6 +276,7 @@ class AddressSpaceAllocator(object):
         self.name = name
         self.vspace_root = vspace_root
         self._symbols = {}
+        self._external_regions = {}
         self._regions = {}
 
     def add_symbol_with_caps(self, symbol, sizes, caps):
@@ -310,6 +311,29 @@ class AddressSpaceAllocator(object):
         symbols = self._symbols
         self._symbols = None
         return symbols
+
+    def add_external_region_with_caps(self, vaddr, sizes, caps):
+        '''
+        Specify the caps and sizes to use for a region outside of the ELF file.
+        Objects that the caps refer to should have been allocated by an
+        ObjectAllocator otherwise they might not end up in the final CDL spec
+        file.
+
+        It should be possible for the frames to be mapped into the address
+        space at the given vaddr in a sensible way. Therefore alignment of
+        vaddr should be compatible with the array of frames provided.
+        '''
+        self._external_regions[vaddr] = (sizes, caps)
+
+    def get_external_regions_and_clear(self):
+        '''
+        This function is used for converting symbols into virtual addresses with
+        an elf file. Resulting regions should be added back via add_region_with_caps
+        This sets the internal symbols structure to None to prevent usages after.
+        '''
+        external_regions = self._external_regions
+        self._external_regions = None
+        return external_regions
 
     def add_region_with_caps(self, vaddr, sizes, caps):
         '''
