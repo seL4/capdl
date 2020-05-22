@@ -113,9 +113,10 @@ data Cap
             capObj :: ObjID }
 
         -- ARM specific caps
-        | ARMIOSpaceCap { capObj :: ObjID }
-        | ARMIRQHandlerCap {
-            capObj :: ObjID }
+        | ARMIOSpaceCap    { capObj :: ObjID }
+        | ARMIRQHandlerCap { capObj :: ObjID }
+        | ARMSIDCap        { capObj :: ObjID }
+        | ARMCBCap         { capObj :: ObjID }
 
         -- X86 specific caps
         | IOPortsCap {
@@ -198,6 +199,10 @@ data KernelObject a
         trigger :: Word,
         target :: Word }
 
+-- fake kernel objects for smmu
+    | ARMSID
+    | ARMCB { bankNumber :: Maybe Word }
+
 -- X86 specific objects
     | IOPorts { ports :: (Word, Word) }
     | IODevice {
@@ -236,6 +241,8 @@ data KOType
     | IOAPICIrqSlot_T
     | MSIIrqSlot_T
     | ARMIrqSlot_T
+    | ARMSID_T
+    | ARMCB_T
     | ASIDPool_T
     | PT_T
     | PD_T

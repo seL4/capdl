@@ -117,6 +117,8 @@ showObjectName RTReply {} = "RTReply"
 showObjectName IOAPICIrq {} = "IOAPICIrq"
 showObjectName MSIIrq {} = "MSIIrq"
 showObjectName ARMIrq {} = "ARMIrq"
+showObjectName ARMSID {} = "ARMSID"
+showObjectName ARMCB {} = "ARMCB"
 
 --
 -- Get a cap's name.
@@ -154,6 +156,8 @@ showCapName VCPUCap {} = "VCPUCap"
 showCapName SCCap {} = "SCCap"
 showCapName RTReplyCap {} = "RTReplyCap"
 showCapName SchedControlCap {} = "SchedControlCap"
+showCapName ARMSIDCap {} = "ARMSIDCap"
+showCapName ARMCBCap {} = "ARMCBCap"
 
 showExtraCapAttributes :: Cap -> [(String, String)]
 showExtraCapAttributes (EndpointCap _ capBadge _) = [("badge", show capBadge)]

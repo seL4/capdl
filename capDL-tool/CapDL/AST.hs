@@ -58,6 +58,11 @@ data SCExtraParam =
       scData :: Word }
    deriving (Show, Eq, Ord, Typeable, Data)
 
+data CBExtraParam = 
+    CBNumber {
+    cbNumber :: Word }
+    deriving (Eq, Show, Ord, Typeable, Data)
+
 data IOAPICIRQExtraParam =
     IOAPIC {
         ioapic :: Word }
@@ -102,6 +107,8 @@ data ObjParam =
       frameExtraParam :: FrameExtraParam}
   | SCExtraParam {
       sc_extraParam :: SCExtraParam }
+  | CBExtraParam {
+      cb_extraParam :: CBExtraParam }
   | IOAPICIRQExtraParam {
       ioapic_irq_extraParam :: IOAPICIRQExtraParam }
   | MSIIRQExtraParam {

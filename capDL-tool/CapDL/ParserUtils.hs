@@ -135,6 +135,8 @@ object_type =
     <|> keyw "vcpu" VCPU_T
     <|> keyw "sc" SC_T
     <|> keyw "rtreply" RTReply_T
+    <|> keyw "streamid" ARMSID_T
+    <|> keyw "contextbank" ARMCB_T
 
 obj_bit_size :: MapParser ObjParam
 obj_bit_size = do
@@ -276,6 +278,13 @@ sc_period = do
     n <- integer64
     return $ Period n
 
+cb_number :: MapParser CBExtraParam
+cb_number = do
+    reserved "bank"
+    colon
+    n <- number
+    return $ CBNumber n
+
 sc_budget :: MapParser SCExtraParam
 sc_budget = do
     reserved "budget"
@@ -296,6 +305,11 @@ sc_extra_param = do
             <|> sc_budget
             <|> sc_data)
     return $ SCExtraParam param
+
+cb_extra_param :: MapParser ObjParam
+cb_extra_param = do
+    param <- cb_number
+    return $ CBExtraParam param
 
 ioapic_irq_ioapic :: MapParser IOAPICIRQExtraParam
 ioapic_irq_ioapic = do
@@ -443,6 +457,7 @@ object_param =
     <|> arm_irq_extra_param
     <|> ports_param
     <|> asid_high_param
+    <|> cb_extra_param
 
 object_params :: MapParser [ObjParam]
 object_params =

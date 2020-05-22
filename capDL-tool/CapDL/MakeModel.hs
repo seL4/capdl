@@ -273,6 +273,11 @@ getSCData [] = Nothing
 getSCData (SCExtraParam (SCData scData) : _) = Just scData
 getSCData (_ : xs) = getSCData xs
 
+getCBExtraInfo :: [ObjParam] -> Maybe Word
+getCBExtraInfo [] = Nothing
+getCBExtraInfo (CBExtraParam (CBNumber x) : _) = Just x
+getCBExtraInfo (_ : xs) = getCBExtraInfo xs
+
 getSCExtraInfo :: Name -> [ObjParam] -> Maybe SCExtraInfo
 getSCExtraInfo n params =
     -- FIXME: This is really hacky hardcoding the acceptable combinations of attributes.
@@ -430,6 +435,8 @@ validObjPars (Obj MSIIrqSlot_T ps []) =
   subsetConstrs ps (replicate (numConstrs (Addr undefined)) (MSIIRQExtraParam undefined))
 validObjPars (Obj ARMIrqSlot_T ps []) =
   subsetConstrs ps (replicate (numConstrs (Addr undefined)) (ARMIRQExtraParam undefined))
+validObjPars (Obj ARMCB_T ps []) =
+  subsetConstrs ps (replicate (numConstrs (Addr undefined)) (CBExtraParam undefined))
 validObjPars obj = null (params obj)
 
 -- For converting frame sizes to size bits
@@ -470,6 +477,8 @@ objectOf n obj =
         Obj VCPU_T [] [] -> VCPU
         Obj SC_T ps [] -> SC (getSCExtraInfo n ps) (getMaybeBitSize ps)
         Obj RTReply_T [] [] -> RTReply
+        Obj ARMSID_T [] [] -> ARMSID
+        Obj ARMCB_T ps [] -> ARMCB (getCBExtraInfo ps)
         Obj _ _ (_:_) ->
           error $ "Only untyped caps can have objects as content: " ++
                   n ++ " = " ++ show obj
@@ -644,6 +653,8 @@ objCapOf containerName obj objRef params =
         IOAPICIrq {} -> IRQIOAPICHandlerCap objRef
         MSIIrq {} -> IRQMSIHandlerCap objRef
         ARMIrq {} -> ARMIRQHandlerCap objRef
+        ARMSID {} -> ARMSIDCap objRef
+        ARMCB {} -> ARMCBCap objRef
     else error ("Incorrect params for cap to " ++ printID objRef ++ " in " ++
                 printID containerName ++ "; got " ++ show params)
 

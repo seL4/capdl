@@ -213,6 +213,8 @@ prettyObjParams obj = case obj of
     IOAPICIrq _ ioapic pin level polarity -> text "ioapic_irq" <+> maybeParensList[prettyIOAPICNum ioapic, prettyIOAPICPin pin, prettyIOAPICLevel level, prettyIOAPICPolarity polarity]
     MSIIrq _ handle bus dev fun -> text "msi_irq" <+> maybeParensList[prettyMSIHandle handle, prettyMSIPCIBus bus, prettyMSIPCIDev dev, prettyMSIPCIFun fun]
     ARMIrq _ trigger target -> text "arm_irq" <+> maybeParensList[prettyARMIRQTrigger trigger, prettyARMIRQTarget target]
+    ARMSID {} -> text "streamid"
+    ARMCB {} -> text "contextbank"
 
 capParams [] = empty
 capParams xs = parens (hsep $ punctuate comma xs)

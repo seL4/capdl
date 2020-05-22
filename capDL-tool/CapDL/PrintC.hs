@@ -153,12 +153,18 @@ showCap objs (FrameCap id rights _ cached maybe_mapping) _ is_orig _ =
                _ -> "0") ++
     "}"
     -- FIXME: I feel like I should be doing something with the ASID data here...
+showCap objs (ARMSIDCap id) _ is_orig _ =
+    "{.type = CDL_SIDCap, .obj_id = " ++ showObjID objs id ++ ", .is_orig = " ++ is_orig ++ "}"
+showCap objs (ARMCBCap id) _ is_orig _ =
+    "{.type = CDL_CBCap, .obj_id = " ++ showObjID objs id ++ ", .is_orig = " ++ is_orig ++ "}"
+
 showCap objs (PTCap id _) _ is_orig _ =
     "{.type = CDL_PTCap, .obj_id = " ++ showObjID objs id ++
     ", .is_orig = " ++ is_orig ++ "}"
 showCap objs (PDCap id _) _ is_orig _ =
     "{.type = CDL_PDCap, .obj_id = " ++ showObjID objs id ++
     ", .is_orig = " ++ is_orig ++ "}"
+
 showCap objs (PDPTCap id _) _ is_orig _ =
     "{.type = CDL_PDPTCap, .obj_id = " ++ showObjID objs id ++
     ", .is_orig = " ++ is_orig ++ "}"
@@ -370,10 +376,9 @@ showObjectFields _ _ (SC info size_bits) _ _ _ =
     sc_budget = fromMaybe 0 (maybe Nothing budget info)
     sc_data   = fromMaybe 0 (maybe Nothing scData info)
     sizeBits  = fromMaybe 0 size_bits
-
-showObjectFields _ _ RTReply _ _ _ =
-    ".type = CDL_RTReply,"
-
+showObjectFields _ _ (RTReply {}) _ _ _ = ".type = CDL_RTReply,"
+showObjectFields _ _ (ARMSID {}) _ _ _ = ".type = CDL_SID,"
+showObjectFields _ _ (ARMCB {}) _ _ _ = ".type = CDL_CB,"
 showObjectFields _ _ x _ _ _ = assert False $
     "UNSUPPORTED OBJECT TYPE: " ++ show x
 
