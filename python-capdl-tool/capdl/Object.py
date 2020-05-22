@@ -93,6 +93,9 @@ class ObjectType(Enum):
     seL4_RTReplyObject = auto()
     seL4_ARM_IOSpace = auto()
 
+    seL4_ARMSID = auto()
+    seL4_ARMCB = auto()
+
     seL4_AARCH64_PGD = auto()
     seL4_AARCH64_PUD = auto()
 
@@ -634,6 +637,33 @@ class RTReply(Object):
 
     def get_size_bits(self):
         return get_object_size_bits(ObjectType.seL4_RTReplyObject)
+
+
+class StreamID(Object):
+    def __init__(self, name):
+        super().__init__(name)
+
+    def __repr__(self):
+        return '%s = streamid' % self.name
+
+    def get_size_bits(self):
+        return None
+
+
+class ContextBank(Object):
+    def __init__(self, name):
+        super().__init__(name)
+
+        # Assignment of context bank numbers will evolve with use case
+        self.bank = 0
+
+    def __repr__(self):
+        s = '%s = contextbank (bank: %d)' % (self.name, self.bank)
+        self.bank += 1
+        return s
+
+    def get_size_bits(self):
+        return None
 
 
 def is_aligned(value, size_bits):

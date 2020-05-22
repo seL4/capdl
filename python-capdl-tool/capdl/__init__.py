@@ -13,7 +13,7 @@ from .Object import Frame, PageTable, PageDirectory, ASIDPool, CNode, Endpoint, 
     Notification, TCB, Untyped, IOPorts, IODevice, IOPageTable, \
     IRQ, SC, RTReply, calculate_cnode_size, \
     Object, ContainerObject, ObjectType, ObjectRights, IRQControl, register_object_sizes, \
-    SchedControl, ARMIRQMode
+    SchedControl, ARMIRQMode, ContextBank, StreamID
 from .Spec import Spec
 from .Allocator import ObjectAllocator, CSpaceAllocator, AddressSpaceAllocator, AllocatorState
 from .PageCollection import PageCollection, create_address_space
