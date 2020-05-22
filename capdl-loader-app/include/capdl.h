@@ -81,6 +81,8 @@ typedef enum {
 #endif
 #if defined(CONFIG_ARCH_ARM)
     CDL_ARMIOSpaceCap,
+    CDL_SIDCap,
+    CDL_CBCap,
 #endif
 #if defined(CONFIG_ARM_HYPERVISOR_SUPPORT)
     CDL_VCPUCap,
@@ -201,6 +203,8 @@ typedef enum {
 #if defined(CONFIG_ARCH_ARM)
     CDL_ARMIODevice   = seL4_ObjectTypeCount + 9,
     CDL_ARMInterrupt = seL4_ObjectTypeCount + 11,
+    CDL_SID = seL4_ObjectTypeCount + 12,
+    CDL_CB = seL4_ObjectTypeCount + 13,
 #endif
 #ifdef CONFIG_ARCH_RISCV
     CDL_Frame = seL4_RISCV_4K_Page,
@@ -273,6 +277,10 @@ typedef struct {
 } CDL_SCExtraInfo;
 
 typedef struct {
+    uint8_t bank;
+} CDL_CBExtraInfo;
+
+typedef struct {
     int ioapic;
     int ioapic_pin;
     int level;
@@ -341,6 +349,7 @@ typedef struct {
     union {
         CDL_TCBExtraInfo tcb_extra;
         CDL_SCExtraInfo sc_extra;
+        CDL_CBExtraInfo cb_extra;
         CDL_IOAPICIRQExtraInfo ioapicirq_extra;
         CDL_MSIIRQExtraInfo msiirq_extra;
         CDL_ARMIRQExtraInfo armirq_extra;
@@ -512,6 +521,11 @@ static inline seL4_Word CDL_TCB_IPCBuffer_Addr(CDL_Object *obj)
 static inline uint8_t CDL_TCB_Priority(CDL_Object *obj)
 {
     return obj->tcb_extra.priority;
+}
+
+static inline uint8_t CDL_CB_Bank(CDL_Object *obj)
+{
+    return obj->cb_extra.bank;
 }
 
 static inline uint8_t CDL_TCB_MaxPriority(CDL_Object *obj)
