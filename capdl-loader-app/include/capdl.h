@@ -82,6 +82,9 @@ typedef enum {
 #if defined(CONFIG_ARCH_ARM)
     CDL_ARMIOSpaceCap,
 #endif
+#if defined(CONFIG_ARM_HYPERVISOR_SUPPORT)
+    CDL_VCPUCap,
+#endif
     CDL_SCCap,
     CDL_SchedControlCap,
     CDL_RTReplyCap,
@@ -165,6 +168,9 @@ typedef enum {
 #ifdef CONFIG_ARCH_AARCH64
     CDL_PUD           = seL4_ARM_PageUpperDirectoryObject,
     CDL_PGD           = seL4_ARM_PageGlobalDirectoryObject,
+#endif
+#ifdef CONFIG_ARM_HYPERVISOR_SUPPORT
+    CDL_VCPU          = seL4_ARM_VCPUObject,
 #endif
 #elif defined(CONFIG_ARCH_X86)
     CDL_PT            = seL4_X86_PageTableObject,
@@ -391,6 +397,10 @@ typedef struct {
 #define CDL_TCB_FaultEP_Slot        5
 #define CDL_TCB_SC_Slot             6
 #define CDL_TCB_TemporalFaultEP_Slot   7
+
+#ifdef CONFIG_ARM_HYPERVISOR_SUPPORT
+#define CDL_TCB_VCPU_SLOT           8
+#endif
 
 #define CDL_CapData_MakeGuard(x, y) \
 { .tag = CDL_CapData_Guard, .guard_bits = (y), .guard_size = (x) }

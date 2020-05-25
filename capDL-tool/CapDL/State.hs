@@ -404,6 +404,7 @@ validCapArch ARM11 (ARMIRQHandlerCap {}) = True
 validCapArch AARCH64 (ARMIRQHandlerCap {}) = True
 validCapArch AARCH64 (PUDCap {}) = True
 validCapArch AARCH64 (PGDCap {}) = True
+validCapArch AARCH64 (VCPUCap {}) = True
 validCapArch _ _ = False
 
 checkCapArch :: Arch -> Cap -> ObjID -> Word -> Logger Bool
@@ -456,6 +457,7 @@ validObjArch X86_64 (MSIIrq {}) = True
 validObjArch AARCH64 (ARMIrq {}) = True
 validObjArch AARCH64 (PUD {}) = True
 validObjArch AARCH64 (PGD {}) = True
+validObjArch AARCH64 (VCPU {}) = True
 validObjArch _ _ = False
 
 checkObjArch :: Arch -> KernelObject Word -> ObjID -> Logger Bool

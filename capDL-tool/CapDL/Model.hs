@@ -350,6 +350,9 @@ tcbSCSlot = 6
 tcbTempFaultEPSlot :: Word
 tcbTempFaultEPSlot = 7
 
+tcbBoundVCPUSlot :: Word
+tcbBoundVCPUSlot = 8
+
 --
 -- The string used when defining an IOSpaceMasterCap, an ASIDControlCap,
 -- an IRQControlCap, a DomainCap or a SchedControlCap.

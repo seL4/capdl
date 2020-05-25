@@ -993,6 +993,9 @@ static void init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     if (cdl_ipcbuffer == NULL) {
         ZF_LOGD("  Warning: TCB has no IPC buffer");
     }
+#ifdef CONFIG_ARM_HYPERVISOR_SUPPORT
+    CDL_Cap *cdl_vcpu = get_cap_at(cdl_tcb, CDL_TCB_VCPU_SLOT);
+#endif
 
     CDL_Cap *cdl_sc   = get_cap_at(cdl_tcb, CDL_TCB_SC_Slot);
 
@@ -1007,6 +1010,9 @@ static void init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     seL4_CPtr sel4_vspace_root = cdl_vspace_root ? orig_caps(CDL_Cap_ObjID(cdl_vspace_root)) : 0;
     seL4_CPtr sel4_ipcbuffer   = cdl_ipcbuffer ? orig_caps(CDL_Cap_ObjID(cdl_ipcbuffer)) : 0;
     seL4_CPtr UNUSED sel4_sc   = cdl_sc ? orig_caps(CDL_Cap_ObjID(cdl_sc)) : 0;
+#ifdef CONFIG_ARM_HYPERVISOR_SUPPORT
+    seL4_CPtr sel4_vcpu        = cdl_vcpu ? orig_caps(CDL_Cap_ObjID(cdl_vcpu)) : 0;
+#endif
 
     seL4_CPtr sel4_fault_ep;
     seL4_CPtr UNUSED sel4_tempfault_ep;
@@ -1116,6 +1122,14 @@ static void init_tcb(CDL_Model *spec, CDL_ObjID tcb)
 #endif
 
     ZF_LOGF_IFERR(error, "");
+
+#ifdef CONFIG_ARM_HYPERVISOR_SUPPORT
+    if (sel4_vcpu) {
+        int error = seL4_ARM_VCPU_SetTCB(sel4_vcpu, sel4_tcb);
+        ZF_LOGF_IFERR(error, "Failed to bind TCB %s to VCPU %s",
+                      CDL_Obj_Name(cdl_tcb), CDL_Obj_Name(get_spec_object(spec, CDL_Cap_ObjID(cdl_vcpu))));
+    }
+#endif
 
 #ifdef CONFIG_DEBUG_BUILD
     /* Name the thread after its TCB name if possible. We need to do some
