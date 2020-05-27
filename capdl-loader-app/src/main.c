@@ -382,7 +382,7 @@ void init_copy_frame(seL4_BootInfo *bootinfo)
  *
  * Sorting done using counting sort.
  */
-static void sort_untypeds(seL4_BootInfo *bootinfo)
+static unsigned int sort_untypeds(seL4_BootInfo *bootinfo)
 {
     seL4_CPtr untyped_start = bootinfo->untyped.start;
     seL4_CPtr untyped_end = bootinfo->untyped.end;
@@ -406,6 +406,8 @@ static void sort_untypeds(seL4_BootInfo *bootinfo)
         total += oldCount;
     }
 
+    unsigned int num_normal_untypes = 0;
+
     // Store untypeds in untyped_cptrs array.
     for (seL4_Word untyped_index = 0; untyped_index != untyped_end - untyped_start; untyped_index++) {
         if (bootinfo->untypedList[untyped_index].isDevice) {
@@ -422,9 +424,11 @@ static void sort_untypeds(seL4_BootInfo *bootinfo)
 
             untyped_cptrs[count[bootinfo->untypedList[untyped_index].sizeBits]] = untyped_start +  untyped_index;
             count[bootinfo->untypedList[untyped_index].sizeBits] += 1;
+            num_normal_untypes++;
         }
     }
 
+    return num_normal_untypes;
 }
 #endif /* !CONFIG_CAPDL_LOADER_STATIC_ALLOC */
 
@@ -764,7 +768,7 @@ static void create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
 static void create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
 {
     /* Sort untypeds from largest to smallest. */
-    sort_untypeds(bootinfo);
+    unsigned int num_normal_untypes = sort_untypeds(bootinfo);
 
     ZF_LOGD("Creating objects...");
 
@@ -780,7 +784,7 @@ static void create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
     //    OR
     //  - we fail to create an object, and move to the next untyped object
 
-    while (obj_id_index < spec->num && ut_index < (bootinfo->untyped.end - bootinfo->untyped.start)) {
+    while (obj_id_index < spec->num && ut_index < num_normal_untypes) {
         CDL_ObjID obj_id = obj_id_index;
         seL4_CPtr free_slot = free_slot_start + free_slot_index;
         seL4_CPtr untyped_cptr = untyped_cptrs[ut_index];
