@@ -109,6 +109,8 @@ data Cap
         | ASIDControlCap -- only one ASIDTable in the system
         | ASIDPoolCap {
             capObj :: ObjID }
+        | VCPUCap {
+            capObj :: ObjID }
 
         -- ARM specific caps
         | ARMIOSpaceCap { capObj :: ObjID }
@@ -121,7 +123,6 @@ data Cap
         | IOSpaceMasterCap -- can mint to any IOSpaceCap
         | IOSpaceCap { capObj :: ObjID }
         | IOPTCap { capObj :: ObjID }
-        | VCPUCap { capObj :: ObjID }
 
         deriving (Eq, Ord, Show)
 
@@ -186,6 +187,7 @@ data KernelObject a
         vmSizeBits :: Word,
         maybePaddr :: Maybe Word,
         maybeFill :: Maybe [[String]] }
+    | VCPU
 
 -- ARM specific objects
     | ARMIODevice {
@@ -205,7 +207,6 @@ data KernelObject a
     | IOPT {
         slots :: CapMap a,
         level :: Word }
-    | VCPU
     | IOAPICIrq {
         slots :: CapMap a,
         ioapic :: Word,
