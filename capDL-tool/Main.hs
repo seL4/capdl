@@ -17,6 +17,7 @@ import CapDL.State
 import CapDL.PrintDot
 import CapDL.PrintXml
 import CapDL.PrintIsabelle
+import CapDL.PrintJSON (printJSON)
 import CapDL.PrintC
 import CapDL.STCC
 
@@ -41,6 +42,7 @@ data Options = Options {
     optOutputXml :: Maybe String,
     optOutputDot :: Maybe String,
     optOutputCSpec :: Maybe String,
+    optOutputJSON :: Maybe String,
     optDynamicAllocCSpec :: Bool,
     optOutputText :: Maybe String,
     optOutputAnalysis :: Maybe String,
@@ -55,6 +57,7 @@ defaultOptions = Options {
     optOutputXml = Nothing,
     optOutputDot = Nothing,
     optOutputCSpec = Nothing,
+    optOutputJSON = Nothing,
     optDynamicAllocCSpec = True,
     optOutputText = Nothing,
     optOutputAnalysis = Nothing,
@@ -77,6 +80,10 @@ options = [
     Option ['c'] ["code"]
         (ReqArg (\arg -> \o -> o {optOutputCSpec = Just arg}) "FILE")
         "output C initialiser source to FILE",
+
+    Option [] ["json"]
+        (ReqArg (\arg -> \o -> o {optOutputJSON = Just arg}) "FILE")
+        "output JSON spec to FILE",
 
     Option [] ["code-dynamic-alloc"]
         (NoArg (\o -> o {optDynamicAllocCSpec = True}))
@@ -254,6 +261,7 @@ main = do
                                                           | otherwise = StaticAlloc
                                                     in writeFile' f $ show $
                                                        printC allocType m i c),
+                          (optOutputJSON,     \f -> writeFile' f $ printJSON objSizeMap m),
                           (optOutputText,     \f -> writeFile' f $ show $ pretty m),
                           (optOutputAnalysis, \f -> do (leakDot, flowDot, newM) <- leakMatrix m
                                                        writeFile (f ++ "-leak.dot") leakDot
