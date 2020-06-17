@@ -1,3 +1,7 @@
+ # Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+#
+# SPDX-License-Identifier: BSD-2-Clause
+
 seL4_TCBObject: 10
 seL4_EndpointObject: 4
 seL4_NotificationObject: 4

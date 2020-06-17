@@ -1,4 +1,6 @@
-syntax: glob
+# Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+#
+# SPDX-License-Identifier: BSD-2-Clause
 
 /*.parse
 /*.parse.x
@@ -6,10 +8,6 @@ syntax: glob
 /*.png
 /*.xml
 /*.thy
-doc/capDL.pdf
-doc/capDL.aux
-doc/capDL.log
-doc/capDL.out
 
 .cabal-sandbox
 cabal.sandbox.config

@@ -1,5 +1,11 @@
 /* Generated from CAmkES "adder" app on the imx.6 Sabre platform. */
 
+/*
+ * Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+ *
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 arch arm11
 
 objects {

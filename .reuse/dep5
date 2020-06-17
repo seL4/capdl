@@ -1,0 +1,19 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: capDL
+Upstream-Contact:  <foundation@sel4.systems>
+Source: https://github.com/seL4/capDL/
+
+Files:
+  VERSION
+  capDL-tool/camkes-adder-arm.right
+  capDL-tool/camkes-adder-arm.thy.right
+  capDL-tool/cap-dist-elf-simpleserver.right
+  capDL-tool/example-arm.right
+  capDL-tool/example-ia32.right
+  capDL-tool/hello-dump.right
+  python-capdl-tool/tests/resources/arm-hello.bin
+  python-capdl-tool/tests/resources/ia32-hello.bin
+  python-capdl-tool/tests/resources/stripped.bin
+  python-capdl-tool/tests/resources/unstripped.bin
+Copyright: 2020, Data61, CSIRO (ABN 41 687 119 230)
+License: BSD-2-Clause
