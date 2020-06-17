@@ -281,8 +281,10 @@ create right is conferred by the possession of an untyped capability.
 
     data Cap = NullCap
              | UntypedCap { capObj :: ObjID }
-             | EndpointCap { capObj :: ObjID, capBadge :: Word, capRights :: CapRights }
-             | NotificationCap { capObj :: ObjID, capBadge :: Word, capRights :: CapRights }
+             | EndpointCap { capObj :: ObjID, capBadge :: Word,
+                             capRights :: CapRights }
+             | NotificationCap { capObj :: ObjID, capBadge :: Word,
+                                 capRights :: CapRights }
              | ReplyCap { capObj :: ObjID }
              | MasterReplyCap { capObj :: ObjID }
              | CNodeCap { capObj :: ObjID, capGuard :: Word,
