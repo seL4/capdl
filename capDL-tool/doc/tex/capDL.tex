@@ -10,26 +10,28 @@
 % @TAG(DATA61_BSD)
 %
 
-\documentclass[a4paper,12pt]{article}
-\usepackage[data61,showAuthor,noCalibri]{csiro}
+\documentclass[english,a4paper,11pt]{article}
+\usepackage{sel4}
 
-\usepackage{graphicx}
-\graphicspath{{./imgs/}}
-\setkeys{Gin}{keepaspectratio=true,clip=true,draft=false,width=\linewidth}
-\usepackage{times,cite,url,microtype}
-\urlstyle{rm}
-\renewcommand{\ttdefault}{cmtt}	% CM rather than courier for \tt
+\usepackage{url,verbatim,datetime,microtype}
 
-
-\usepackage[pagebackref,hyperindex,bookmarks]{hyperref}
-\hypersetup{linktocpage,colorlinks}
+\usepackage[pdftex,pagebackref,hyperindex,bookmarks]{hyperref}
+% default no frames around links, dark versions so it prints Ok.
+\hypersetup{colorlinks,
+  	              allcolors=neutral,
+                    anchorcolor=black,
+                    citecolor=greenDark,
+                    linkcolor=greenDark,
+                    pdftitle={capDL Language Specification},
+                    pdfauthor={Gerwin Klein}}
 
 
 \begin{document}
 
 \title{capDL Language Specification}
 \author{Gerwin Klein}
-\AuthorEmail{gerwin.klein@data61.csiro.au}
+\date{}
+
 \maketitle
 
 \input{capDL_generated}

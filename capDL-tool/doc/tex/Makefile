@@ -13,8 +13,8 @@
 all: capDL.pdf
 
 capDL.pdf: capDL.tex capDL_generated.tex
-	lualatex capDL
-	lualatex capDL
+	pdflatex capDL
+	pdflatex capDL
 
 capDL_generated.tex: ../capDL.md
 	pandoc $< -o $@

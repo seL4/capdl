@@ -1,0 +1,274 @@
+% Copyright seL4 Project a Series of LF Projects, LLC
+% SPDX-License-Identifier: CC-BY-SA-4.0
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{sel4}[2020/04/01 v0.5 seL4 Foundation letterhead and title page]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Letterhead and title page for the seL4 Foundation
+%
+% Written 2020-03-23 by Gernot Heiser <gernot@sel4.systems>
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% OPTIONS:
+%   noBanner:	no black banner underneath the logo
+%
+%
+%   COMMANDS:
+%     - INPUTS:
+%        \title			Document title in header, default: none
+%        \author			Document author, ignored if title is empty
+%        \date			Date of document, default \today, ignored if title is empty
+%        \header			Organisation/originator to go in TRHS of header, multiple lines
+%					default: seL4 Foundation
+%        \url			Org URL, default: seL4 Foundation URL
+%        \copyYear		Year of copyright (default: this year)
+%     - OUTPUTS:
+%        \doCopyright	Produces the copyright notice
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%   To Do:
+%   - test \header, \url
+%   - proper stacking of header
+
+\newif\ifb@nner\b@nnertrue
+
+%% options section
+\DeclareOption{noBanner}{\b@nnerfalse}
+
+\ProcessOptions\relax
+
+%% package section
+\RequirePackage[margin=25mm]{geometry}
+\RequirePackage{fancyhdr}
+\RequirePackage{enumitem}
+\RequirePackage{parskip}
+\RequirePackage{sfmath}
+\RequirePackage{graphicx}
+\usepackage[T1]{fontenc}
+\usepackage[sfdefault]{roboto}
+\RequirePackage{xcolor}
+% \RequirePackage[datesep=-,style=iso]{datetime2}
+\RequirePackage[iso]{isodate}
+
+\if@titlepage
+\typeout{have titlepage}
+\else
+\typeout{no titlepage}
+\fi
+
+%% Foundation colour scheme:
+\definecolor{greenLight}{HTML}{C0DF9A}
+\definecolor{greenLogo}{HTML}{96CA50}
+\definecolor{greenDark}{HTML}{668B37}
+\definecolor{accentLight}{HTML}{D5AEAA}
+\definecolor{accent}{HTML}{AC5D55}
+\definecolor{accentDark}{HTML}{820C00}
+\definecolor{emphasisLight}{HTML}{FFE0A2}
+\definecolor{emphasis}{HTML}{FFCA5F}
+\definecolor{emphasisDark}{HTML}{B78B41}
+% white (already defined)
+\definecolor{neutralLighter}{HTML}{D6DBE4}
+\definecolor{neutralLight}{HTML}{8897AE}
+\definecolor{neutral}{HTML}{385378}
+\definecolor{neutralDark}{HTML}{263852}
+% black (already defined)
+
+\colorlet{logoGreen}{greenLogo}
+\colorlet{seL4Green}{greenLogo}
+
+
+%% definitions
+\renewcommand{\familydefault}{\sfdefault}
+\def\h@eader{The seL4 Foundation\\\\}
+\def\u@rl{https://sel4.systems/Foundation}
+\def\@title{}
+\def\@subtitle{}
+\def\@author{}
+\def\@authortitle{}
+\def\@email{}
+\def\@docversion{}
+\def\@date{\today}
+\def\header#1{\def\h@eader{#1}}
+\def\title#1{\def\@title{#1}}
+\def\author#1{\def\@author{#1}}
+\def\authortitle#1{\def\@authortitle{#1}}
+\def\email#1{\def\@email{#1}}
+\def\docversion#1{\def\@docversion{#1}}
+\def\thedocversion{\@docversion}
+\def\date#1{\def\@date{#1}}
+\def\thedate{\value\@date}
+\def\thanks{\undefined}
+\newcommand{\subtitle}[1]{\def\@subtitle{#1}}
+\newcommand{\Logo@FileName}{imgs/logos/seL4-Foundation-logo.pdf}
+\newcommand{\Triang@FileName}{imgs/blacktriangle.pdf}
+\newcommand{\Key@FileName}{imgs/seL4-key.pdf}
+\newcommand{\L@ogo}{\includegraphics[keepaspectratio=true,height=23mm]{\Logo@FileName}}
+\newcommand{\K@ey}{\includegraphics[keepaspectratio=true,width=1.04\paperwidth]{\Key@FileName}}
+
+\newcommand{\doCopyright}[1][\the\year]{
+  Copyright \copyright~#1 seL4 Project a Series of LF Projects, LLC.\\
+  Distributed under the
+  \href{https://creativecommons.org/licenses/by-sa/4.0/legalcode}{Creative
+    Commons Attribution-ShareAlike 4.0 International (CC~BY-SA~4.0) License.}\\
+  seL4 is a trademark of LF Projects, LLC.
+}
+
+
+%% the main thing: \maketitle produces the letterhead
+
+\if@titlepage
+\renewcommand\maketitle{%
+  \typeout{Starting \protect\maketitle}
+  \noindent%
+  \begin{titlepage}%
+    \urlstyle{sf}
+    % to suppress Overfull \hbox warnings
+    \newlength{\saveHfuzz}
+    \setlength{\saveHfuzz}{\hfuzz}
+    \setlength{\hfuzz}{\paperwidth}
+    %
+    \let\footnotesize\small
+    \let\footnoterule\relax
+    \let \footnote \thanks
+    % laying out the background
+    \newlength{\img@raise}
+    % the black triangle
+    \setlength{\img@raise}{-\paperheight}%
+    \addtolength{\img@raise}{\Gm@tmargin}%
+    \addtolength{\img@raise}{4mm}% don't ask me why!
+%    \typeout{paperheight=\the\paperheight,
+%      paperwidth=\the\paperwidth,
+%      Gm@lmargin=\Gm@lmargin,
+%      Gm@tmargin=\Gm@tmargin,
+%      img@raise=\the\img@raise,
+%      hfuzz=\the\hfuzz}
+    \raisebox{\img@raise}[0pt][0pt]{\hspace*{-\Gm@lmargin}%
+      \makebox[0pt][l]{%
+        \includegraphics[keepaspectratio=false,width=\paperwidth,height=\paperheight]{\Triang@FileName}%
+      }%
+    }
+    % header
+    \raisebox{4mm}[0pt][0pt]{\hspace*{-\Gm@tmargin}%
+      \begin{minipage}[b]{\paperwidth}%
+        \hspace*{22mm}%
+        \raisebox{2.5mm}[38mm][0mm]{\L@ogo}%
+        \hfill
+        \raisebox{4mm}{%
+          \footnotesize%
+          \textcolor{greenLogo}{
+            \begin{tabular}[b]{r}\bf
+              \h@eader\\
+              % force URL colour to be green or black, irrespective of hyperref setup
+              \bf\href{\u@rl}{\textcolor{\ifb@nner greenLogo\else black\fi}\u@rl}
+            \end{tabular}
+          }
+        }\hspace*{5mm}
+        % key
+        \setlength{\img@raise}{-\paperheight}%
+        \addtolength{\img@raise}{\Gm@tmargin}%
+        \addtolength{\img@raise}{-4mm}% don't ask me why!
+        \raisebox{\img@raise}[0pt][0pt]{%
+          \makebox[0pt][r]{%
+            \K@ey%
+          }%
+        }%
+      \end{minipage}%
+    }%
+    %
+    \null%\vfil
+    % \vskip 60\p@
+    \raggedright% to prevent stuff shifting
+    \vskip 50mm%
+    ~\hfill%
+    \makebox[0pt][r]{
+      \raisebox{0pt}[0pt][0pt]{
+        \begin{minipage}{150mm}
+          \raggedleft
+          \fontsize{36}{42}\selectfont \textcolor{greenLogo}{\@title}\\%
+          \if\@subtitle\empty
+          ~
+          \else
+          \fontsize{36}{42}\selectfont \textcolor{emphasis}{\@subtitle}
+          \fi%
+        \end{minipage}
+        \hspace*{-10mm}
+      }
+    }
+    \vskip 70mm
+    \makebox[0pt][l]{
+      \hspace*{-13mm}
+      \raisebox{0pt}[0pt][0pt]{
+        \begin{minipage}{70mm}%
+          \raggedright%
+          \color{neutral}
+          \fontsize{20}{26}\selectfont%
+          \@author\par
+          \fontsize{14}{22}\selectfont%
+          \ifx\@authortitle\empty\else\@authortitle\par\fi
+          \ifx\@email\empty\else\@email\par\fi
+          \ifx\@docversion\empty\else\@docversion\par\fi
+          \ifx\@date\empty\else\@date\par\fi
+        \end{minipage}
+      }
+    }
+  \setcounter{page}{0}
+  \end{titlepage}%
+  \thispagestyle{fancyplain}
+  \setlength{\hfuzz}{\saveHfuzz}%
+  \setcounter{footnote}{0}%
+  \global\let\thanks\relax
+  \global\let\maketitle\relax
+  \global\let\@thanks\@empty
+  \global\let\@author\@empty
+  \global\let\@date\@empty
+  \global\let\@title\@empty
+  \global\let\title\relax
+  \global\let\author\relax
+  \global\let\date\relax
+  \global\let\and\relax
+  \setcounter{page}{0}
+  \typeout{Finish \protect\maketitle}
+}
+\else% no titlepage
+\def\maketitle{\urlstyle{sf}
+  % to suppress overfull bars in ``draft'' mode:
+  \newlength{\saveOverfullRule}
+  \setlength{\saveOverfullRule}{\overfullrule}
+  \setlength\overfullrule{0pt}
+  %
+  \noindent%
+  \raisebox{0mm}[0pt][0pt]{\hspace*{-25mm}%
+    \ifb@nner\makebox[0pt][l]{\rule{\paperwidth}{40mm}}\fi% black banner
+    \begin{minipage}[b]{\paperwidth}%
+      \hspace*{16mm}%
+      \raisebox{2.5mm}[38mm][0mm]{\L@ogo}%
+      \hfill
+      \raisebox{4mm}{%
+        \footnotesize%
+        \textcolor{\ifb@nner greenLogo\else black\fi}{
+          \begin{tabular}[b]{r}\bf
+            \h@eader\\
+            % force URL colour to be green or black, irrespective of hyperref setup
+            \bf\href{\u@rl}{\textcolor{\ifb@nner greenLogo\else black\fi}\u@rl}
+          \end{tabular}
+        }
+      }\hspace*{5mm}
+    \end{minipage}%
+  }%
+  % reset overfull rule
+  \setlength{\overfullrule}{\saveOverfullRule}%
+%  \@maketitle
+  \vspace*{12mm}%
+  \ifx\@title\empty \else%
+    \begin{center}
+      {\LARGE\bf\@title\\[1ex]}
+      \ifx\@author\empty \else{\Large\@author} \\[1ex]\fi%
+      \ifx\@date\empty \else\@date \\\fi%
+      \vspace{5ex}%
+    \end{center}%
+  \fi%
+}%\maketitle
+\fi% no titlepage
