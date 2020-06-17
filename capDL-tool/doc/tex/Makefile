@@ -12,17 +12,20 @@
 
 all: capDL.pdf
 
-capDL.pdf: capDL.tex capDL_generated.tex
+GEN=capDL_generated.tex
+
+capDL.pdf: capDL.tex $(GEN)
 	pdflatex capDL
 	pdflatex capDL
 
-capDL_generated.tex: ../capDL.md
+$(GEN): ../capDL.md
 	pandoc $< -o $@
 
 clean:
 	rm -f *.log
 	rm -f *.aux
 	rm -f *.out
+	rm -f $(GEN)
 
 realclean: clean
 	rm -f capDL.pdf
