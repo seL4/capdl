@@ -265,7 +265,8 @@
   \ifx\@title\empty \else%
     \begin{center}
       {\LARGE\bf\@title\\[1ex]}
-      \ifx\@author\empty \else{\Large\@author} \\[1ex]\fi%
+      \ifx\@subtitle\empty \else{\Large\@subtitle} \\[1ex]\fi%
+      \ifx\@author\empty \else{\Large\@author\\[2ex]} \fi%
       \ifx\@date\empty \else\@date \\\fi%
       \vspace{5ex}%
     \end{center}%
