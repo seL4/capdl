@@ -12,9 +12,12 @@
 
 all: capDL.pdf
 
-capDL.pdf: capDL.tex
+capDL.pdf: capDL.tex capDL_generated.tex
 	lualatex capDL
 	lualatex capDL
+
+capDL_generated.tex: ../capDL.md
+	pandoc $< -o $@
 
 clean:
 	rm -f *.log

@@ -1,0 +1,6 @@
+*.aux
+*.log
+*.out
+capDL_generated.tex
+
+capDL.pdf

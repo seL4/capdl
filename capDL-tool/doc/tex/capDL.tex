@@ -1,0 +1,37 @@
+%
+% Copyright 2017, Data61
+% Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+% ABN 41 687 119 230.
+%
+% This software may be distributed and modified according to the terms of
+% the BSD 2-Clause license. Note that NO WARRANTY is provided.
+% See "LICENSE_BSD2.txt" for details.
+%
+% @TAG(DATA61_BSD)
+%
+
+\documentclass[a4paper,12pt]{article}
+\usepackage[data61,showAuthor,noCalibri]{csiro}
+
+\usepackage{graphicx}
+\graphicspath{{./imgs/}}
+\setkeys{Gin}{keepaspectratio=true,clip=true,draft=false,width=\linewidth}
+\usepackage{times,cite,url,microtype}
+\urlstyle{rm}
+\renewcommand{\ttdefault}{cmtt}	% CM rather than courier for \tt
+
+
+\usepackage[pagebackref,hyperindex,bookmarks]{hyperref}
+\hypersetup{linktocpage,colorlinks}
+
+
+\begin{document}
+
+\title{capDL Language Specification}
+\author{Gerwin Klein}
+\AuthorEmail{gerwin.klein@data61.csiro.au}
+\maketitle
+
+\input{capDL_generated}
+
+\end{document}
