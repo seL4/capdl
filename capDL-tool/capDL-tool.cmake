@@ -23,14 +23,27 @@ function(CapDLToolInstall target program_path)
     include(memoize)
     # memoize this installation rule which will save the resulting artifact in a cache and reuse it across builds.
     # This will rebuild from source if the git directory has changes or has a changed commit hash.
-    memoize_add_custom_command(capDL-tool "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/" "${CapDLToolDirectory}" "" "parse-capDL"
-        OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/parse-capDL"
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/
+    memoize_add_custom_command(
+        capDL-tool
+        "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/"
+        "${CapDLToolDirectory}"
+        ""
+        "parse-capDL"
+        OUTPUT
+        "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/parse-capDL"
+        WORKING_DIRECTORY
+        ${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/
         ${depfile_commands}
         COMMAND
-            cp -a ${CapDLToolDirectory}/* .
+        cp
+        -a
+        ${CapDLToolDirectory}/*
+        .
         COMMAND
-            ${CMAKE_COMMAND} -E env make
+        ${CMAKE_COMMAND}
+        -E
+        env
+        make
         ${USES_TERMINAL_DEBUG}
     )
     add_custom_target(${target} DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/parse-capDL")
@@ -64,7 +77,10 @@ function(CapDLToolCFileGen target output static_alloc object_sizes input capdl_t
     # Invoke the parse-capDL tool to turn the CDL spec into a C spec
     add_custom_command(
         OUTPUT ${output}
-        COMMAND ${capdl_tool} --code ${output} ${alloc_type_opt} ${object_sizes_opt} "${input}"
+        COMMAND
+            ${capdl_tool}
+            --code
+                ${output} ${alloc_type_opt} ${object_sizes_opt} "${input}"
         DEPENDS "${input}" "${object_sizes}" ${CAPDL_DEPENDS}
     )
     add_custom_target(${target} DEPENDS ${output} ${object_sizes})
