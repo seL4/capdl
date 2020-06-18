@@ -1,0 +1,26 @@
+# Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+#
+# SPDX-License-Identifier: BSD-2-Clause
+
+# Actions to run on Push and Pull Request
+name: Build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  pdf:
+    name: Language Spec PDF
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install texlive and pandoc
+      run: |
+        sudo apt-get install pandoc texlive-latex-extra texlive-fonts-extra
+    - name: Build PDF
+      run: |
+        cd capDL-tool/doc/tex
+        make
