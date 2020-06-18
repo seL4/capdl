@@ -8,7 +8,6 @@ name:                capDL-tool
 version:             1.0.0.1
 synopsis:            A tool for processing seL4 capDL specifications.
 license:             BSD2
-license-file:        LICENSE_BSD2.txt
 author:              Gerwin Klein (Data61), Corey Lewis (Data61), Matthew Fernandez (Data61), Japheth Lim (Data61)
 maintainer:          corey.lewis@data61.csiro.au
 homepage:            https://github.com/seL4/capdl
