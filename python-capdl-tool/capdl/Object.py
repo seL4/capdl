@@ -206,7 +206,7 @@ class Frame(Object):
             'name': self.name,
             'size': size,
             'maybepaddr': (', paddr: 0x%x' % self.paddr) if self.paddr is not None else '',
-            'maybefill': (', fill: [%s]' % ",".join(["{%s}"%f for f in self.fill])),
+            'maybefill': (', fill: [%s]' % ",".join(["{%s}" % f for f in self.fill])),
         }
 
 

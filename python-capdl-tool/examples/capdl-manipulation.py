@@ -27,13 +27,13 @@ ep_cap = capdl.Cap(ep)
 tcb['fault_ep'] = ep_cap
 
 # Let's setup a CSpace and VSpace for the TCB:
-cspace = capdl.CNode('my_cnode', 28) # <-- size in bits
+cspace = capdl.CNode('my_cnode', 28)  # <-- size in bits
 vspace = capdl.PageDirectory('my_pd')
 tcb['cspace'] = capdl.Cap(cspace)
 tcb['vspace'] = capdl.Cap(vspace)
 
 # Throw in an untyped and give the thread a cap to it:
-ut = capdl.Untyped('my_ut', 10) # <-- size in bits
+ut = capdl.Untyped('my_ut', 10)  # <-- size in bits
 cspace[1] = capdl.Cap(ut)
 
 # Let's create a spec from all this and output it:

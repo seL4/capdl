@@ -136,7 +136,6 @@ class ELF(object):
 
         return ["%d %d CDL_FrameFill_FileData \"%s\" %d" % (dest_offset, length, self.name, src_offset)]
 
-
     def get_pages(self, infer_asid=True, pd=None, use_large_frames=True, addr_space=None):
         """
         Returns a dictionary of pages keyed on base virtual address, that are
@@ -201,7 +200,8 @@ class ELF(object):
             for reg in regions:
                 if reg['type']:
                     vaddr = reg['addr']
-                    pages.add_page(vaddr, r, w, x, reg['size'], self.compute_elf_fill_frame(vaddr, reg['size'], seg_p_vaddr, seg_p_filesz, seg_p_offset))
+                    pages.add_page(vaddr, r, w, x, reg['size'], self.compute_elf_fill_frame(
+                        vaddr, reg['size'], seg_p_vaddr, seg_p_filesz, seg_p_offset))
                 else:
                     # A range that is eligible for promotion.
                     possible_pages = list(reversed(page_sizes(self.arch)))
@@ -214,7 +214,8 @@ class ELF(object):
                                 if remain >= p and vaddr % p == 0:
                                     size = p
                                     break
-                        pages.add_page(vaddr, r, w, x, size, self.compute_elf_fill_frame(vaddr, size, seg_p_vaddr, seg_p_filesz, seg_p_offset))
+                        pages.add_page(vaddr, r, w, x, size, self.compute_elf_fill_frame(
+                            vaddr, size, seg_p_vaddr, seg_p_filesz, seg_p_offset))
                         vaddr += size
                         remain -= size
 

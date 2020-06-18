@@ -155,7 +155,8 @@ def main(args):
 
     # create untyped for each device untyped
     for d in addresses['devices']:
-        untypeds += create_untypeds_for_region(object_sizes, Region(d['start'], d['end']), arch, True)
+        untypeds += create_untypeds_for_region(object_sizes,
+                                               Region(d['start'], d['end']), arch, True)
 
     # finally output the file
     yaml.dump(untypeds, args.output)

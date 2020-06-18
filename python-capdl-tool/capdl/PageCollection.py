@@ -18,12 +18,14 @@ from .Spec import Spec
 from .util import round_down, PAGE_SIZE, lookup_architecture
 import collections
 
+
 def consume(iterator):
     '''Take a generator and exhaust it. Useful for discarding the unused result
     of something that would otherwise accumulate in memory. Clagged from
     https://docs.python.org/2/library/itertools.html'''
     # feed the entire iterator into a zero-length deque
     collections.deque(iterator, maxlen=0)
+
 
 class PageCollection(object):
     def __init__(self, name='', arch='arm11', infer_asid=True, vspace_root=None):
@@ -39,10 +41,10 @@ class PageCollection(object):
         if vaddr not in self._pages:
             # Only create this page if we don't already have it.
             self._pages[vaddr] = {
-                'read':False,
-                'write':False,
-                'execute':False,
-                'size':PAGE_SIZE,
+                'read': False,
+                'write': False,
+                'execute': False,
+                'size': PAGE_SIZE,
                 'elffill': [],
             }
         # Now upgrade this page's permissions to meet our current requirements.
@@ -81,10 +83,10 @@ class PageCollection(object):
             assert size == page['size']
             return cap
         frame = Frame('frame_%s_%04d' % (self.name, page_counter),
-            page['size'])
+                      page['size'])
         spec.add_object(frame)
         return Cap(frame, read=page['read'], write=page['write'],
-            grant=page['execute'])
+                   grant=page['execute'])
 
     def get_spec(self, existing_frames={}):
         if self._spec is not None:
@@ -114,7 +116,8 @@ class PageCollection(object):
                 object_vaddr = level.base_vaddr(page_vaddr)
                 object_index = level.parent_index(object_vaddr)
                 if (level, object_vaddr) not in objects:
-                    object = level.make_object('%s_%s_%04d' % (level.type_name, self.name, object_counter))
+                    object = level.make_object('%s_%s_%04d' % (
+                        level.type_name, self.name, object_counter))
                     object_counter += 1
                     spec.add_object(object)
                     object_cap = Cap(object)
@@ -128,18 +131,19 @@ class PageCollection(object):
                 # cap for mapping and then copy it into the target cspace. Otherwise the cap
                 # would be copied and therefore be an unmapped cap.
                 page_cap.set_mapping(parent, level.child_index(page_vaddr))
-                page_cap = Cap(page_cap.referent, read=page_cap.read, write=page_cap.write, grant=page_cap.grant, cached=page_cap.cached)
+                page_cap = Cap(page_cap.referent, read=page_cap.read,
+                               write=page_cap.write, grant=page_cap.grant, cached=page_cap.cached)
             parent[level.child_index(page_vaddr)] = page_cap
             if page_cap:
                 page["elffill"].extend(page_cap.referent.fill)
                 page_cap.referent.fill = page["elffill"]
-
 
         # Cache the result for next time.
         assert self._spec is None
         self._spec = spec
 
         return spec
+
 
 def create_address_space(regions, name='', arch='arm11'):
     assert isinstance(regions, list)
@@ -151,7 +155,7 @@ def create_address_space(regions, name='', arch='arm11'):
         v = round_down(r['start'])
         while round_down(v) < r['end']:
             pages.add_page(v, r.get('read', False), r.get('write', False),
-                r.get('execute', False))
+                           r.get('execute', False))
             v += PAGE_SIZE
 
     return pages

@@ -14,14 +14,18 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 from concurrencytest import ConcurrentTestSuite, fork_for_tests
 
-import argparse, multiprocessing, os, sys, unittest
+import argparse
+import multiprocessing
+import os
+import sys
+import unittest
 
 ME = os.path.abspath(__file__)
 
 
 def main(argv):
     parser = argparse.ArgumentParser(prog=argv[0],
-        description='Run capdl tests')
+                                     description='Run capdl tests')
     parser.add_argument('--verbosity', '-v', default=1, type=int,
                         help="Verbosity to run tests. 0 = quiet. 1 = default. 2 = verbose")
     options = parser.parse_args(argv[1:])

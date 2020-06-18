@@ -10,10 +10,12 @@ from __future__ import absolute_import, division, print_function, \
 from .Object import IRQ, Object, PageTable
 from .util import lookup_architecture
 
+
 class Spec(object):
     """
     A CapDL specification.
     """
+
     def __init__(self, arch='arm11'):
         self.arch = arch
         self.objs = set()
@@ -46,18 +48,18 @@ class Spec(object):
                'caps {\n%(caps)s\n}\n\n' \
                'irq maps {\n%(irqs)s\n}' % {
 
-            # Architecture; arm11 or ia32
-            'arch':self.arch.capdl_name(),
+                   # Architecture; arm11 or ia32
+                   'arch': self.arch.capdl_name(),
 
-            # Kernel objects
-            'objs':'\n'.join(sorted(str(x) for x in self.objs)),
+                   # Kernel objects
+                   'objs': '\n'.join(sorted(str(x) for x in self.objs)),
 
-            # Capabilities to kernel objects
-            'caps':'\n'.join(sorted(
-                x.print_contents() for x in self.objs if x.is_container())),
+                   # Capabilities to kernel objects
+                   'caps': '\n'.join(sorted(
+                       x.print_contents() for x in self.objs if x.is_container())),
 
-            # Mapping from interrupt numbers to IRQ objects
-            'irqs':'\n'.join(sorted(
-                '%d: %s' % (x.number, x.name) for x in self.objs
-                    if isinstance(x, IRQ) and x.number is not None)),
-        }
+                   # Mapping from interrupt numbers to IRQ objects
+                   'irqs': '\n'.join(sorted(
+                       '%d: %s' % (x.number, x.name) for x in self.objs
+                       if isinstance(x, IRQ) and x.number is not None)),
+               }

@@ -13,6 +13,7 @@ import unittest
 from capdl import ELF
 from tests import CapdlTestCase
 
+
 class TestElf(CapdlTestCase):
 
     def test_elf(self):
@@ -43,6 +44,7 @@ class TestElf(CapdlTestCase):
         except:
             # Expected
             pass
+
 
 if __name__ == '__main__':
     unittest.main()

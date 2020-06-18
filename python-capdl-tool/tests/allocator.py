@@ -42,7 +42,7 @@ class TestAllocator(CapdlTestCase):
         allocator = BestFitAllocator()
         spec = Spec()
 
-        ut = Untyped(name="test_ut", size_bits=ut_size_bits, paddr=1<<ut_size_bits)
+        ut = Untyped(name="test_ut", size_bits=ut_size_bits, paddr=1 << ut_size_bits)
         allocator.add_untyped(ut)
 
         child = Untyped(name="child_ut", size_bits=child_size_bits)
@@ -68,10 +68,10 @@ class TestAllocator(CapdlTestCase):
         spec = Spec()
         (total_child_size, children) = TestAllocator.alloc_children(spec, object_sizes)
 
-        ut = Untyped(name="test_ut", size_bits=ut_size_bits, paddr=1<<ut_size_bits)
+        ut = Untyped(name="test_ut", size_bits=ut_size_bits, paddr=1 << ut_size_bits)
         allocator.add_untyped(ut)
 
-        self.assertValidSpec(allocator, spec, 1<<ut_size_bits, total_child_size, children, [ut])
+        self.assertValidSpec(allocator, spec, 1 << ut_size_bits, total_child_size, children, [ut])
 
     @given(st.lists(st.integers(min_value=4, max_value=32), max_size=100, min_size=10),
            st.lists(st.integers(min_value=32, max_value=64), max_size=20, min_size=2))
@@ -90,8 +90,8 @@ class TestAllocator(CapdlTestCase):
             ut = Untyped("untyped_{0}".format(i), size_bits=size_bits, paddr=paddr)
             untyped.append(ut)
             allocator.add_untyped(ut)
-            paddr += 1<<size_bits
-            ut_size += 1<<size_bits
+            paddr += 1 << size_bits
+            ut_size += 1 << size_bits
 
         self.assertValidSpec(allocator, spec, ut_size, total_child_size, children, untyped)
 
@@ -130,7 +130,7 @@ class TestAllocator(CapdlTestCase):
         allocator.allocate(spec)
         self.assertTrue(irq_ctrl in spec.objs)
 
-    @given(st.integers(min_value=0xA0, max_value=0xD0), st.integers(min_value=0xB0,max_value=0xC0))
+    @given(st.integers(min_value=0xA0, max_value=0xD0), st.integers(min_value=0xB0, max_value=0xC0))
     def test_alloc_paddr(self, unfun_paddr, ut_paddr):
         """
         Test allocating a single unfun untyped in and out of bounds of an untyped
@@ -164,9 +164,10 @@ class TestAllocator(CapdlTestCase):
         allocator = BestFitAllocator()
         paddr = 0x1
         for i in range(0, len(ut_sizes)):
-            paddr = round_up(paddr, 1<<ut_sizes[i])
-            allocator.add_device_untyped(Untyped("device_untyped_{0}".format(i), size_bits=ut_sizes[i], paddr=paddr))
-            paddr += 1<<ut_sizes[i]
+            paddr = round_up(paddr, 1 << ut_sizes[i])
+            allocator.add_device_untyped(
+                Untyped("device_untyped_{0}".format(i), size_bits=ut_sizes[i], paddr=paddr))
+            paddr += 1 << ut_sizes[i]
 
         spec = Spec()
         for i in range(0, len(obj_sizes)):
@@ -175,14 +176,14 @@ class TestAllocator(CapdlTestCase):
         with self.assertRaises(AllocatorException):
             allocator.allocate(spec)
 
-    @given(st.integers(min_value=0,max_value=3))
+    @given(st.integers(min_value=0, max_value=3))
     def test_overlapping_paddr_smaller(self, offset):
         """Test allocating unfun objects with overlapping paddrs, where the overlapping paddr is from a smaller
         object """
 
         paddr = 0xAAAA0000
         size_bits = 16
-        overlap_paddr = paddr + offset * (1<<(size_bits-2))
+        overlap_paddr = paddr + offset * (1 << (size_bits-2))
 
         allocator = BestFitAllocator()
         allocator.add_untyped(Untyped("parent", paddr=paddr, size_bits=size_bits))
@@ -214,24 +215,24 @@ class TestAllocator(CapdlTestCase):
         Test allocating a collection of unfun objects that do not align and have placeholder uts between them
         """
         allocator = BestFitAllocator()
-        start_paddr = 1<<(max(sizes) + len(sizes).bit_length())
+        start_paddr = 1 << (max(sizes) + len(sizes).bit_length())
         paddr = start_paddr
         ut_size = 0
 
         children = []
         spec = Spec()
         for i in range(0, len(sizes)):
-            paddr = round_up(paddr, 1<<sizes[i])
+            paddr = round_up(paddr, 1 << sizes[i])
             ut = Untyped("ut_{0}".format(i), size_bits=sizes[i], paddr=paddr)
             spec.add_object(ut)
-            paddr += 1<<sizes[i]
-            ut_size += 1<<sizes[i]
+            paddr += 1 << sizes[i]
+            ut_size += 1 << sizes[i]
             children.append(ut)
 
         ut_size_bits = (paddr - start_paddr).bit_length()
         ut = Untyped("ut_parent", size_bits=ut_size_bits, paddr=start_paddr)
         allocator.add_untyped(ut)
-        self.assertValidSpec(allocator, spec, 1<<ut_size_bits, ut_size, children, [ut])
+        self.assertValidSpec(allocator, spec, 1 << ut_size_bits, ut_size, children, [ut])
 
     def test_regression_unfun_at_end(self):
         """
@@ -253,7 +254,7 @@ class TestAllocator(CapdlTestCase):
         spec.add_object(my_pinned_frame_B)
 
         allocator.allocate(spec)
-        self.assertIn(root_ut_B, spec.objs) # main test
+        self.assertIn(root_ut_B, spec.objs)  # main test
         # other tests:
         for obj in (root_ut_A, root_ut_B, my_frame_A0, my_frame_A1, my_pinned_frame_B):
             self.assertIn(obj, spec.objs)
@@ -261,6 +262,7 @@ class TestAllocator(CapdlTestCase):
             self.assertIn(obj, root_ut_A.children)
         for obj in (my_pinned_frame_B,):
             self.assertIn(obj, root_ut_B.children)
+
 
 if __name__ == '__main__':
     unittest.main()

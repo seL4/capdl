@@ -11,6 +11,7 @@ from __future__ import absolute_import, division, print_function, \
 import capdl
 from tests import CapdlTestCase
 
+
 class TestSpec(CapdlTestCase):
 
     def test_merge(self):
