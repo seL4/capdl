@@ -20,3 +20,4 @@ capDL-tool/*.test-OK
 capDL-tool/doc/tex/imgs/*
 capDL-tool/camkes-adder-arm.*
 python-capdl-tool/.hypothesis
+object_sizes/object_sizes.yaml

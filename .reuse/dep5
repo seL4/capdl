@@ -15,5 +15,6 @@ Files:
   python-capdl-tool/tests/resources/ia32-hello.bin
   python-capdl-tool/tests/resources/stripped.bin
   python-capdl-tool/tests/resources/unstripped.bin
+  object_sizes/object_sizes.yaml
 Copyright: 2020, Data61, CSIRO (ABN 41 687 119 230)
 License: BSD-2-Clause
