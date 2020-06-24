@@ -11,3 +11,4 @@ six
 sortedcontainers
 concurrencytest
 hypothesis
+nose
