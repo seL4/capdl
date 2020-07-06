@@ -390,6 +390,8 @@ validCapArch _ ASIDControlCap = True
 validCapArch _ (SCCap {}) = True
 validCapArch _ (RTReplyCap {}) = True
 validCapArch _ (SchedControlCap {}) = True
+validCapArch RISCV (VCPUCap {}) = False
+validCapArch _ (VCPUCap {}) = True
 validCapArch IA32 (IRQIOAPICHandlerCap {}) = True
 validCapArch IA32 (IRQMSIHandlerCap {}) = True
 validCapArch IA32 (IOPortsCap {}) = True
@@ -409,7 +411,6 @@ validCapArch ARM11 (ARMIRQHandlerCap {}) = True
 validCapArch AARCH64 (ARMIRQHandlerCap {}) = True
 validCapArch AARCH64 (PUDCap {}) = True
 validCapArch AARCH64 (PGDCap {}) = True
-validCapArch AARCH64 (VCPUCap {}) = True
 validCapArch AARCH64 (ARMSIDCap {}) = True
 validCapArch AARCH64 (ARMCBCap {}) = True
 validCapArch _ _ = False
@@ -447,6 +448,8 @@ validObjArch _ (PT {}) = True
 validObjArch _ (Frame {}) = True
 validObjArch _ (SC {}) = True
 validObjArch _ (RTReply {}) = True
+validObjArch RISCV (VCPU {}) = False
+validObjArch _ (VCPU {}) = True
 validObjArch ARM11 (ARMIODevice {}) = True
 validObjArch ARM11 (ARMIrq {}) = True
 validObjArch IA32 (IOPorts {}) = True
@@ -464,7 +467,6 @@ validObjArch X86_64 (MSIIrq {}) = True
 validObjArch AARCH64 (ARMIrq {}) = True
 validObjArch AARCH64 (PUD {}) = True
 validObjArch AARCH64 (PGD {}) = True
-validObjArch AARCH64 (VCPU {}) = True
 validObjArch AARCH64 (ARMSID {}) = True
 validObjArch AARCH64 (ARMCB {}) = True
 validObjArch _ _ = False
@@ -492,7 +494,7 @@ validTCBSlotCap arch slot cap
     | slot == tcbFaultEPSlot = is _EndpointCap cap
     | slot == tcbSCSlot = is _SCCap cap
     | slot == tcbTempFaultEPSlot = is _EndpointCap cap
-    | slot == tcbBoundVCPUSlot = is _VCPUCap cap
+    | slot == tcbBoundVCPUSlot = arch /= RISCV && is _VCPUCap cap
     | otherwise = cap == NullCap
 
 validObjCap :: Arch -> KernelObject Word -> Word -> Cap -> Bool

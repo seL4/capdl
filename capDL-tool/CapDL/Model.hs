@@ -81,6 +81,8 @@ data Cap
         | SCCap { capObj :: ObjID }
         | SchedControlCap { core :: Word }
         | RTReplyCap { capObj :: ObjID }
+        | VCPUCap {
+            capObj :: ObjID }
 
         -- arch specific caps, ARM11, IA32, X86_64 and AARCH64 merged
         | FrameCap {
@@ -109,8 +111,6 @@ data Cap
             capMaybeAsid :: Maybe Asid }
         | ASIDControlCap -- only one ASIDTable in the system
         | ASIDPoolCap {
-            capObj :: ObjID }
-        | VCPUCap {
             capObj :: ObjID }
 
         -- ARM specific caps
@@ -180,6 +180,7 @@ data KernelObject a
         sc_extraInfo :: Maybe SCExtraInfo,
         maybeSizeBits :: Maybe Word}
     | RTReply
+    | VCPU
 
 -- arch specific objects, ARM11, IA32, X86_64, AARCH64 and RISCV mixed
     | ASIDPool { slots :: CapMap a,
@@ -194,7 +195,6 @@ data KernelObject a
         vmSizeBits :: Word,
         maybePaddr :: Maybe Word,
         maybeFill :: Maybe [[String]] }
-    | VCPU
 
 -- ARM specific objects
     | ARMIODevice {
