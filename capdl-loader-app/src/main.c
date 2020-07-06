@@ -894,7 +894,7 @@ static void create_irq_caps(CDL_Model *spec)
 }
 
 /* Mint a cap that will not be given to the user */
-/* Used for badging fault eps in the RT kernel */
+/* Used for badging interrupt notifications and, in the RT kernel, fault eps */
 static void mint_cap(CDL_ObjID object_id, int free_slot, seL4_Word badge)
 {
     seL4_CapRights_t rights = seL4_AllRights;
@@ -1344,7 +1344,16 @@ static void init_irq(CDL_Model *spec, CDL_IRQ irq_no)
     if (cdl_irq->slots.num == 1) {
         /* This IRQ is bound. */
         CDL_Cap *endpoint_cap = &cdl_irq->slots.slot[0].cap;
-        seL4_CPtr endpoint_cptr = orig_caps(CDL_Cap_ObjID(endpoint_cap));
+        seL4_CPtr endpoint_cptr;
+
+        seL4_Word badge = get_capData(CDL_Cap_Data(endpoint_cap));
+        if (badge) {
+            endpoint_cptr = (seL4_CPtr)get_free_slot();
+            mint_cap(CDL_Cap_ObjID(endpoint_cap), endpoint_cptr, badge);
+            next_free_slot();
+        } else {
+            endpoint_cptr = orig_caps(CDL_Cap_ObjID(endpoint_cap));
+        }
 
         int error = seL4_IRQHandler_SetNotification(irq_handler_cap, endpoint_cptr);
         ZF_LOGF_IFERR(error, "");
