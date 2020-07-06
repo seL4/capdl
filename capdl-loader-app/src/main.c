@@ -1129,12 +1129,13 @@ static void init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     }
 
     error = seL4_TCB_SetSchedParams(sel4_tcb, seL4_CapInitThreadTCB, max_priority, priority);
-#endif
 
     ZF_LOGF_IFERR(error, "");
 
 #if CONFIG_MAX_NUM_NODES > 1
     error = seL4_TCB_SetAffinity(sel4_tcb, affinity);
+#endif
+
 #endif
 
     ZF_LOGF_IFERR(error, "");
