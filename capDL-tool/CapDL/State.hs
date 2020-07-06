@@ -17,6 +17,7 @@ import Data.List.Compat
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Text.PrettyPrint (Doc, text)
+import Control.Lens.Extras (is)
 
 type Kernel a = State (Model Word) a
 
@@ -475,49 +476,62 @@ checkObjArch arch obj id = do
      (tell $ text $ show id ++ " is not a valid object for this architecture\n")
     return valid
 
-validObjCap :: KernelObject Word -> Cap -> Bool
-validObjCap (CNode _ 0) (NotificationCap {}) = True --Should check if it is in the irqNode and in slot 0
-validObjCap (CNode _ 0) _ = False
-validObjCap (ASIDPool {}) (PDCap {}) = True
-validObjCap (ASIDPool {}) _ = False
-validObjCap (PT {}) (FrameCap {}) = True
-validObjCap (PT {}) (PTCap {}) = True
-validObjCap (PT {}) _ = False
-validObjCap (PML4 {}) (PDPTCap {}) = True
-validObjCap (PML4 {}) _ = False
-validObjCap (PDPT {}) (FrameCap {}) = True
-validObjCap (PDPT {}) (PDCap {}) = True
-validObjCap (PDPT {}) _ = False
-validObjCap (PD {}) (FrameCap {}) = True
-validObjCap (PD {}) (PTCap {}) = True
-validObjCap (PD {}) _ = False
-validObjCap (IOPT {}) (FrameCap {}) = True
-validObjCap (IOPT {}) (IOPTCap {}) = True
-validObjCap (IOPT {}) _ = False
-validObjCap (PGD {}) (PUDCap {}) = True
-validObjCap (PGD {}) _ = False
-validObjCap (PUD {}) (PDCap {}) = True
-validObjCap (PUD {}) (FrameCap {}) = True
-validObjCap (PUD {}) _ = False
-validObjCap _ _ = True
+validTCBSlotCap :: Arch -> Word -> Cap -> Bool
+validTCBSlotCap arch slot cap
+    | slot == tcbCTableSlot = is _CNodeCap cap
+    | slot == tcbVTableSlot
+        = case arch of
+                IA32 -> is _PDCap cap
+                ARM11 -> is _PDCap cap
+                X86_64 -> is _PML4Cap cap
+                AARCH64 -> is _PGDCap cap
+                RISCV -> is _PTCap cap
+    | slot == tcbReplySlot = is _MasterReplyCap cap
+    | slot == tcbCallerSlot = is _ReplyCap cap
+    | slot == tcbIPCBufferSlot = is _FrameCap cap
+    | slot == tcbFaultEPSlot = is _EndpointCap cap
+    | slot == tcbSCSlot = is _SCCap cap
+    | slot == tcbTempFaultEPSlot = is _EndpointCap cap
+    | slot == tcbBoundVCPUSlot = is _VCPUCap cap
+    | otherwise = cap == NullCap
 
-checkValidSlot :: KernelObject Word -> ObjID -> (Word, Cap) -> Logger Bool
-checkValidSlot obj contID (slot, cap) = do
-    let valid = validObjCap obj cap
+validObjCap :: Arch -> KernelObject Word -> Word -> Cap -> Bool
+validObjCap arch (TCB {}) slot cap = validTCBSlotCap arch slot cap
+validObjCap _ (CNode _ 0) slot cap = slot == 0 && is _NotificationCap cap -- FIXME: we should add a separate IRQObject
+validObjCap _ (CNode {}) _ _ = True
+validObjCap _ (ASIDPool {}) _ cap = is _PDCap cap
+validObjCap RISCV (PT {}) _ cap = is _FrameCap cap || is _PTCap cap
+validObjCap _ (PT {}) _ cap = is _FrameCap cap
+validObjCap _ (PD {}) _ cap = is _FrameCap cap || is _PTCap cap
+validObjCap _ (PDPT {}) _ cap = is _FrameCap cap || is _PDCap cap
+validObjCap _ (PML4 {}) _ cap = is _PDPTCap cap
+validObjCap _ (PUD {}) _ cap = is _FrameCap cap || is _PDCap cap
+validObjCap _ (PGD {}) _ cap = is _PUDCap cap
+validObjCap _ (ARMIODevice {}) _ _ = True -- FIXME: we should check IODevices properly
+validObjCap _ (ARMIrq {}) slot cap = slot == 0 && is _NotificationCap cap
+validObjCap _ (IODevice {}) _ _ = True -- FIXME: we should check IODevices properly
+validObjCap _ (IOPT {}) _ cap = is _FrameCap cap || is _IOPTCap cap
+validObjCap _ (IOAPICIrq {}) slot cap = slot == 0 && is _NotificationCap cap
+validObjCap _ (MSIIrq {}) slot cap = slot == 0 && is _NotificationCap cap
+validObjCap _ _ _ _ = False
+
+checkValidSlot :: Arch -> KernelObject Word -> ObjID -> (Word, Cap) -> Logger Bool
+checkValidSlot arch obj contID (slot, cap) = do
+    let valid = validObjCap arch obj slot cap
     unless valid (tell $ text $ "The cap at slot " ++ show slot ++ " in " ++
                            show contID ++ " is not valid for this object\n")
     return valid
 
-checkValidSlots :: KernelObject Word -> ObjID -> Logger Bool
-checkValidSlots (TCB {}) _ = return True --Do we want to check this?
-checkValidSlots obj id =
-    allM (checkValidSlot obj id) (Map.toList $ objSlots obj)
+checkValidSlots :: Arch -> KernelObject Word -> ObjID -> Logger Bool
+checkValidSlots arch obj id =
+    allM (checkValidSlot arch obj id) (Map.toList $ objSlots obj)
 
+-- FIXME: we should check that all irq objects are in the irqNode
 checkObj :: Arch -> Model Word -> (ObjID, KernelObject Word) -> Logger Bool
 checkObj arch m (id, obj) = do
     objArch <- checkObjArch arch obj id
     caps <- checkValidCaps arch obj id m
-    slots <- checkValidSlots obj id
+    slots <- checkValidSlots arch obj id
     return $ objArch && caps && slots
 
 checkObjs :: Arch -> Model Word -> Logger Bool

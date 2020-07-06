@@ -24,7 +24,8 @@ executable parse-capDL
   other-extensions:    DeriveDataTypeable,
                        FlexibleContexts,
                        FlexibleInstances,
-                       TypeSynonymInstances
+                       TypeSynonymInstances,
+                       TemplateHaskell
 
   build-depends:       base >= 4.9 && <4.10,
 
@@ -39,7 +40,8 @@ executable parse-capDL
                        regex-compat >= 0.90,
                        split >=0.2 && <0.3,
                        unix >=2.7 && <3,
-                       yaml >=0.8 && <0.12
+                       yaml >=0.8 && <0.12,
+                       lens >= 4.15
 
   other-modules:       CapDL.AST, CapDL.DumpParser, CapDL.MakeModel,
                        CapDL.Matrix, CapDL.Model, CapDL.Parser,

@@ -4,7 +4,7 @@
 -- SPDX-License-Identifier: BSD-2-Clause
 --
 
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, TemplateHaskell #-}
 module CapDL.Model where
 
 import Prelude ()
@@ -15,6 +15,7 @@ import qualified Data.Set as Set
 import Data.Set (Set)
 import Data.Data
 import Data.Word
+import Control.Lens
 
 -- Supported architectures:
 data Arch = IA32 | ARM11 | X86_64 | AARCH64 | RISCV deriving (Eq, Show)
@@ -126,6 +127,11 @@ data Cap
         | IOPTCap { capObj :: ObjID }
 
         deriving (Eq, Ord, Show)
+
+-- Use Template Haskell to create Prisms corresponding to the Cap constructors.
+-- In combination with "Control.Lens.Extras (is)" this allows us to easily write
+-- things like "is _CNodeCap".
+makePrisms ''Cap
 
 -- Kernel Objects
 
@@ -329,7 +335,7 @@ data Idents cap_id = Idents {
 type CopyMap = Map CapRef CapName
 
 --
--- Each TCB contains five cap slots. The following constants define the
+-- Each TCB contains several cap slots. The following constants define the
 -- slot numbers in which they will be found if the TCB is treated as
 -- a CNode.
 --
@@ -424,10 +430,10 @@ hasSlots (PDPT {})      = True
 hasSlots (PML4 {})      = True
 hasSlots (PUD {})      = True
 hasSlots (PGD {})      = True
-hasSlots (IODevice {})  = True
 hasSlots (ARMIODevice {}) = True
+hasSlots (ARMIrq {})    = True
+hasSlots (IODevice {})  = True
 hasSlots (IOPT {})      = True
 hasSlots (IOAPICIrq {}) = True
 hasSlots (MSIIrq {})    = True
-hasSlots (ARMIrq {})    = True
 hasSlots _              = False
