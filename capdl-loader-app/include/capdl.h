@@ -84,7 +84,7 @@ typedef enum {
     CDL_SIDCap,
     CDL_CBCap,
 #endif
-#if defined(CONFIG_ARM_HYPERVISOR_SUPPORT)
+#if defined(CONFIG_ARM_HYPERVISOR_SUPPORT) || defined(CONFIG_VTX)
     CDL_VCPUCap,
 #endif
     CDL_SCCap,
@@ -173,6 +173,9 @@ typedef enum {
 #endif
 #ifdef CONFIG_ARM_HYPERVISOR_SUPPORT
     CDL_VCPU          = seL4_ARM_VCPUObject,
+#endif
+#ifdef CONFIG_VTX
+    CDL_VCPU          = seL4_X86_VCPUObject,
 #endif
 #elif defined(CONFIG_ARCH_X86)
     CDL_PT            = seL4_X86_PageTableObject,
@@ -407,7 +410,7 @@ typedef struct {
 #define CDL_TCB_SC_Slot             6
 #define CDL_TCB_TemporalFaultEP_Slot   7
 
-#ifdef CONFIG_ARM_HYPERVISOR_SUPPORT
+#if defined(CONFIG_ARM_HYPERVISOR_SUPPORT) || defined(CONFIG_VTX)
 #define CDL_TCB_VCPU_SLOT           8
 #endif
 
