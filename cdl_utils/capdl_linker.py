@@ -110,7 +110,7 @@ def main():
     args = parser.parse_args()
     register_object_sizes(yaml.load(args.object_sizes, Loader=yaml.FullLoader))
 
-    if args.which is "build_cnode":
+    if args.which == "build_cnode":
         data = yaml.load(args.manifest_in, Loader=yaml.FullLoader)
         assert 'cap_symbols' in data and 'region_symbols' in data, "Invalid file format"
         elfs = [item for sublist in args.elffile for item in sublist]
@@ -119,7 +119,7 @@ def main():
         manifest(data['cap_symbols'], data['region_symbols'], args.architecture, targets)
         return 0
 
-    if args.which is "gen_cdl":
+    if args.which == "gen_cdl":
         if args.static_alloc and not args.untyped:
             parser.error('--static-alloc requires --untyped')
 
