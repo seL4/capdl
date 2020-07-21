@@ -1541,7 +1541,7 @@ static void init_level_0(CDL_Model *spec, CDL_ObjID level_0_obj, uintptr_t level
         CDL_CapSlot *slot = CDL_Obj_GetSlot(obj, slot_index);
         unsigned long obj_slot = CDL_CapSlot_Slot(slot);
         uintptr_t base = (level_0_base + obj_slot) << (CDL_PT_LEVEL_1_IndexBits + CDL_PT_LEVEL_2_IndexBits +
-                                                     CDL_PT_LEVEL_3_IndexBits + seL4_PageBits);
+                                                       CDL_PT_LEVEL_3_IndexBits + seL4_PageBits);
         CDL_Cap *level_1_cap = CDL_CapSlot_Cap(slot);
         CDL_ObjID level_1_obj = CDL_Cap_ObjID(level_1_cap);
         seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(level_1_cap);
