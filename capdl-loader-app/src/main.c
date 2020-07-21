@@ -264,19 +264,6 @@ static CDL_Cap *get_cdl_frame_pt(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
 
 #endif
 
-static seL4_CPtr get_frame_pt(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
-{
-    CDL_Cap *pt_cap = get_cdl_frame_pt(pd, vaddr, spec);
-
-    /* Check if the PT cap is actually a large frame cap. */
-    if (pt_cap->type == CDL_FrameCap) {
-        return 0;
-    }
-    assert(orig_caps(CDL_Cap_ObjID(pt_cap)) != 0);
-
-    return orig_caps(CDL_Cap_ObjID(pt_cap));
-}
-
 static CDL_Cap *get_cdl_frame_cap(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
 {
     CDL_Cap *pt_cap = get_cdl_frame_pt(pd, vaddr, spec);
@@ -299,11 +286,6 @@ static CDL_Cap *get_cdl_frame_cap(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec
 static seL4_CPtr get_frame_cap(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
 {
     return orig_caps(CDL_Cap_ObjID(get_cdl_frame_cap(pd, vaddr, spec)));
-}
-
-static seL4_CPtr get_frame_size(CDL_ObjID pd, uintptr_t vaddr, CDL_Model *spec)
-{
-    return BIT(CDL_Obj_SizeBits(&spec->objects[CDL_Cap_ObjID(get_cdl_frame_cap(pd, vaddr, spec))]));
 }
 
 void init_copy_frame(seL4_BootInfo *bootinfo)
@@ -1558,7 +1540,7 @@ static void init_level_0(CDL_Model *spec, CDL_ObjID level_0_obj, uintptr_t level
     for (unsigned long slot_index = 0; slot_index < CDL_Obj_NumSlots(obj); slot_index++) {
         CDL_CapSlot *slot = CDL_Obj_GetSlot(obj, slot_index);
         unsigned long obj_slot = CDL_CapSlot_Slot(slot);
-        uintptr_t base = level_0_base + obj_slot << (CDL_PT_LEVEL_1_IndexBits + CDL_PT_LEVEL_2_IndexBits +
+        uintptr_t base = (level_0_base + obj_slot) << (CDL_PT_LEVEL_1_IndexBits + CDL_PT_LEVEL_2_IndexBits +
                                                      CDL_PT_LEVEL_3_IndexBits + seL4_PageBits);
         CDL_Cap *level_1_cap = CDL_CapSlot_Cap(slot);
         CDL_ObjID level_1_obj = CDL_Cap_ObjID(level_1_cap);
@@ -1967,7 +1949,7 @@ static void init_frame(CDL_Model *spec, CDL_ObjID obj_id, CDL_FrameFill_Element_
         fill_frame_with_filedata(base, frame_fill);
         break;
     default:
-        ZF_LOGF("Unsupported frame fill type %"PRIuPTR, frame_fill.type);
+        ZF_LOGF("Unsupported frame fill type %u", frame_fill.type);
     }
 
     /* Unmap the frame */
