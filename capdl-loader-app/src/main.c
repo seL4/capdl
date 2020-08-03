@@ -771,7 +771,7 @@ static void create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
                 (long)untyped_cptr);
 
         if (requires_creation(capdl_obj_type)) {
-            /* at this point we are definately creating an object - figure out what it is */
+            /* at this point we are definitely creating an object - figure out what it is */
             seL4_Error err = create_object(spec, obj, obj_id, bootinfo, untyped_cptr, free_slot);
             if (err == seL4_NoError) {
                 add_sel4_cap(obj_id, ORIG, free_slot);
