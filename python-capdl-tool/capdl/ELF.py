@@ -173,24 +173,40 @@ class ELF(object):
                         'size': seg['p_memsz'],
                         'type': 0}]
             relevant_regions = self.regions_in_segment(seg, existing_pages)
-            for (reg_vaddr, reg_size) in relevant_regions:
-                region = [x for x in regions if
-                          reg_vaddr >= x['addr'] and reg_vaddr < (x['addr'] + x['size'])]
-                assert len(region) == 1, "section is overlapping which is not allowed"
-                region = region[0]
+            
+            for reg_vaddr, reg_size in relevant_regions:
+                region = None
+                #Use binary search to find the correct region
+                s, e = 0, len(regions)-1
+                while s <= e:
+                    m = s + (e - s) // 2
+                    lower = regions[m]['addr']
+                    upper = regions[m]['addr'] + regions[m]['size']
+                    if lower <= reg_vaddr and reg_vaddr <= upper:
+                        region = regions[m]
+                        break
+                    elif reg_vaddr > upper:
+                        s = m+1
+                    elif reg_vaddr < lower:
+                        e = m-1
+
+                assert region != None, "section is overlapping which is not allowed"
                 orig_size = region['size']
+
                 # Shrink the region to the range preceding this section.
                 region['size'] = reg_vaddr - region['addr']
                 # Append a region for this section itself and that following
                 # this section.
-                regions += [{'addr': reg_vaddr,
+
+                #only add they are not empty
+                if reg_size != 0:
+                    regions += [{'addr': reg_vaddr,
                              'size': reg_size,
-                             'type': 1},
-                            {'addr': reg_vaddr + reg_size,
-                             'size': orig_size - region['size'] - reg_size,
-                             'type': 0}]
-            # Remove empty regions.
-            regions[:] = [x for x in regions if x['size'] != 0]
+                             'type': 1}]
+                if orig_size - region['size'] - reg_size != 0:
+                    regions += [{'addr': reg_vaddr + reg_size,
+                                 'size': orig_size - region['size'] - reg_size,
+                                 'type': 0}]
 
             r = (seg['p_flags'] & P_FLAGS.PF_R) > 0
             w = (seg['p_flags'] & P_FLAGS.PF_W) > 0

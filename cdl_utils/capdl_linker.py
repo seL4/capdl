@@ -47,7 +47,7 @@ def final_spec(args, obj_space, cspaces, addr_spaces, targets, architecture):
     """
     arch = lookup_architecture(architecture)
 
-    for (e, key) in targets:
+    for e, key in targets:
         name = os.path.basename(e)
         elf = ELF(e, name, architecture)
         cspace = cspaces[key]
@@ -56,21 +56,22 @@ def final_spec(args, obj_space, cspaces, addr_spaces, targets, architecture):
         elf_spec = elf.get_spec(infer_tcb=False, infer_asid=False,
                                 pd=addr_spaces[key].vspace_root, addr_space=addr_spaces[key])
         obj_space.merge(elf_spec, label=key)
-        for (slot, tcb) in [(k, v.referent) for (k, v) in cspace.cnode.slots.items()
-                            if v is not None and isinstance(v.referent, TCB)]:
-            if 'cspace' in tcb and tcb['cspace'] and tcb['cspace'].referent is not cspace.cnode:
-                # We exclude TCBs that refer to a different CSpace
-                continue
-            funcs = {"get_vaddr": lambda x: elf.get_symbol_vaddr(x)}
-            s = EvalWithCompoundTypes(functions=funcs)
-            tcb.ip = s.eval(str(tcb.ip))
-            tcb.sp = s.eval(str(tcb.sp))
-            tcb.addr = s.eval(str(tcb.addr))
-            tcb.init = s.eval(str(tcb.init))
-            if not args.fprovide_tcb_caps:
-                del cspace.cnode[slot]
+        # [(k, v.referent) for (k, v) in cspace.cnode.slots.items() if v is not None and isinstance(v.referent, TCB)]:
+        for slot, v in cspace.cnode.slots.items():
+            if v is not None and isinstance(v.referent, TCB):
+                tcb = v.referent
+                if 'cspace' in tcb and tcb['cspace'] and tcb['cspace'].referent is not cspace.cnode:
+                    # We exclude TCBs that refer to a different CSpace
+                    continue
+                funcs = {"get_vaddr": lambda x: elf.get_symbol_vaddr(x)}
+                s = EvalWithCompoundTypes(functions=funcs)
+                tcb.ip = s.eval(str(tcb.ip))
+                tcb.sp = s.eval(str(tcb.sp))
+                tcb.addr = s.eval(str(tcb.addr))
+                tcb.init = s.eval(str(tcb.init))
+                if not args.fprovide_tcb_caps:
+                    del cspace.cnode[slot]
         cspace.cnode.finalise_size(arch=arch)
-
     return obj_space
 
 
