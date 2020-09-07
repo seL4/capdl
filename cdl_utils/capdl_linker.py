@@ -56,7 +56,6 @@ def final_spec(args, obj_space, cspaces, addr_spaces, targets, architecture):
         elf_spec = elf.get_spec(infer_tcb=False, infer_asid=False,
                                 pd=addr_spaces[key].vspace_root, addr_space=addr_spaces[key])
         obj_space.merge(elf_spec, label=key)
-        # [(k, v.referent) for (k, v) in cspace.cnode.slots.items() if v is not None and isinstance(v.referent, TCB)]:
         for slot, v in cspace.cnode.slots.items():
             if v is not None and isinstance(v.referent, TCB):
                 tcb = v.referent

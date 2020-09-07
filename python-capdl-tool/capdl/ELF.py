@@ -173,10 +173,10 @@ class ELF(object):
                         'size': seg['p_memsz'],
                         'type': 0}]
             relevant_regions = self.regions_in_segment(seg, existing_pages)
-            
+
             for reg_vaddr, reg_size in relevant_regions:
                 region = None
-                #Use binary search to find the correct region
+                # Use binary search to find the correct region
                 s, e = 0, len(regions)-1
                 while s <= e:
                     m = s + (e - s) // 2
@@ -198,11 +198,11 @@ class ELF(object):
                 # Append a region for this section itself and that following
                 # this section.
 
-                #only add they are not empty
+                # only add if they are not empty
                 if reg_size != 0:
                     regions += [{'addr': reg_vaddr,
-                             'size': reg_size,
-                             'type': 1}]
+                                 'size': reg_size,
+                                 'type': 1}]
                 if orig_size - region['size'] - reg_size != 0:
                     regions += [{'addr': reg_vaddr + reg_size,
                                  'size': orig_size - region['size'] - reg_size,
