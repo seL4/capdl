@@ -156,6 +156,7 @@ class ELF(object):
                         symbol, self.get_symbol_size(symbol), sum(sizes))
                 existing_pages.append((self.get_symbol_vaddr(symbol), sizes, caps))
 
+            existing_pages.sort(key=lambda phys_addr: phys_addr[0])
             self.check_alignment(existing_pages)
             for (vaddr, sizes, caps) in existing_pages:
                 addr_space.add_region_with_caps(vaddr, sizes, caps)
