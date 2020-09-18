@@ -43,12 +43,10 @@ function(BuildCapDLApplication)
     target_link_libraries(
         "${CAPDL_BUILD_APP_OUTPUT}"
         sel4runtime
-        muslc
         sel4
         cpio
         sel4platsupport
         sel4utils
-        sel4muslcsys
         capdl_loader_app_Config
         sel4_autoconf
     )
