@@ -182,10 +182,10 @@ class ELF(object):
                     m = s + (e - s) // 2
                     lower = regions[m]['addr']
                     upper = regions[m]['addr'] + regions[m]['size']
-                    if lower <= reg_vaddr and reg_vaddr <= upper:
+                    if lower <= reg_vaddr and reg_vaddr < upper:
                         region = regions[m]
                         break
-                    elif reg_vaddr > upper:
+                    elif reg_vaddr >= upper:
                         s = m+1
                     elif reg_vaddr < lower:
                         e = m-1
