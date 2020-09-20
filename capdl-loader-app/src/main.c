@@ -26,6 +26,7 @@
 #include "capdl.h"
 
 #include "capdl_spec.h"
+#include <capdl_loader_app/platform_info.h>
 
 #ifdef CONFIG_ARCH_RISCV
 #define seL4_PageDirIndexBits seL4_PageTableIndexBits
@@ -1464,14 +1465,18 @@ static void map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
          */
         seL4_Word size_bits = spec->objects[page].size_bits;
         assert(size_bits <= sizeof(uintptr_t) * CHAR_BIT - 1 && "illegal object size");
-        if (!(vm_attribs & seL4_ARM_PageCacheable) && CDL_Obj_Paddr(&spec->objects[page]) == 0) {
-            error = seL4_ARM_Page_CleanInvalidate_Data(sel4_page, 0, BIT(size_bits));
-            ZF_LOGF_IFERR(error, "");
-        }
 
-        if (seL4_CapRights_get_capAllowGrant(rights)) {
-            error = seL4_ARM_Page_Unify_Instruction(sel4_page, 0, BIT(size_bits));
-            ZF_LOGF_IFERR(error, "");
+        seL4_ARCH_Page_GetAddress_t addr = seL4_ARCH_Page_GetAddress(sel4_page);
+        if (addr.paddr >= memory_region[0].start && addr.paddr <= memory_region[0].end) {
+            if (!(vm_attribs & seL4_ARM_PageCacheable) && CDL_Obj_Paddr(&spec->objects[page]) == 0) {
+                error = seL4_ARM_Page_CleanInvalidate_Data(sel4_page, 0, BIT(size_bits));
+                ZF_LOGF_IFERR(error, "");
+            }
+
+            if (seL4_CapRights_get_capAllowGrant(rights)) {
+                error = seL4_ARM_Page_Unify_Instruction(sel4_page, 0, BIT(size_bits));
+                ZF_LOGF_IFERR(error, "");
+            }
         }
 #endif
     } else {

@@ -26,6 +26,27 @@ function(BuildCapDLApplication)
         CPIO_SYMBOL
         _capdl_archive
     )
+
+    if(DEFINED platform_yaml)
+        set(
+            PLATFORM_SIFT
+            "${CMAKE_SOURCE_DIR}/../../tools/seL4/cmake-tool/helpers/platform_sift.py"
+        )
+        set(
+            MEMORY_REGIONS
+            "${CMAKE_BINARY_DIR}/capdl/capdl-loader-app/gen_config/capdl_loader_app/platform_info.h"
+        )
+        add_custom_command(
+            COMMAND ${PLATFORM_SIFT} --emit-c-syntax ${platform_yaml} > ${MEMORY_REGIONS}
+            OUTPUT ${MEMORY_REGIONS}
+        )
+        add_custom_target(mem_regions DEPENDS ${platform_yaml} ${PLATFORM_SIFT} ${MEMORY_REGIONS})
+        set_property(
+            SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/capdl/capdl-loader-app/src/main.c
+            PROPERTY OBJECT_DEPENDS mem_regions
+        )
+    endif()
+
     # Build the application
     add_executable(
         "${CAPDL_BUILD_APP_OUTPUT}"
@@ -35,6 +56,11 @@ function(BuildCapDLApplication)
         ${CAPDL_BUILD_APP_OUTPUT}_archive.o
         ${CAPDL_BUILD_APP_C_SPEC}
     )
+
+    if(DEFINED platform_yaml)
+        add_dependencies("${CAPDL_BUILD_APP_OUTPUT}" mem_regions)
+    endif()
+
     add_dependencies("${CAPDL_BUILD_APP_OUTPUT}" ${CAPDL_BUILD_APP_DEPENDS})
     target_include_directories(
         "${CAPDL_BUILD_APP_OUTPUT}"
