@@ -26,7 +26,10 @@
 #include "capdl.h"
 
 #include "capdl_spec.h"
+
+#ifdef CONFIG_ARCH_ARM
 #include <capdl_loader_app/platform_info.h>
+#endif
 
 #ifdef CONFIG_ARCH_RISCV
 #define seL4_PageDirIndexBits seL4_PageTableIndexBits
