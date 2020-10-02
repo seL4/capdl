@@ -25,6 +25,11 @@
 #include <sel4utils/sel4_zf_logif.h>
 #include "capdl.h"
 
+#ifdef CONFIG_DEBUG_BUILD
+#include <utils/attribute.h>
+#include <muslcsys/vsyscall.h>
+#endif
+
 #include "capdl_spec.h"
 
 #ifdef CONFIG_ARCH_ARM
@@ -2079,13 +2084,27 @@ static void init_system(CDL_Model *spec)
     start_threads(spec);
 }
 
-int main(void)
-{
 #ifdef CONFIG_DEBUG_BUILD
+/* We need to give malloc enough memory for musllibc to allocate memory
+ * for stdin, stdout, and stderr. */
+extern char *morecore_area;
+extern size_t morecore_size;
+#define DEBUG_LIBC_MORECORE_SIZE 4096
+static char debug_libc_morecore_area[DEBUG_LIBC_MORECORE_SIZE];
+
+static void CONSTRUCTOR(MUSLCSYS_WITH_VSYSCALL_PRIORITY) init_bootinfo(void)
+{
+    /* Init memory area for musl. */
+    morecore_area = debug_libc_morecore_area;
+    morecore_size = DEBUG_LIBC_MORECORE_SIZE;
+
     /* Allow us to print via seL4_Debug_PutChar. */
     platsupport_serial_setup_bootinfo_failsafe();
+}
 #endif
 
+int main(void)
+{
     ZF_LOGD("Starting Loader...");
     init_system(&capdl_spec);
 
