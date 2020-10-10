@@ -28,10 +28,16 @@ function(BuildCapDLApplication)
     )
 
     if(DEFINED platform_yaml)
-        set(
-            PLATFORM_SIFT
-            "${CMAKE_SOURCE_DIR}/../../tools/seL4/cmake-tool/helpers/platform_sift.py"
-        )
+
+        find_file(PLATFORM_SIFT platform_sift.py PATHS ${CMAKE_MODULE_PATH} NO_CMAKE_FIND_ROOT_PATH)
+        mark_as_advanced(FORCE PLATFORM_SIFT)
+        if("${PLATFORM_SIFT}" STREQUAL "PLATFORM_SIFT-NOTFOUND")
+            message(
+                FATAL_ERROR
+                    "Failed to find platform_sift.py. Consider using -DPLATFORM_SIFT=/path/to/file"
+            )
+        endif()
+
         set(
             MEMORY_REGIONS
             "${CMAKE_BINARY_DIR}/capdl/capdl-loader-app/gen_config/capdl_loader_app/platform_info.h"
