@@ -2082,6 +2082,12 @@ static void init_system(CDL_Model *spec)
     init_tcbs(spec);
     init_cspace(spec);
     start_threads(spec);
+
+    ZF_LOGD("%d of %d CSlots used (%.2LF%%)", get_free_slot(),
+            BIT(CONFIG_ROOT_CNODE_SIZE_BITS),
+            ((long double)get_free_slot() / BIT(CONFIG_ROOT_CNODE_SIZE_BITS))
+            * 100);
+
 }
 
 #ifdef CONFIG_DEBUG_BUILD
@@ -2105,12 +2111,8 @@ static void CONSTRUCTOR(MUSLCSYS_WITH_VSYSCALL_PRIORITY) init_bootinfo(void)
 
 int main(void)
 {
-    ZF_LOGD("Starting Loader...");
+    ZF_LOGI("Starting CapDL Loader...");
     init_system(&capdl_spec);
-
-    ZF_LOGD("We used %d CSlots (%.2LF%% of our CNode)", get_free_slot(),
-            (long double)get_free_slot() /
-            (long double)(BIT(CONFIG_ROOT_CNODE_SIZE_BITS) * 100));
-    ZF_LOGD(A_RESET A_FG_G "Done; suspending..." A_RESET "");
+    ZF_LOGI(A_RESET A_FG_G "CapDL Loader done, suspending..." A_RESET "");
     seL4_TCB_Suspend(seL4_CapInitThreadTCB);
 }
