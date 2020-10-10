@@ -9,13 +9,13 @@
 This repository contains the capDL initialiser for seL4.
 
 The capDL initialiser is the root task for a seL4 system that takes a
-description of the state to be initialised using [capDL][capDL paper],
+description of the state to be initialised using [capDL][Kuz_KLW_10],
 and starts the system in conformance with the specification.
 
 The code is an implementation of the formal algorithm specified
 in Isabelle/HOL.
 
-  [capDL paper]: http://www.ssrg.nicta.com.au/publications/papers/Kuz_KLW_10.pdf "capDL: A language for describing capability-based systems"
+  [Kuz_KLW_10]: https://ts.data61.csiro.au/publications/nicta_full_text/3679.pdf "capDL: A language for describing capability-based systems"
 
 ## Repository overview
 
