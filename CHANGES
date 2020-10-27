@@ -16,6 +16,55 @@ Upcoming release
 
 ## Upgrade Notes
 ---
+capdl-0.2.0 2020-10-27
+Using seL4 version 12.0.0
+
+## Changes
+
+* Convert to SPDX license tags. This includes marking all documentation files CC-BY-SA-4.0.
+
+* Build system:
+  - Support `CMakeForegroundComplexCommands`. This enables long-running build steps like Haskell installation to
+    directly print to the console.
+  - Make PLATFORM_SIFT agnostic of the build system directory layout
+  - Save the binary artifacts for the capDL-tool in an out-of-build-tree directory, this will not rebuild in future if
+    it can find a previously built artifact.
+  - Migrate scripts to python3
+* Add `seL4_BadgeBits` constant and update python-capdl-tool to directly query the object_sizes dictionary. This allows
+  for templates to use badge sizes.
+* Add support for Arm smmu v2.
+* Add support for Arm GetTrigger and GetTriggerCore seL4 invocations. This enables specs to correctly specify interrupt
+  trigger mode and core affinities on Arm.
+* Add TCB Resume field to capDL object and support raw TCB object creation.
+* Add GitHub actions scripts. These scripts replicate internal CI checks directly on GitHub
+
+### capDL-tool
+
+* rework validObjCap and check TCB slots, which allows vcpus for all architectures.
+* convert CapDL language specification to Markdown.
+
+### Capdl-loader-app
+
+* Improve log output.
+* Initialise libc in debug builds.
+* Add check to only flush and invalidate kernel memory regions in capdl loader on Arm. Add platform_info header with
+  memory window.
+* Add vcpu support for aarch64.
+* Handle IRQ binding to badged notifications properly: If an irq is bound to a notification with a non-zero badge, a
+  badged capability is minted and used.  Previously, the IRQ was bound to the unbadged notification.
+* Track number of used untypeds during object allocation and fail more gracefully if they run out.
+* Improve debugging printouts.
+* Fix issue where large DTB images inside BootInfo would overlap reserved memory address used to initialise frames.
+* Remove CONFIG_CAPDL_LOADER_ALLOW_NO_CSPACE config option as it has been unused for a while.
+
+### Capdl-linker:
+
+* Optimize spec generation performance:
+  - Sort elf symbols by their vaddr.
+  - Replace linear search with binary when looking for virtual addresses.
+* Fix Python syntax warnings when `capdl_linker.py` is invoked.
+
+---
 0.1.0 2019-11-19
 Using seL4 version 11.0.0
 
