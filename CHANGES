@@ -16,6 +16,42 @@ Upcoming release
 
 ## Upgrade Notes
 ---
+camkes-0.2.0 2020-10-27
+Using seL4 version 12.0.0
+  
+## Changes
+
+* Capdl-loader-app: improve log output.
+* Cmake: use sel4_cmake_tool_dir for platform_sift.
+* Initialise libc in debug builds of capdl loader.
+* Add support for smmu v2.
+* Sort elf symbols by their vaddr.
+* Memory-regions: add check to only flush and invalidate kernel memory regions in capdl loader on Arm. Add platform_info header with memory window to capdl-loader.
+* Fix: correct binary search.
+* Remove-dependencies: muslc, muslcsys.
+* Capdl: python optimisations.
+* Capdl-loader-app: fix compiler warnings.
+* Fix Python syntax warnings when capdl_linker.py is invoked.
+* Capdl-loader-app: apply irq notification badge.
+* Capdl-tool, capdl-loader-app: add vcpu support for aarch64.
+* Add nose python dependency.
+* Object_sizes: correctly license object_sizes.yaml.
+* Github CI setup.
+* Convert to SPDX license tags. This includes marking all documentation files CC-BY-SA-4.0.
+* Add code of conduct link required by the seL4 foundation.
+* Convert language spec to markdown.
+* Capdl-loader-app: track number of normal untypes.
+* Add TCB Resume field to capDL object and support raw TCB object creation.
+* Improve printouts.
+* Add support for Arm GetTrigger and GetTriggerCore.
+* Improve documentation.
+* Make badge sizes available to templates.
+* Capdl: calculate copy_addr on system init.
+* CMake: memoize the capDL-tool Haskell build.
+* Python3: fix compatibility issues between versions.
+* Capdl-tool: support cmakeforegroundcomplexcommands.
+
+---
 0.1.0 2019-11-19
 Using seL4 version 11.0.0
 
