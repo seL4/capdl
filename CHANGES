@@ -16,6 +16,37 @@ Upcoming release
 
 ## Upgrade Notes
 ---
+capdl-0.2.0 2020-10-27
+Using seL4 version 12.0.0
+
+## Changes
+
+* Convert to SPDX license tags. This includes marking all documentation files CC-BY-SA-4.0.
+* capDL-tool: rework validObjCap and check TCB slots, which allows us to re-enable vcpus for all architectures.
+* Add support for Arm smmu v2.
+* Add support for Arm GetTrigger and GetTriggerCore.
+* Add TCB Resume field to capDL object and support raw TCB object creation.
+* Capdl-loader-app: 
+    - Improve log output.
+    - Initialise libc in debug builds.
+    - Add check to only flush and invalidate kernel memory regions in capdl loader on Arm. Add platform_info header with memory window.
+    - Fix compiler warnings.
+    - Add vcpu support for aarch64.
+    - Apply irq notification badge.
+    - Track number of normal untypes.
+    - Improve debugging printouts.
+    - Dynamically calculate `copy_addr`. Before it was statically initialised to round up to the 16mb alignment. `copy_addr` is now calculated after the extended bootinfo headers have been parsed in order to account for all frames the kernel has mapped in.
+* Capdl-linker:
+    - Sort elf symbols by their vaddr.
+    - Replace linear search with binary when looking for virtual addresses.
+    - Fix Python syntax warnings when `capdl_linker.py` is invoked.
+* Add `seL4_BadgeBits` constant and update python-capdl-tool to directly query the object_sizes dictionary. This allows for templates to use badge sizes.
+* Build system:
+    - Support `CMakeForegroundComplexCommands`. This enables long running build steps like haskell installation to directly print to the console.
+    - Make PLATFORM_SIFT agnostic of the build system directory layout
+    - Save the binary artifacts for the capDL-tool in an out-of-build-tree directory, this will not rebuild in future if it can find a previously built artifact.
+
+---
 0.1.0 2019-11-19
 Using seL4 version 11.0.0
 
