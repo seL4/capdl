@@ -646,7 +646,7 @@ unsigned int create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_
      * or generate the capdl spec so that the order remains correct here e.g a list a stream ids followed by the cb they
      * are mapped to, the cb condition here (1***) will the reset the stream id number back to 0 for the next context bank.
      */
-#ifdef CONFIG_ARM_SMMU_V2
+#ifdef CONFIG_ARM_SMMU
     if (CDL_Obj_Type(obj) == CDL_SID) {
         err = seL4_ARM_SIDControl_GetSID(seL4_CapSMMUSIDControl, sid_number, seL4_CapInitThreadCNode, free_slot,
                                          CONFIG_WORD_SIZE);
