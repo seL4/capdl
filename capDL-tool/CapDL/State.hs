@@ -486,7 +486,7 @@ validTCBSlotCap arch slot cap
                 IA32 -> is _PDCap cap
                 ARM11 -> is _PDCap cap
                 X86_64 -> is _PML4Cap cap
-                AARCH64 -> is _PGDCap cap
+                AARCH64 -> is _PGDCap cap || is _PUDCap cap
                 RISCV -> is _PTCap cap
     | slot == tcbReplySlot = is _MasterReplyCap cap
     | slot == tcbCallerSlot = is _ReplyCap cap
