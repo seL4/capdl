@@ -24,7 +24,7 @@ syn keyword CapDLAttribute addr affinity badge dom fault_ep G guard guard_size i
 syn match CapDLCPP "[ \t]*#.*$"
 syn match CapDLLiteral "\<\(0x\)\?[0-9]\+\(k\|M\)\?\( bits\)\?\>"
 syn match CapDLLiteral "\<0x[0-f]\+\>"
-syn keyword CapDLSymbolicSlot cspace vspace reply_slot caller_slot ipc_buffer_slot fault_ep_slot sc_slot temp_fault_ep_slot bound_vcpu
+syn keyword CapDLSymbolicSlot cspace vspace reply_slot caller_slot ipc_buffer_slot fault_ep_slot sc_slot temp_fault_ep_slot bound_notification bound_vcpu
 
 syn region Foldable start="{" end="}" fold transparent
 

@@ -497,6 +497,7 @@ validTCBSlotCap arch slot cap
     | slot == tcbFaultEPSlot = is _EndpointCap cap
     | slot == tcbSCSlot = is _SCCap cap
     | slot == tcbTempFaultEPSlot = is _EndpointCap cap
+    | slot == tcbBoundNotificationSlot = is _NotificationCap cap
     | slot == tcbBoundVCPUSlot = arch /= RISCV && is _VCPUCap cap
     | otherwise = cap == NullCap
 

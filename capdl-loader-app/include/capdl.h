@@ -417,9 +417,10 @@ typedef struct {
 #define CDL_TCB_FaultEP_Slot        5
 #define CDL_TCB_SC_Slot             6
 #define CDL_TCB_TemporalFaultEP_Slot   7
+#define CDL_TCB_Notification_Slot   8
 
 #if defined(CONFIG_ARM_HYPERVISOR_SUPPORT) || defined(CONFIG_VTX)
-#define CDL_TCB_VCPU_SLOT           8
+#define CDL_TCB_VCPU_SLOT           9
 #endif
 
 #define CDL_CapData_MakeGuard(x, y) \
