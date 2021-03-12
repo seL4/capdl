@@ -15,6 +15,7 @@
 ### Changes
 
 * add support for SMC capability
+* add support for binding notifications to TCBs
 * enable MCS build; use `seL4_TCB_SetAffinity` only for non-MCS kernels
 * allow `SchedControlCap` to refer to a secondary core
 * minimal update for seL4 AArch64 VSpace API change, removing `seL4_ARM_PageGlobalDirectoryObject`

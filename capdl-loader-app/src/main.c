@@ -1013,6 +1013,8 @@ static void init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     if (cdl_ipcbuffer == NULL) {
         ZF_LOGD("  Warning: TCB has no IPC buffer");
     }
+    CDL_Cap *cdl_notification = get_cap_at(cdl_tcb, CDL_TCB_Notification_Slot);
+
 #if defined(CONFIG_ARM_HYPERVISOR_SUPPORT) || defined(CONFIG_VTX)
     CDL_Cap *cdl_vcpu = get_cap_at(cdl_tcb, CDL_TCB_VCPU_SLOT);
 #endif
@@ -1030,6 +1032,7 @@ static void init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     seL4_CPtr sel4_vspace_root = cdl_vspace_root ? orig_caps(CDL_Cap_ObjID(cdl_vspace_root)) : 0;
     seL4_CPtr sel4_ipcbuffer   = cdl_ipcbuffer ? orig_caps(CDL_Cap_ObjID(cdl_ipcbuffer)) : 0;
     seL4_CPtr UNUSED sel4_sc   = cdl_sc ? orig_caps(CDL_Cap_ObjID(cdl_sc)) : 0;
+    seL4_CPtr sel4_notification = cdl_notification ? orig_caps(CDL_Cap_ObjID(cdl_notification)) : 0;
 #if defined(CONFIG_ARM_HYPERVISOR_SUPPORT) || defined(CONFIG_VTX)
     seL4_CPtr sel4_vcpu        = cdl_vcpu ? orig_caps(CDL_Cap_ObjID(cdl_vcpu)) : 0;
 #endif
@@ -1144,6 +1147,12 @@ static void init_tcb(CDL_Model *spec, CDL_ObjID tcb)
 #endif
 
     ZF_LOGF_IFERR(error, "");
+
+    if (sel4_notification) {
+        int error = seL4_TCB_BindNotification(sel4_tcb, sel4_notification);
+        ZF_LOGF_IFERR(error, "Failed to bind Notification %s to TCB %s",
+                      CDL_Obj_Name(get_spec_object(spec, CDL_Cap_ObjID(cdl_notification))), CDL_Obj_Name(cdl_tcb));
+    }
 
 #if defined(CONFIG_ARM_HYPERVISOR_SUPPORT) || defined(CONFIG_VTX)
     if (sel4_vcpu) {

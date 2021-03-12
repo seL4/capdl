@@ -475,6 +475,7 @@ symbolic_slot =
     <|> keyw "fault_ep_slot" tcbFaultEPSlot
     <|> keyw "sc_slot" tcbSCSlot
     <|> keyw "temp_fault_ep_slot" tcbTempFaultEPSlot
+    <|> keyw "bound_notification" tcbBoundNotificationSlot
     <|> keyw "bound_vcpu" tcbBoundVCPUSlot
 
 parse_slot :: MapParser Word
