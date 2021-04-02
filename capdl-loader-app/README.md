@@ -29,10 +29,11 @@ containing the capDL specification to be initialised.
 
 ## Related papers
 
-The formal model for the capDL initialiser is documented in
-[ICFEM '13 paper][Boyton_13] and Andrew Boyton's PhD thesis.
+The formal model for the capDL initialiser is documented in a
+[ICFEM '13 paper][Boyton_13] and Andrew Boyton's [PhD thesis][Boyton_14].
 
-  [Boyton_13]: https://ts.data61.csiro.au/publications/nictaabstracts/Boyton:phd.abstract.pml "Formally Verified System Initialisation"
+  [Boyton_13]: https://ts.data61.csiro.au/publications/nicta_full_text/7047.pdf "Formally Verified System Initialisation"
+  [Boyton_14]: https://ts.data61.csiro.au/publications/nicta_full_text/9141.pdf "Secure architectures on a verified microkernel"
 
 ## License
 
