@@ -1958,7 +1958,7 @@ static void fill_frame_with_filedata(uintptr_t base, CDL_FrameFill_Element_t fra
 {
     unsigned long file_size;
     unsigned long cpio_size = _capdl_archive_end - _capdl_archive;
-    void *file = cpio_get_file(_capdl_archive, cpio_size, frame_fill.file_data_type.filename, &file_size);
+    const void *file = cpio_get_file(_capdl_archive, cpio_size, frame_fill.file_data_type.filename, &file_size);
     memcpy((void *)base + frame_fill.dest_offset, file + frame_fill.file_data_type.file_offset, frame_fill.dest_len);
 }
 
