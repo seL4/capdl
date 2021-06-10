@@ -16,6 +16,21 @@ Upcoming release
 
 ## Upgrade Notes
 ---
+0.2.1 2021-06-10
+Using seL4 version 12.1.0
+
+## Changes
+
+* Added page-upper-directory caps to the valid TCB check for platforms like QEMU arm-virt as they use different paging
+  structures.
+* Added const qualifiers to the capdl-loader-app to avoid compiler warnings against other libraries.
+* Improved the README for the capdl-loader-app.
+
+## Upgrade Notes
+
+* None to be aware of. This is not a source-breaking or binary-breaking release.
+
+---
 capdl-0.2.0 2020-10-27
 Using seL4 version 12.0.0
 
