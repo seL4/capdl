@@ -1536,6 +1536,7 @@ static void init_level_3(CDL_Model *spec, CDL_ObjID level_0_obj, uintptr_t level
     }
 }
 
+#if (CDL_PT_NUM_LEVELS >= 2)
 static void init_level_2(CDL_Model *spec, CDL_ObjID level_0_obj, uintptr_t level_2_base, CDL_ObjID level_2_obj)
 {
     CDL_Object *obj = get_spec_object(spec, level_2_obj);
@@ -1555,7 +1556,9 @@ static void init_level_2(CDL_Model *spec, CDL_ObjID level_0_obj, uintptr_t level
         }
     }
 }
+#endif
 
+#if (CDL_PT_NUM_LEVELS >= 3)
 static void init_level_1(CDL_Model *spec, CDL_ObjID level_0_obj, uintptr_t level_1_base, CDL_ObjID level_1_obj)
 {
     CDL_Object *obj = get_spec_object(spec, level_1_obj);
@@ -1575,7 +1578,9 @@ static void init_level_1(CDL_Model *spec, CDL_ObjID level_0_obj, uintptr_t level
         }
     }
 }
+#endif
 
+#if (CDL_PT_NUM_LEVELS >= 4)
 static void init_level_0(CDL_Model *spec, CDL_ObjID level_0_obj, uintptr_t level_0_base, CDL_ObjID level_0_obj_unused)
 {
     CDL_Object *obj = get_spec_object(spec, level_0_obj);
@@ -1595,6 +1600,7 @@ static void init_level_0(CDL_Model *spec, CDL_ObjID level_0_obj, uintptr_t level
 #endif
     }
 }
+#endif
 
 #else
 
@@ -1672,15 +1678,15 @@ static void init_vspace(CDL_Model *spec)
     for (CDL_ObjID obj_id = 0; obj_id < spec->num; obj_id++) {
         if (spec->objects[obj_id].type == CDL_TOP_LEVEL_PD) {
             ZF_LOGD(" Initialising top level %s...", CDL_Obj_Name(&spec->objects[obj_id]));
-            if (CDL_PT_NUM_LEVELS == 4) {
-                init_level_0(spec, obj_id, 0, obj_id);
-            } else if (CDL_PT_NUM_LEVELS == 3) {
-                init_level_1(spec, obj_id, 0, obj_id);
-            } else if (CDL_PT_NUM_LEVELS == 2) {
-                init_level_2(spec, obj_id, 0, obj_id);
-            } else {
-                ZF_LOGF("Unsupported CDL_PT_NUM_LEVELS value: \"%d\"", CDL_PT_NUM_LEVELS);
-            }
+#if (CDL_PT_NUM_LEVELS == 4)
+            init_level_0(spec, obj_id, 0, obj_id);
+#elif (CDL_PT_NUM_LEVELS == 3)
+            init_level_1(spec, obj_id, 0, obj_id);
+#elif (CDL_PT_NUM_LEVELS == 2)
+            init_level_2(spec, obj_id, 0, obj_id);
+#else
+            ZF_LOGF("Unsupported CDL_PT_NUM_LEVELS value: \"%d\"", CDL_PT_NUM_LEVELS);
+#endif
         }
     }
 #else
