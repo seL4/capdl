@@ -11,3 +11,10 @@ Collection of tools for generating, parsing and loading capdl specifications of 
 * capDL-tool - A tool to assist working with capDL textual specifications
 * python-capdl-tool - A Python module for providing CapDL support
 * capdl-loader-app - The capDL initialiser for seL4
+
+## Reporting security vulnerabilities
+
+If you believe you have found a security vulnerability in this code, we ask you
+to follow the seL4 [vulnerability disclosure policy][VDP].
+
+[VDP]: https://github.com/seL4/seL4/blob/master/SECURITY.md
