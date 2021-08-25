@@ -15,7 +15,7 @@ and starts the system in conformance with the specification.
 The code is an implementation of the formal algorithm specified
 in Isabelle/HOL.
 
-  [Kuz_KLW_10]: https://ts.data61.csiro.au/publications/nicta_full_text/3679.pdf "capDL: A language for describing capability-based systems"
+  [Kuz_KLW_10]: https://trustworthy.systems/publications/nicta_full_text/3679.pdf "capDL: A language for describing capability-based systems"
 
 ## Repository overview
 
@@ -32,8 +32,8 @@ containing the capDL specification to be initialised.
 The formal model for the capDL initialiser is documented in a
 [ICFEM '13 paper][Boyton_13] and Andrew Boyton's [PhD thesis][Boyton_14].
 
-  [Boyton_13]: https://ts.data61.csiro.au/publications/nicta_full_text/7047.pdf "Formally Verified System Initialisation"
-  [Boyton_14]: https://ts.data61.csiro.au/publications/nicta_full_text/9141.pdf "Secure architectures on a verified microkernel"
+  [Boyton_13]: https://trustworthy.systems/publications/nicta_full_text/7047.pdf "Formally Verified System Initialisation"
+  [Boyton_14]: https://trustworthy.systems/publications/nicta_full_text/9141.pdf "Secure architectures on a verified microkernel"
 
 ## License
 
