@@ -56,7 +56,7 @@ The Capability Distribution Language is also documented in
   Proceedings of the 1st Asia-Pacific Workshop on Systems (APSys), pp. 31–36,
   New Delhi, India, August, 2010
 
-  [CapDL]: https://ts.data61.csiro.au/publications/papers/Kuz_KLW_10.pdf
+  [CapDL]: https://trustworthy.systems/publications/papers/Kuz_KLW_10.pdf
 
 ## License
 
