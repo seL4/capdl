@@ -1014,7 +1014,7 @@ static void init_tcb(CDL_Model *spec, CDL_ObjID tcb)
         ZF_LOGD("  Warning: TCB has no IPC buffer");
     }
 #if defined(CONFIG_ARM_HYPERVISOR_SUPPORT) || defined(CONFIG_VTX)
-    CDL_Cap *cdl_vcpu = get_cap_at(cdl_tcb, CDL_TCB_VCPU_SLOT);
+    CDL_Cap *cdl_vcpu = get_cap_at(cdl_tcb, CDL_TCB_VCPU_Slot);
 #endif
 
     CDL_Cap *cdl_sc   = get_cap_at(cdl_tcb, CDL_TCB_SC_Slot);
