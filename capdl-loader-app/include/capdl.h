@@ -420,7 +420,7 @@ typedef struct {
 #define CDL_TCB_Notification_Slot   8
 
 #if defined(CONFIG_ARM_HYPERVISOR_SUPPORT) || defined(CONFIG_VTX)
-#define CDL_TCB_VCPU_SLOT           9
+#define CDL_TCB_VCPU_Slot           9
 #endif
 
 #define CDL_CapData_MakeGuard(x, y) \
