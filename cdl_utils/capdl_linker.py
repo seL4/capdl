@@ -5,7 +5,6 @@
 # SPDX-License-Identifier: BSD-2-Clause
 #
 
-from simpleeval import EvalWithCompoundTypes
 from capdl.Object import register_object_sizes, Untyped
 from capdl.Allocator import ASIDTableAllocator, BestFitAllocator
 from capdl import ELF, lookup_architecture, TCB, valid_architectures
@@ -63,11 +62,10 @@ def final_spec(args, obj_space, cspaces, addr_spaces, targets, architecture):
                     # We exclude TCBs that refer to a different CSpace
                     continue
                 funcs = {"get_vaddr": lambda x: elf.get_symbol_vaddr(x)}
-                s = EvalWithCompoundTypes(functions=funcs)
-                tcb.ip = s.eval(str(tcb.ip))
-                tcb.sp = s.eval(str(tcb.sp))
-                tcb.addr = s.eval(str(tcb.addr))
-                tcb.init = s.eval(str(tcb.init))
+                tcb.ip = eval(str(tcb.ip), {"__builtins__": None}, funcs)
+                tcb.sp = eval(str(tcb.sp), {"__builtins__": None}, funcs)
+                tcb.addr = eval(str(tcb.addr), {"__builtins__": None}, funcs)
+                tcb.init = eval(str(tcb.init), {"__builtins__": None}, funcs)
                 if not args.fprovide_tcb_caps:
                     del cspace.cnode[slot]
         cspace.cnode.finalise_size(arch=arch)
