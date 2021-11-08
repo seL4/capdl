@@ -96,6 +96,8 @@ class ObjectType(Enum):
     seL4_ARMSID = auto()
     seL4_ARMCB = auto()
 
+    seL4_ARMSMC = auto()
+
     seL4_AARCH64_PGD = auto()
     seL4_AARCH64_PUD = auto()
 
@@ -676,6 +678,17 @@ class ContextBank(Object):
         s = '%s = contextbank (bank: %d)' % (self.name, self.bank)
         self.bank += 1
         return s
+
+    def get_size_bits(self):
+        return None
+
+
+class SMC(Object):
+    def __init__(self, name):
+        super().__init__(name)
+
+    def __repr__(self):
+        return '%s = smc' % self.name
 
     def get_size_bits(self):
         return None
