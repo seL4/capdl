@@ -137,6 +137,7 @@ object_type =
     <|> keyw "rtreply" RTReply_T
     <|> keyw "streamid" ARMSID_T
     <|> keyw "contextbank" ARMCB_T
+    <|> keyw "smc" ARMSMC_T
 
 obj_bit_size :: MapParser ObjParam
 obj_bit_size = do
