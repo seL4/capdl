@@ -215,6 +215,7 @@ prettyObjParams obj = case obj of
     ARMIrq _ trigger target -> text "arm_irq" <+> maybeParensList[prettyARMIRQTrigger trigger, prettyARMIRQTarget target]
     ARMSID {} -> text "streamid"
     ARMCB {} -> text "contextbank"
+    ARMSMC {} -> text "smc"
 
 capParams [] = empty
 capParams xs = parens (hsep $ punctuate comma xs)

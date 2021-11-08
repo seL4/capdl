@@ -479,6 +479,7 @@ objectOf n obj =
         Obj RTReply_T [] [] -> RTReply
         Obj ARMSID_T [] [] -> ARMSID
         Obj ARMCB_T ps [] -> ARMCB (getCBExtraInfo ps)
+        Obj ARMSMC_T [] [] -> ARMSMC
         Obj _ _ (_:_) ->
           error $ "Only untyped caps can have objects as content: " ++
                   n ++ " = " ++ show obj
@@ -655,6 +656,7 @@ objCapOf containerName obj objRef params =
         ARMIrq {} -> ARMIRQHandlerCap objRef
         ARMSID {} -> ARMSIDCap objRef
         ARMCB {} -> ARMCBCap objRef
+        ARMSMC {} -> ARMSMCCap objRef
     else error ("Incorrect params for cap to " ++ printID objRef ++ " in " ++
                 printID containerName ++ "; got " ++ show params)
 
