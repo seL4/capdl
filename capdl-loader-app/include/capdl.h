@@ -83,6 +83,9 @@ typedef enum {
     CDL_ARMIOSpaceCap,
     CDL_SIDCap,
     CDL_CBCap,
+#ifdef CONFIG_ALLOW_SMC_CALLS
+    CDL_SMCCap,
+#endif
 #endif
 #if defined(CONFIG_ARM_HYPERVISOR_SUPPORT) || defined(CONFIG_VTX)
     CDL_VCPUCap,
@@ -210,6 +213,9 @@ typedef enum {
     CDL_ARMInterrupt = seL4_ObjectTypeCount + 11,
     CDL_SID = seL4_ObjectTypeCount + 12,
     CDL_CB = seL4_ObjectTypeCount + 13,
+#ifdef CONFIG_ALLOW_SMC_CALLS
+    CDL_SMC = seL4_ObjectTypeCount + 14,
+#endif
 #endif
 #ifdef CONFIG_ARCH_RISCV
     CDL_Frame = seL4_RISCV_4K_Page,
