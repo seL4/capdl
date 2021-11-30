@@ -119,7 +119,7 @@ showObjectName MSIIrq {} = "MSIIrq"
 showObjectName ARMIrq {} = "ARMIrq"
 showObjectName ARMSID {} = "ARMSID"
 showObjectName ARMCB {} = "ARMCB"
-showObjectName ARMSMC {} = "ARMSMC"
+showObjectName ARMSMC = "ARMSMC"
 
 --
 -- Get a cap's name.
@@ -164,6 +164,7 @@ showCapName ARMSMCCap {} = "ARMSMCCap"
 showExtraCapAttributes :: Cap -> [(String, String)]
 showExtraCapAttributes (EndpointCap _ capBadge _) = [("badge", show capBadge)]
 showExtraCapAttributes (NotificationCap _ capBadge _) = [("badge", show capBadge)]
+showExtraCapAttributes (ARMSMCCap _ capBadge) = [("badge", show capBadge)]
 showExtraCapAttributes (CNodeCap _ guard guardSize) =
     [("guard", show guard), ("guardSize", show guardSize)]
 showExtraCapAttributes (FrameCap _ _ _ False _) = [("cached", "False")]

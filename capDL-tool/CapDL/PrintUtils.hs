@@ -306,6 +306,8 @@ maybeCapParams cap = case cap of
         capParams (maybeBadge badge ++ maybeRights False rights)
     NotificationCap _ badge rights ->
         capParams (maybeBadge badge ++ maybeRights False rights)
+    ARMSMCCap _ badge ->
+        capParams (maybeBadge badge)
     ReplyCap _ -> capParams [text "reply"]
     MasterReplyCap _ -> capParams [text "master_reply"]
     CNodeCap _ guard gsize ->
@@ -336,6 +338,8 @@ sameParams cap1 cap2 =
     ((EndpointCap _ b1 r1), (EndpointCap _ b2 r2)) -> b1 == b2 && r1 == r2
     ((NotificationCap _ b1 r1), (NotificationCap _ b2 r2)) ->
         b1 == b2 && r1 == r2
+    ((ARMSMCCap _ b1), (ARMSMCCap _ b2)) ->
+        b1 == b2
     ((CNodeCap _ g1 gs1), (CNodeCap _ g2 gs2)) ->
         g1 == g2 && gs1 == gs2
     ((FrameCap _ r1 a1 c1 m1), (FrameCap _ r2 a2 c2 m2)) -> r1 == r2 && a1 == a2 && c1 == c2 && m1 == m2
