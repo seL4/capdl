@@ -604,6 +604,8 @@ validCapPars (Endpoint {}) ps =
     subsetConstrs (removeConstr (Rights undefined) ps) [Badge undefined]
 validCapPars (Notification {}) ps =
     subsetConstrs (removeConstr (Rights undefined) ps) [Badge undefined]
+validCapPars (ARMSMC {}) ps =
+    subsetConstrs ps [Badge undefined]
 validCapPars (TCB {}) ps =
     subsetConstrs ps [Reply, MasterReply] &&
     (not (containsConstr Reply ps) || not (containsConstr MasterReply ps))
@@ -656,7 +658,7 @@ objCapOf containerName obj objRef params =
         ARMIrq {} -> ARMIRQHandlerCap objRef
         ARMSID {} -> ARMSIDCap objRef
         ARMCB {} -> ARMCBCap objRef
-        ARMSMC {} -> ARMSMCCap objRef
+        ARMSMC -> ARMSMCCap objRef (getBadge params)
     else error ("Incorrect params for cap to " ++ printID objRef ++ " in " ++
                 printID containerName ++ "; got " ++ show params)
 

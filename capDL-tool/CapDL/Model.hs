@@ -118,7 +118,9 @@ data Cap
         | ARMIRQHandlerCap { capObj :: ObjID }
         | ARMSIDCap        { capObj :: ObjID }
         | ARMCBCap         { capObj :: ObjID }
-        | ARMSMCCap         { capObj :: ObjID }
+        | ARMSMCCap        {
+            capObj :: ObjID,
+            capBadge :: Word }
 
         -- X86 specific caps
         | IOPortsCap {
@@ -418,6 +420,7 @@ objID = capObj
 hasRights :: Cap -> Bool
 hasRights (NotificationCap {})   = True
 hasRights (EndpointCap {})        = True
+hasRights (ARMSMCCap {})          = True
 hasRights (FrameCap {})           = True
 hasRights _                       = False
 

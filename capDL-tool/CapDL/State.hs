@@ -321,7 +321,7 @@ koType (MSIIrq {}) = MSIIrqSlot_T
 koType (ARMIrq {}) = ARMIrqSlot_T
 koType (ARMSID {}) = ARMSID_T
 koType (ARMCB {}) = ARMCB_T
-koType (ARMSMC {}) = ARMSMC_T
+koType ARMSMC = ARMSMC_T
 
 objAt :: (KernelObject Word -> Bool) -> ObjID -> Model Word -> Bool
 objAt p ref = maybe False p . maybeObject ref
