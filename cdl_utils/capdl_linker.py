@@ -132,7 +132,7 @@ def main():
         ASIDTableAllocator().allocate(obj_space.spec)
         if args.static_alloc:
             alloc = BestFitAllocator()
-            for ut in yaml.load(args.untyped):
+            for ut in yaml.load(args.untyped, Loader=yaml.FullLoader):
                 if len(ut):
                     is_device, paddr, size_bits = ut['device'], ut['paddr'], ut['size_bits']
                     alloc.add_untyped(Untyped("root_untyped_0x%x" % paddr,
