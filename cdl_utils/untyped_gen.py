@@ -114,8 +114,8 @@ def get_symbol_size(elf, name):
 
 def main(args):
     arch = lookup_architecture(args.architecture)
-    addresses = yaml.load(args.input, loader=yaml.FullLoader)
-    object_sizes = yaml.load(args.object_sizes, loader=yaml.FullLoader)
+    addresses = yaml.load(args.input, Loader=yaml.FullLoader)
+    object_sizes = yaml.load(args.object_sizes, Loader=yaml.FullLoader)
     register_object_sizes(object_sizes)
 
     # create the list of reserved regions. This duplicates the load_images part of the elf loader. Ultimately
