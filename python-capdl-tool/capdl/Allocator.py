@@ -165,9 +165,9 @@ class ObjectAllocator(object):
         elif type == ObjectType.seL4_RTReplyObject:
             o = RTReply(name)
         elif type == ObjectType.seL4_ARMSID:
-            o = StreamID(name)
+            o = StreamID(name, **kwargs)
         elif type == ObjectType.seL4_ARMCB:
-            o = ContextBank(name)
+            o = ContextBank(name, **kwargs)
         else:
             raise Exception('Invalid object type %s' % type)
         self.spec.add_object(o)

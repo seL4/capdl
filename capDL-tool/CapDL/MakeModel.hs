@@ -273,6 +273,11 @@ getSCData [] = Nothing
 getSCData (SCExtraParam (SCData scData) : _) = Just scData
 getSCData (_ : xs) = getSCData xs
 
+getSIDExtraInfo :: [ObjParam] -> Maybe Word
+getSIDExtraInfo [] = Nothing
+getSIDExtraInfo (SIDExtraParam (SIDNumber x) : _) = Just x
+getSIDExtraInfo (_ : xs) = getSIDExtraInfo xs
+
 getCBExtraInfo :: [ObjParam] -> Maybe Word
 getCBExtraInfo [] = Nothing
 getCBExtraInfo (CBExtraParam (CBNumber x) : _) = Just x
@@ -435,6 +440,8 @@ validObjPars (Obj MSIIrqSlot_T ps []) =
   subsetConstrs ps (replicate (numConstrs (Addr undefined)) (MSIIRQExtraParam undefined))
 validObjPars (Obj ARMIrqSlot_T ps []) =
   subsetConstrs ps (replicate (numConstrs (Addr undefined)) (ARMIRQExtraParam undefined))
+validObjPars (Obj ARMSID_T ps []) =
+  subsetConstrs ps (replicate (numConstrs (Addr undefined)) (SIDExtraParam undefined))
 validObjPars (Obj ARMCB_T ps []) =
   subsetConstrs ps (replicate (numConstrs (Addr undefined)) (CBExtraParam undefined))
 validObjPars obj = null (params obj)
@@ -477,7 +484,7 @@ objectOf n obj =
         Obj VCPU_T [] [] -> VCPU
         Obj SC_T ps [] -> SC (getSCExtraInfo n ps) (getMaybeBitSize ps)
         Obj RTReply_T [] [] -> RTReply
-        Obj ARMSID_T [] [] -> ARMSID
+        Obj ARMSID_T ps [] -> ARMSID (getSIDExtraInfo ps)
         Obj ARMCB_T ps [] -> ARMCB (getCBExtraInfo ps)
         Obj _ _ (_:_) ->
           error $ "Only untyped caps can have objects as content: " ++
