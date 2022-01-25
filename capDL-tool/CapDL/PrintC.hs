@@ -387,8 +387,20 @@ showObjectFields _ _ (SC info size_bits) _ _ _ =
     sc_data   = fromMaybe 0 (maybe Nothing scData info)
     sizeBits  = fromMaybe 0 size_bits
 showObjectFields _ _ (RTReply {}) _ _ _ = ".type = CDL_RTReply,"
-showObjectFields _ _ (ARMSID {}) _ _ _ = ".type = CDL_SID,"
-showObjectFields _ _ (ARMCB {}) _ _ _ = ".type = CDL_CB,"
+showObjectFields _ _ (ARMSID sid) _ _ _ =
+    ".type = CDL_SID," +++
+    ".sid_extra = {" +++
+        ".sid = " ++ show sid +++
+    "}"
+showObjectFields _ _ (ARMCB cb_number) _ _ _ =
+    ".type = CDL_CB," +++
+    ".cb_extra = {" +++
+        ".bank = " ++ show (bank) +++
+    "}"
+    where
+    bank = case cb_number of
+        Just num -> num
+        _ -> 0
 showObjectFields _ _ ARMSMC _ _ _ = ".type = CDL_SMC,"
 showObjectFields _ _ (ARMSGISignal irq target) _ _ _ =
     ".type = CDL_SGISignal," +++

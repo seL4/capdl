@@ -278,6 +278,11 @@ getSCData [] = Nothing
 getSCData (SCExtraParam (SCData scData) : _) = Just scData
 getSCData (_ : xs) = getSCData xs
 
+getSIDExtraInfo :: Name -> [ObjParam] -> Word
+getSIDExtraInfo n [] = error ("Incorrect streamid parameters: missing 'sid': " ++ n)
+getSIDExtraInfo _ (SIDExtraParam (SIDNumber x) : _) = x
+getSIDExtraInfo n (_ : xs) = getSIDExtraInfo n xs
+
 getCBExtraInfo :: [ObjParam] -> Maybe Word
 getCBExtraInfo [] = Nothing
 getCBExtraInfo (CBExtraParam (CBNumber x) : _) = Just x
@@ -451,6 +456,8 @@ validObjPars (Obj MSIIrqSlot_T ps []) =
   subsetConstrs ps (replicate (numConstrs (MSIHandle undefined)) (MSIIRQExtraParam undefined))
 validObjPars (Obj ARMIrqSlot_T ps []) =
   subsetConstrs ps (replicate (numConstrs (ARMIRQTrigger undefined)) (ARMIRQExtraParam undefined))
+validObjPars (Obj ARMSID_T ps []) =
+  subsetConstrs ps (replicate (numConstrs (SIDNumber undefined)) (SIDExtraParam undefined))
 validObjPars (Obj ARMCB_T ps []) =
   subsetConstrs ps (replicate (numConstrs (CBNumber undefined)) (CBExtraParam undefined))
 validObjPars (Obj ARMSGISignal_T ps []) = length ps == 2
@@ -494,7 +501,7 @@ objectOf n obj =
         Obj VCPU_T [] [] -> VCPU
         Obj SC_T ps [] -> SC (getSCExtraInfo n ps) (getMaybeBitSize ps)
         Obj RTReply_T [] [] -> RTReply
-        Obj ARMSID_T [] [] -> ARMSID
+        Obj ARMSID_T ps [] -> ARMSID (getSIDExtraInfo n ps)
         Obj ARMCB_T ps [] -> ARMCB (getCBExtraInfo ps)
         Obj ARMSMC_T [] [] -> ARMSMC
         Obj ARMSGISignal_T ps [] -> ARMSGISignal (getSGISignalIrq n ps) (getARMSGISignalTarget n ps)

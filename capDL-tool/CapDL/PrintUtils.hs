@@ -173,6 +173,9 @@ prettyARMIRQTrigger trigger = text "trigger:" <+> (text $ show trigger)
 prettyARMIRQTarget :: Word -> Doc
 prettyARMIRQTarget target = text "target:" <+> (text $ show target)
 
+prettySID :: Word -> Doc
+prettySID sid = text "sid:" <+> (text $ show sid)
+
 prettyARMIODevice :: Word -> Doc
 prettyARMIODevice iospace = text "iospace:" <+> (text $ show iospace)
 
@@ -220,7 +223,7 @@ prettyObjParams obj = case obj of
     IOAPICIrq _ ioapic pin level polarity -> text "ioapic_irq" <+> maybeParensList[prettyIOAPICNum ioapic, prettyIOAPICPin pin, prettyIOAPICLevel level, prettyIOAPICPolarity polarity]
     MSIIrq _ handle bus dev fun -> text "msi_irq" <+> maybeParensList[prettyMSIHandle handle, prettyMSIPCIBus bus, prettyMSIPCIDev dev, prettyMSIPCIFun fun]
     ARMIrq _ trigger target -> text "arm_irq" <+> maybeParensList[prettyARMIRQTrigger trigger, prettyARMIRQTarget target]
-    ARMSID {} -> text "streamid"
+    ARMSID sid -> text "streamid" <+> maybeParensList [prettySID sid]
     ARMCB {} -> text "contextbank"
     ARMSMC {} -> text "smc"
     ARMSGISignal irq target -> text "arm_sgi_signal" <+>
