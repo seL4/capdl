@@ -52,8 +52,6 @@
 
 #define STACK_ALIGNMENT_BYTES 16
 
-#define MAX_STREAM_IDS 60
-
 static seL4_CPtr capdl_to_sel4_orig[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 static seL4_CPtr capdl_to_sel4_copy[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 static seL4_CPtr capdl_to_sel4_irq[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
@@ -82,7 +80,6 @@ extern char _end[];
  * This is expected to be initialised by 'init_copy_addr' on system init */
 uintptr_t copy_addr;
 
-uint32_t sid_number = 0;
 /* In the case where we just want a 4K page and we cannot allocate
  * a page table ourselves, we use this pre allocated region that
  * is guaranteed to have a pagetable */
@@ -648,17 +645,14 @@ unsigned int create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_
      */
 #ifdef CONFIG_ARM_SMMU
     if (CDL_Obj_Type(obj) == CDL_SID) {
-        err = seL4_ARM_SIDControl_GetSID(seL4_CapSMMUSIDControl, sid_number, seL4_CapInitThreadCNode, free_slot,
+        err = seL4_ARM_SIDControl_GetSID(seL4_CapSMMUSIDControl, CDL_SID_Sid(obj), seL4_CapInitThreadCNode, free_slot,
                                          CONFIG_WORD_SIZE);
         ZF_LOGF_IF(err != seL4_NoError, "Failed to allocate SID cap");
-        sid_number++;
-        ZF_LOGF_IF(sid_number > MAX_STREAM_IDS, "Stream ID numbers exhausted");
         return seL4_NoError;
     } else if (CDL_Obj_Type(obj) == CDL_CB) {
         err = seL4_ARM_CBControl_GetCB(seL4_CapSMMUCBControl, CDL_CB_Bank(obj), seL4_CapInitThreadCNode, free_slot,
                                        CONFIG_WORD_SIZE);
         ZF_LOGF_IF(err != seL4_NoError, "Failed to allocate CB cap");
-        sid_number = 0; //(1***)
         return seL4_NoError;
     }
 #endif

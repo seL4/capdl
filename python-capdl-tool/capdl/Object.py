@@ -640,26 +640,26 @@ class RTReply(Object):
 
 
 class StreamID(Object):
-    def __init__(self, name):
+    def __init__(self, name, streamid=0):
         super().__init__(name)
 
+        self.sid = streamid
+
     def __repr__(self):
-        return '%s = streamid' % self.name
+        return '%s = streamid (sid: %d)' % (self.name, self.sid)
 
     def get_size_bits(self):
         return None
 
 
 class ContextBank(Object):
-    def __init__(self, name):
+    def __init__(self, name, bank=0):
         super().__init__(name)
 
-        # Assignment of context bank numbers will evolve with use case
-        self.bank = 0
+        self.bank = bank
 
     def __repr__(self):
         s = '%s = contextbank (bank: %d)' % (self.name, self.bank)
-        self.bank += 1
         return s
 
     def get_size_bits(self):

@@ -280,6 +280,10 @@ typedef struct {
 } CDL_SCExtraInfo;
 
 typedef struct {
+    uint32_t sid;
+} CDL_SIDExtraInfo;
+
+typedef struct {
     uint8_t bank;
 } CDL_CBExtraInfo;
 
@@ -353,6 +357,7 @@ typedef struct {
         CDL_TCBExtraInfo tcb_extra;
         CDL_SCExtraInfo sc_extra;
         CDL_CBExtraInfo cb_extra;
+        CDL_SIDExtraInfo sid_extra;
         CDL_IOAPICIRQExtraInfo ioapicirq_extra;
         CDL_MSIIRQExtraInfo msiirq_extra;
         CDL_ARMIRQExtraInfo armirq_extra;
@@ -524,6 +529,11 @@ static inline seL4_Word CDL_TCB_IPCBuffer_Addr(CDL_Object *obj)
 static inline uint8_t CDL_TCB_Priority(CDL_Object *obj)
 {
     return obj->tcb_extra.priority;
+}
+
+static inline uint32_t CDL_SID_Sid(CDL_Object *obj)
+{
+    return obj->sid_extra.sid;
 }
 
 static inline uint8_t CDL_CB_Bank(CDL_Object *obj)

@@ -278,6 +278,13 @@ sc_period = do
     n <- integer64
     return $ Period n
 
+sid_number :: MapParser SIDExtraParam
+sid_number = do
+    reserved "sid"
+    colon
+    n <- number
+    return $ SIDNumber n
+
 cb_number :: MapParser CBExtraParam
 cb_number = do
     reserved "bank"
@@ -305,6 +312,11 @@ sc_extra_param = do
             <|> sc_budget
             <|> sc_data)
     return $ SCExtraParam param
+
+sid_extra_param :: MapParser ObjParam
+sid_extra_param = do
+    param <- sid_number
+    return $ SIDExtraParam param
 
 cb_extra_param :: MapParser ObjParam
 cb_extra_param = do
@@ -457,6 +469,7 @@ object_param =
     <|> arm_irq_extra_param
     <|> ports_param
     <|> asid_high_param
+    <|> sid_extra_param
     <|> cb_extra_param
 
 object_params :: MapParser [ObjParam]

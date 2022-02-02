@@ -58,6 +58,11 @@ data SCExtraParam =
       scData :: Word }
    deriving (Show, Eq, Ord, Typeable, Data)
 
+data SIDExtraParam =
+    SIDNumber {
+    sidNumber :: Word }
+    deriving (Eq, Show, Ord, Typeable, Data)
+
 data CBExtraParam = 
     CBNumber {
     cbNumber :: Word }
@@ -107,6 +112,8 @@ data ObjParam =
       frameExtraParam :: FrameExtraParam}
   | SCExtraParam {
       sc_extraParam :: SCExtraParam }
+  | SIDExtraParam {
+      sid_extraParam :: SIDExtraParam }
   | CBExtraParam {
       cb_extraParam :: CBExtraParam }
   | IOAPICIRQExtraParam {
