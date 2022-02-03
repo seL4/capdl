@@ -427,14 +427,14 @@ validObjPars (Obj IOPorts_T ps []) = subsetConstrs ps [Ports undefined]
 validObjPars (Obj IODevice_T ps []) = subsetConstrs ps [DomainID undefined, PCIDevice undefined]
 validObjPars (Obj ARMIODevice_T ps []) = subsetConstrs ps [ARMIOSpace undefined]
 validObjPars (Obj SC_T ps []) =
-  subsetConstrs ps (replicate (numConstrs (Addr undefined)) (SCExtraParam undefined)
+  subsetConstrs ps (replicate (numConstrs (Period undefined)) (SCExtraParam undefined)
                     ++ [BitSize undefined])
 validObjPars (Obj IOAPICIrqSlot_T ps []) =
-  subsetConstrs ps (replicate (numConstrs (Addr undefined)) (IOAPICIRQExtraParam undefined))
+  subsetConstrs ps (replicate (numConstrs (IOAPIC undefined)) (IOAPICIRQExtraParam undefined))
 validObjPars (Obj MSIIrqSlot_T ps []) =
-  subsetConstrs ps (replicate (numConstrs (Addr undefined)) (MSIIRQExtraParam undefined))
+  subsetConstrs ps (replicate (numConstrs (MSIHandle undefined)) (MSIIRQExtraParam undefined))
 validObjPars (Obj ARMIrqSlot_T ps []) =
-  subsetConstrs ps (replicate (numConstrs (Addr undefined)) (ARMIRQExtraParam undefined))
+  subsetConstrs ps (replicate (numConstrs (CBNumber undefined)) (ARMIRQExtraParam undefined))
 validObjPars (Obj ARMCB_T ps []) =
   subsetConstrs ps (replicate (numConstrs (Addr undefined)) (CBExtraParam undefined))
 validObjPars obj = null (params obj)
