@@ -60,7 +60,7 @@ data SCExtraParam =
 
 data CBExtraParam = 
     CBNumber {
-    cbNumber :: Word }
+      cbNumber :: Word }
     deriving (Eq, Show, Ord, Typeable, Data)
 
 data IOAPICIRQExtraParam =
