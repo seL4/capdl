@@ -434,9 +434,9 @@ validObjPars (Obj IOAPICIrqSlot_T ps []) =
 validObjPars (Obj MSIIrqSlot_T ps []) =
   subsetConstrs ps (replicate (numConstrs (MSIHandle undefined)) (MSIIRQExtraParam undefined))
 validObjPars (Obj ARMIrqSlot_T ps []) =
-  subsetConstrs ps (replicate (numConstrs (CBNumber undefined)) (ARMIRQExtraParam undefined))
+  subsetConstrs ps (replicate (numConstrs (ARMIRQTrigger undefined)) (ARMIRQExtraParam undefined))
 validObjPars (Obj ARMCB_T ps []) =
-  subsetConstrs ps (replicate (numConstrs (Addr undefined)) (CBExtraParam undefined))
+  subsetConstrs ps (replicate (numConstrs (CBNumber undefined)) (CBExtraParam undefined))
 validObjPars obj = null (params obj)
 
 -- For converting frame sizes to size bits
