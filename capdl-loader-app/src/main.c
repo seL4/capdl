@@ -1097,7 +1097,7 @@ static void init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     } else {
         ZF_LOGE_IFERR(cdl_cspace_root || cdl_vspace_root || sel4_ipcbuffer,
                       "Could not call seL4_TCB_Configure as not all required objects provided: "
-                      "VSpace: %"PRIxPTR", CSpace: %"PRIxPTR", IPC Buffer: %"PRIxPTR, cdl_vspace_root, cdl_cspace_root, sel4_ipcbuffer);
+                      "VSpace: %p, CSpace: %p, IPC Buffer: %"SEL4_PRIx_word, cdl_vspace_root, cdl_cspace_root, sel4_ipcbuffer);
 
         if (sel4_ipcbuffer) {
             error = seL4_TCB_SetIPCBuffer(sel4_tcb, ipcbuffer_addr, sel4_ipcbuffer);
@@ -1120,7 +1120,7 @@ static void init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     } else {
         ZF_LOGE_IFERR(cdl_cspace_root || cdl_vspace_root || sel4_ipcbuffer,
                       "Could not call seL4_TCB_Configure as not all required objects provided: "
-                      "VSpace: %"PRIxPTR", CSpace: %"PRIxPTR", IPC Buffer: %"PRIxPTR, cdl_vspace_root, cdl_cspace_root, sel4_ipcbuffer);
+                      "VSpace: %p, CSpace: %p, IPC Buffer: %"SEL4_PRIx_word, cdl_vspace_root, cdl_cspace_root, sel4_ipcbuffer);
 
         if (sel4_ipcbuffer) {
             error = seL4_TCB_SetIPCBuffer(sel4_tcb, ipcbuffer_addr, sel4_ipcbuffer);
