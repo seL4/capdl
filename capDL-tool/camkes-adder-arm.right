@@ -1,5 +1,4 @@
-arch arm11
-
+arch aarch32
 objects {
 
   adder_adder_0_control_tcb = tcb (addr: 1355776, ip: 96804, sp: 1347584, prio: 254, max_prio: 254, affinity: 0, fault_ep: 2, dom: 0, init: [1])

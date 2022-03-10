@@ -121,9 +121,9 @@ sizeOf _ (Obj ARMIODevice_T _ _) = 1
 sizeOf IA32 (Obj TCB_T _ _) = 2^10
 sizeOf IA32 (Obj PD_T _ _) = 4 * 2^10
 sizeOf IA32 (Obj PT_T _ _) = 4 * 2^10
-sizeOf ARM11 (Obj TCB_T _ _) = 512
-sizeOf ARM11 (Obj PD_T _ _) = 16 * 2^10
-sizeOf ARM11 (Obj PT_T _ _) = 2^10
+sizeOf AARCH32 (Obj TCB_T _ _) = 512
+sizeOf AARCH32 (Obj PD_T _ _) = 16 * 2^10
+sizeOf AARCH32 (Obj PT_T _ _) = 2^10
 sizeOf _ _ = 0
 
 consecutive :: Arch -> (Name, KO) -> Maybe (Name, KO) -> Word -> Bool

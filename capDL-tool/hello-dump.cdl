@@ -6,7 +6,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-arch arm11
+arch aarch32
 
 objects {
 

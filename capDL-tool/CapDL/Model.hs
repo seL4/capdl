@@ -18,7 +18,7 @@ import Data.Word
 import Control.Lens
 
 -- Supported architectures:
-data Arch = IA32 | ARM11 | X86_64 | AARCH64 | RISCV deriving (Eq, Show)
+data Arch = IA32 | X86_64 | AARCH32 | AARCH64 | RISCV deriving (Eq, Show)
 
 -- Access rights of capabilities. Not all capability types support all rights.
 data Rights = Read
@@ -84,7 +84,7 @@ data Cap
         | VCPUCap {
             capObj :: ObjID }
 
-        -- arch specific caps, ARM11, IA32, X86_64 and AARCH64 merged
+        -- arch specific caps, AARCH32, AARCH64, IA32, X86_64, RISCV merged
         | FrameCap {
             capObj :: ObjID,
             capRights :: CapRights,
@@ -185,7 +185,7 @@ data KernelObject a
     | RTReply
     | VCPU
 
--- arch specific objects, ARM11, IA32, X86_64, AARCH64 and RISCV mixed
+-- arch specific objects, IA32, X86_64, AARCH32, AARCH64, RISCV mixed
     | ASIDPool { slots :: CapMap a,
                  capAsidHigh :: Maybe Word }
     | PT { slots :: CapMap a }

@@ -1205,7 +1205,7 @@ definition cdt :: "cdl_cdt" where
 "cdt \<equiv> Map.empty"
 
 definition state :: "cdl_state" where
-"state \<equiv> \<lparr> cdl_arch = ARM11, cdl_objects = objects,
+"state \<equiv> \<lparr> cdl_arch = aarch32, cdl_objects = objects,
                          cdl_cdt = cdt, cdl_current_thread = undefined, cdl_irq_node = irqs,
                          cdl_asid_table = asid_table,
                          cdl_current_domain = undefined \<rparr>"

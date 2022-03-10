@@ -56,8 +56,8 @@ memberArch arch =
     where
         a = case arch of
             IA32 -> "IA32"
-            ARM11 -> "ARM"
             X86_64 -> "X86_64"
+            AARCH32 -> "AARCH32"
             AARCH64 -> "AARCH64"
             RISCV -> "RISCV"
 
