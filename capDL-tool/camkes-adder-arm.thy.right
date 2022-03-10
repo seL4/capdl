@@ -338,7 +338,7 @@ definition adder_group_bin_pd_caps :: "cdl_cap_map" where
 definition adder_group_bin_pd :: "cdl_object" where
 "adder_group_bin_pd \<equiv> Types_D.PageDirectory \<lparr> cdl_page_directory_caps = adder_group_bin_pd_caps \<rparr>"
 
-lemma adder_group_bin_pd_object_slots: 
+lemma adder_group_bin_pd_object_slots:
   "object_slots adder_group_bin_pd = adder_group_bin_pd_caps"
   by (simp add: adder_group_bin_pd_def object_slots_def)
 
@@ -349,7 +349,7 @@ definition client_group_bin_pd_caps :: "cdl_cap_map" where
 definition client_group_bin_pd :: "cdl_object" where
 "client_group_bin_pd \<equiv> Types_D.PageDirectory \<lparr> cdl_page_directory_caps = client_group_bin_pd_caps \<rparr>"
 
-lemma client_group_bin_pd_object_slots: 
+lemma client_group_bin_pd_object_slots:
   "object_slots client_group_bin_pd = client_group_bin_pd_caps"
   by (simp add: client_group_bin_pd_def object_slots_def)
 
@@ -633,7 +633,7 @@ definition adder_adder_0_control_tcb :: "cdl_object" where
                                                          cdl_tcb_has_fault = True,
                                                          cdl_tcb_domain = 0 \<rparr>"
 
-lemma adder_adder_0_control_tcb_object_slots: 
+lemma adder_adder_0_control_tcb_object_slots:
   "object_slots adder_adder_0_control_tcb = adder_adder_0_control_tcb_caps"
   by (simp add: adder_adder_0_control_tcb_def object_slots_def)
 
@@ -649,7 +649,7 @@ definition adder_adder_0_fault_handler_tcb :: "cdl_object" where
                                                                cdl_tcb_has_fault = False,
                                                                cdl_tcb_domain = 0 \<rparr>"
 
-lemma adder_adder_0_fault_handler_tcb_object_slots: 
+lemma adder_adder_0_fault_handler_tcb_object_slots:
   "object_slots adder_adder_0_fault_handler_tcb = adder_adder_0_fault_handler_tcb_caps"
   by (simp add: adder_adder_0_fault_handler_tcb_def object_slots_def)
 
@@ -665,7 +665,7 @@ definition adder_adder_a_0000_tcb :: "cdl_object" where
                                                       cdl_tcb_has_fault = True,
                                                       cdl_tcb_domain = 0 \<rparr>"
 
-lemma adder_adder_a_0000_tcb_object_slots: 
+lemma adder_adder_a_0000_tcb_object_slots:
   "object_slots adder_adder_a_0000_tcb = adder_adder_a_0000_tcb_caps"
   by (simp add: adder_adder_a_0000_tcb_def object_slots_def)
 
@@ -681,7 +681,7 @@ definition client_client_0_control_tcb :: "cdl_object" where
                                                            cdl_tcb_has_fault = True,
                                                            cdl_tcb_domain = 0 \<rparr>"
 
-lemma client_client_0_control_tcb_object_slots: 
+lemma client_client_0_control_tcb_object_slots:
   "object_slots client_client_0_control_tcb = client_client_0_control_tcb_caps"
   by (simp add: client_client_0_control_tcb_def object_slots_def)
 
@@ -697,7 +697,7 @@ definition client_client_0_fault_handler_tcb :: "cdl_object" where
                                                                  cdl_tcb_has_fault = False,
                                                                  cdl_tcb_domain = 0 \<rparr>"
 
-lemma client_client_0_fault_handler_tcb_object_slots: 
+lemma client_client_0_fault_handler_tcb_object_slots:
   "object_slots client_client_0_fault_handler_tcb = client_client_0_fault_handler_tcb_caps"
   by (simp add: client_client_0_fault_handler_tcb_def object_slots_def)
 
@@ -721,7 +721,7 @@ definition pt_adder_group_bin_0000_caps :: "cdl_cap_map" where
 definition pt_adder_group_bin_0000 :: "cdl_object" where
 "pt_adder_group_bin_0000 \<equiv> Types_D.PageTable \<lparr> cdl_page_table_caps = pt_adder_group_bin_0000_caps \<rparr>"
 
-lemma pt_adder_group_bin_0000_object_slots: 
+lemma pt_adder_group_bin_0000_object_slots:
   "object_slots pt_adder_group_bin_0000 = pt_adder_group_bin_0000_caps"
   by (simp add: pt_adder_group_bin_0000_def object_slots_def)
 
@@ -754,7 +754,7 @@ definition pt_adder_group_bin_0003_caps :: "cdl_cap_map" where
 definition pt_adder_group_bin_0003 :: "cdl_object" where
 "pt_adder_group_bin_0003 \<equiv> Types_D.PageTable \<lparr> cdl_page_table_caps = pt_adder_group_bin_0003_caps \<rparr>"
 
-lemma pt_adder_group_bin_0003_object_slots: 
+lemma pt_adder_group_bin_0003_object_slots:
   "object_slots pt_adder_group_bin_0003 = pt_adder_group_bin_0003_caps"
   by (simp add: pt_adder_group_bin_0003_def object_slots_def)
 
@@ -778,7 +778,7 @@ definition pt_client_group_bin_0000_caps :: "cdl_cap_map" where
 definition pt_client_group_bin_0000 :: "cdl_object" where
 "pt_client_group_bin_0000 \<equiv> Types_D.PageTable \<lparr> cdl_page_table_caps = pt_client_group_bin_0000_caps \<rparr>"
 
-lemma pt_client_group_bin_0000_object_slots: 
+lemma pt_client_group_bin_0000_object_slots:
   "object_slots pt_client_group_bin_0000 = pt_client_group_bin_0000_caps"
   by (simp add: pt_client_group_bin_0000_def object_slots_def)
 
@@ -802,7 +802,7 @@ definition pt_client_group_bin_0003_caps :: "cdl_cap_map" where
 definition pt_client_group_bin_0003 :: "cdl_object" where
 "pt_client_group_bin_0003 \<equiv> Types_D.PageTable \<lparr> cdl_page_table_caps = pt_client_group_bin_0003_caps \<rparr>"
 
-lemma pt_client_group_bin_0003_object_slots: 
+lemma pt_client_group_bin_0003_object_slots:
   "object_slots pt_client_group_bin_0003 = pt_client_group_bin_0003_caps"
   by (simp add: pt_client_group_bin_0003_def object_slots_def)
 
@@ -822,7 +822,7 @@ definition adder_cnode :: "cdl_object" where
 "adder_cnode \<equiv> Types_D.CNode \<lparr> cdl_cnode_caps = adder_cnode_caps,
                                              cdl_cnode_size_bits = 4 \<rparr>"
 
-lemma adder_cnode_object_slots: 
+lemma adder_cnode_object_slots:
   "object_slots adder_cnode = adder_cnode_caps"
   by (simp add: adder_cnode_def object_slots_def)
 
@@ -840,7 +840,7 @@ definition client_cnode :: "cdl_object" where
 "client_cnode \<equiv> Types_D.CNode \<lparr> cdl_cnode_caps = client_cnode_caps,
                                               cdl_cnode_size_bits = 4 \<rparr>"
 
-lemma client_cnode_object_slots: 
+lemma client_cnode_object_slots:
   "object_slots client_cnode = client_cnode_caps"
   by (simp add: client_cnode_def object_slots_def)
 
@@ -881,7 +881,7 @@ definition p_ep :: "cdl_object" where
 
 
 
-lemmas ids = 
+lemmas ids =
 adder_adder_0_control_tcb_id_def
 adder_adder_0_fault_handler_tcb_id_def
 adder_adder_a_0000_tcb_id_def
@@ -990,7 +990,7 @@ stack__camkes_stack_client_0_fault_handler_1_client_obj_id_def
 stack__camkes_stack_client_0_fault_handler_2_client_obj_id_def
 stack__camkes_stack_client_0_fault_handler_3_client_obj_id_def
 
-lemmas cap_defs = 
+lemmas cap_defs =
 adder_group_bin_pd_caps_def
 client_group_bin_pd_caps_def
 adder_adder_0_control_tcb_caps_def
@@ -1005,7 +1005,7 @@ pt_client_group_bin_0003_caps_def
 adder_cnode_caps_def
 client_cnode_caps_def
 
-lemmas obj_defs = 
+lemmas obj_defs =
 adder_frame__camkes_ipc_buffer_adder_0_control_def
 adder_group_bin_pd_def
 client_group_bin_pd_def
