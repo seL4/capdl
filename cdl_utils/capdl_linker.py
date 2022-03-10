@@ -78,7 +78,7 @@ def final_spec(args, obj_space, cspaces, addr_spaces, targets, architecture):
 def main():
     parser = argparse.ArgumentParser(
         description="")
-    parser.add_argument('--architecture', '--arch', default='aarch32',
+    parser.add_argument('--architecture', '--arch', required=True,
                         choices=valid_architectures(), help='Target architecture.')
     parser.add_argument('--object-sizes', required=True, type=argparse.FileType('r'))
     subparsers = parser.add_subparsers()
