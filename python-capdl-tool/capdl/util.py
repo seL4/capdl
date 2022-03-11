@@ -239,46 +239,30 @@ class RISCV32Arch(Arch):
         return 512
 
 
-def normalised_map():
-    return {
-        'aarch32': 'aarch32',
-        'aarch64': 'aarch64',
-        'arm': 'aarch32',
-        'arm11': 'aarch32',
-        'arm_hyp': 'arm_hyp',
-        'ia32': 'ia32',
-        'x86': 'ia32',
-        'x86_64': 'x86_64',
-        'riscv64': 'riscv64',
-        'riscv32': 'riscv32'
-    }
+CAPDL_SUPPORTED_ARCHITECTURES = {
+    # <name>:  [arch_obj_ctor, <alias_list>]
+    'aarch32': [lambda: ARM32Arch(),         ['arm', 'arm11']],
+    'arm_hyp': [lambda: ARM32Arch(hyp=True), []],
+    'aarch64': [lambda: AARCH64Arch(),       []],
+    'ia32':    [lambda: IA32Arch(),          ['x86']],
+    'x86_64':  [lambda: X64Arch(),           []],
+    'riscv32': [lambda: RISCV32Arch(),       []],
+    'riscv64': [lambda: RISCV64Arch(),       []],
+}
 
 
 def valid_architectures():
-    return set(normalised_map().values())
-
-
-def normalise_architecture(arch):
-    try:
-        return normalised_map()[arch.lower()]
-    except KeyError:
-        raise Exception('invalid architecture: %s' % arch)
+    return set(CAPDL_SUPPORTED_ARCHITECTURES.keys())
 
 
 def lookup_architecture(arch):
-    arch_map = {
-        'aarch32': ARM32Arch(),
-        'aarch64': AARCH64Arch(),
-        'arm_hyp': ARM32Arch(hyp=True),
-        'ia32': IA32Arch(),
-        'x86_64': X64Arch(),
-        'riscv64': RISCV64Arch(),
-        'riscv32': RISCV32Arch()
-    }
-    try:
-        return arch_map[normalise_architecture(arch)]
-    except KeyError:
-        raise Exception('invalid architecture: %s' % arch)
+    arch_normalised = arch.lower()
+    for name, ctx in CAPDL_SUPPORTED_ARCHITECTURES.items():
+        arch_alias_list = ctx[1]
+        if (arch_normalised == name) or (arch_normalised in arch_alias_list):
+            arch_obj_ctor = ctx[0]
+            return arch_obj_ctor()
+    raise Exception('invalid architecture: %s' % arch)
 
 
 def round_down(n, alignment=FRAME_SIZE):
