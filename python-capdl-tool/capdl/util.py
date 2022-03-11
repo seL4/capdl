@@ -239,6 +239,11 @@ class RISCV32Arch(Arch):
         return 512
 
 
+# Support for ARMv6 has been removed from seL4 in early 2022. However, support
+# for "arm11" is kept here, because this name is used in the CapDL specification
+# for AARCH32 configurations. Updating this is a low priority task, because it
+# is a lot of work with not much gain (except cleaning up legacy), Also, keeping
+# the name there isn't causing any issues.
 CAPDL_SUPPORTED_ARCHITECTURES = {
     # <name>:  [arch_obj_ctor, <alias_list>]
     'aarch32': [lambda: ARM32Arch(),         ['arm', 'arm11']],
