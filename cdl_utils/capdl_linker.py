@@ -79,8 +79,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="")
     parser.add_argument('--architecture', '--arch', default='aarch32',
-                        type=lambda x: type('')(x).lower(), choices=valid_architectures(),
-                        help='Target architecture.')
+                        choices=valid_architectures(), help='Target architecture.')
     parser.add_argument('--object-sizes', required=True, type=argparse.FileType('r'))
     subparsers = parser.add_subparsers()
     parser_a = subparsers.add_parser('build_cnode')
