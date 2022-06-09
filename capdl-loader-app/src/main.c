@@ -2103,10 +2103,12 @@ static void init_system(CDL_Model *spec)
 
 #ifdef CONFIG_DEBUG_BUILD
 /* We need to give malloc enough memory for musllibc to allocate memory
- * for stdin, stdout, and stderr. */
+ * for stdin, stdout, and stderr. The heap pool base address and size is
+ * expected to be page aligned.
+ */
 extern char *morecore_area;
 extern size_t morecore_size;
-static char debug_libc_morecore_area[PAGE_SIZE_4K];
+static char ALIGN(PAGE_SIZE_4K) debug_libc_morecore_area[PAGE_SIZE_4K];
 
 static void CONSTRUCTOR(MUSLCSYS_WITH_VSYSCALL_PRIORITY) init_bootinfo(void)
 {
