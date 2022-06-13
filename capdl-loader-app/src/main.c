@@ -911,10 +911,8 @@ static void create_irq_caps(CDL_Model *spec)
 
 /* Mint a cap that will not be given to the user */
 /* Used for badging interrupt notifications and, in the RT kernel, fault eps */
-static void mint_cap(CDL_ObjID object_id, int free_slot, seL4_Word badge)
+static void mint_cap(CDL_ObjID object_id, int free_slot, seL4_Word badge, seL4_CapRights_t rights)
 {
-    seL4_CapRights_t rights = seL4_AllRights;
-
     seL4_CPtr dest_root = seL4_CapInitThreadCNode;
     int dest_index = free_slot;
     int dest_depth = CONFIG_WORD_SIZE;
@@ -1052,10 +1050,11 @@ static void init_tcb(CDL_Model *spec, CDL_ObjID tcb)
 
         if (sel4_fault_ep != 0) {
             seL4_Word fault_ep_badge = get_capData(CDL_Cap_Data(cdl_fault_ep));
-            if (fault_ep_badge != 0) {
+            seL4_CapRights_t fault_ep_rights = CDL_seL4_Cap_Rights(cdl_fault_ep);
+            if (fault_ep_badge != 0 || !seL4_CapRights_get_capAllowAllRights(fault_ep_rights)) {
                 badged_sel4_fault_ep = (seL4_CPtr) get_free_slot();
                 mint_cap(CDL_Cap_ObjID(cdl_fault_ep), badged_sel4_fault_ep,
-                         fault_ep_badge);
+                         fault_ep_badge, fault_ep_rights);
                 next_free_slot();
                 sel4_fault_ep = badged_sel4_fault_ep;
 
@@ -1370,7 +1369,7 @@ static void init_irq(CDL_Model *spec, CDL_IRQ irq_no)
         seL4_Word badge = get_capData(CDL_Cap_Data(endpoint_cap));
         if (badge) {
             endpoint_cptr = (seL4_CPtr)get_free_slot();
-            mint_cap(CDL_Cap_ObjID(endpoint_cap), endpoint_cptr, badge);
+            mint_cap(CDL_Cap_ObjID(endpoint_cap), endpoint_cptr, badge, seL4_AllRights);
             next_free_slot();
         } else {
             endpoint_cptr = orig_caps(CDL_Cap_ObjID(endpoint_cap));

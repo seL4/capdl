@@ -473,6 +473,14 @@ static inline seL4_CapRights_t CDL_seL4_Cap_Rights(CDL_Cap *cap)
                               !!(cap->rights & CDL_CanWrite));
 }
 
+static inline uint32_t CONST seL4_CapRights_get_capAllowAllRights(seL4_CapRights_t seL4_CapRights)
+{
+    return (seL4_CapRights_get_capAllowRead(seL4_CapRights) &&
+            seL4_CapRights_get_capAllowWrite(seL4_CapRights) &&
+            seL4_CapRights_get_capAllowGrant(seL4_CapRights) &&
+            seL4_CapRights_get_capAllowGrantReply(seL4_CapRights));
+}
+
 static inline const char *CDL_Obj_Name(CDL_Object *obj)
 {
 #ifdef CONFIG_DEBUG_BUILD
