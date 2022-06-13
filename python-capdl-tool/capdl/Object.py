@@ -370,12 +370,25 @@ class TCB(ContainerObject):
     def set_affinity(self, affinity):
         self.affinity = affinity
 
-    def set_fault_ep_slot(self, fault_ep_slot=0, fault_ep=None, badge=0):
+    def set_fault_ep_slot(self, fault_ep_slot=0, fault_ep=None, badge=0, rights=ObjectRights.seL4_AllRights):
         if fault_ep_slot != 0:
             self.fault_ep_slot = fault_ep_slot
         if fault_ep:
+            fields = []
             if badge != 0:
-                fault_ep += " (badge: %d)" % badge
+                fields += ['badge: %d' % badge]
+            rights_list = [
+                sym for sym, right in [
+                    ('R', ObjectRights.seL4_CanRead),
+                    ('W', ObjectRights.seL4_CanWrite),
+                    ('G', ObjectRights.seL4_CanGrant),
+                    ('P', ObjectRights.seL4_CanGrantReply)
+                ] if right in rights
+            ]
+            if rights_list:
+                fields += [''.join(rights_list)]
+            if fields:
+                fault_ep += ' (' + ','.join(fields) + ')'
             self.__setitem__("fault_ep_slot", fault_ep)
 
     def get_size_bits(self):
