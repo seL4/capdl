@@ -396,6 +396,8 @@ class TCB(ContainerObject):
 
 # untypeds are ordered by their paddr, then size, then name, which makes allocation of objects from an
 # untyped at specific addresses easier.
+
+
 @total_ordering
 class Untyped(Object):
     def __init__(self, name, size_bits=12, paddr=None):
