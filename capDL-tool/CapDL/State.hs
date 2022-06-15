@@ -84,9 +84,6 @@ lookupOf cap lookup = maybe (const Map.empty) lookup (maybeObjID cap)
 
 type CapLookup = [([Word], Cap)]
 
-singleton :: a -> [a]
-singleton x = [x]
-
 mapKeys :: (a -> b) -> [(a,c)] -> [(b,c)]
 mapKeys f = map (\(a,b) -> (f a,b))
 

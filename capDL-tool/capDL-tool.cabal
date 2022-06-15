@@ -18,7 +18,7 @@ category:            Development
 build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.18
-tested-with:         GHC == 8.4.4, GHC == 8.6.5
+tested-with:         GHC == 8.8.4
 
 executable parse-capDL
   main-is:             Main.hs
@@ -32,15 +32,15 @@ executable parse-capDL
   build-depends:
                        -- Included libraries
                        array >=0.5 && <0.6,
-                       base >= 4.11 && <4.13,
-                       containers >=0.5 && <0.7,
+                       base >= 4.13 && <4.14,
+                       containers >=0.6 && <0.7,
                        filepath >=1.4 && <1.5,
                        mtl >=2.2 && <2.3,
                        parsec >=3.1 && <3.2,
                        unix >=2.7 && <3,
 
                        -- Other libraries
-                       base-compat >= 0.10 && <0.11,
+                       base-compat >= 0.11 && <0.12,
                        lens >= 4.15,
                        MissingH >=1.4 && <1.5,
                        pretty >=1.1 && <1.2,
