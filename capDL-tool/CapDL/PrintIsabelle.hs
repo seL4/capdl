@@ -11,7 +11,7 @@ import CapDL.State (koType, lookupSizeMap, objSizeBits)
 import CapDL.PrintUtils (printAsid)
 
 import Prelude ()
-import Prelude.Compat
+import Prelude.Compat hiding ((<>))
 import Text.PrettyPrint
 import Numeric (showHex)
 import Data.List.Compat

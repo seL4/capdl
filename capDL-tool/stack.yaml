@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 #
 
-# Stackage LTS Haskell 9.21 (ghc-8.0.2)
-resolver: lts-9.21
+# Stackage LTS Haskell 12.26 (ghc-8.4.4)
+resolver: lts-12.26
 
 local-bin-path: .

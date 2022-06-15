@@ -10,7 +10,7 @@ import CapDL.Model
 import CapDL.PrintUtils
 
 import Prelude ()
-import Prelude.Compat
+import Prelude.Compat hiding ((<>))
 import Text.PrettyPrint
 import Data.List.Compat
 import qualified Data.Map as Map
