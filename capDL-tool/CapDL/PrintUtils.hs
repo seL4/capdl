@@ -13,7 +13,7 @@ import CapDL.Model
 import CapDL.State (objSizeBits)
 
 import Prelude ()
-import Prelude.Compat
+import Prelude.Compat hiding ((<>))
 import Text.PrettyPrint
 import qualified Data.Set as Set
 import Data.Word
