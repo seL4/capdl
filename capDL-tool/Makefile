@@ -64,4 +64,4 @@ clean:
 
 .PHONY: testclean
 testclean:
-	rm -f *.parse *.parse.x *.dot *.xml *.thy *.png *.out
+	rm -f *.parse *.parse.x *.dot *.xml *.thy *.png *.out *-OK
