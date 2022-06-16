@@ -8,10 +8,12 @@ name:                capDL-tool
 version:             1.0.0.1
 synopsis:            A tool for processing seL4 capDL specifications.
 license:             BSD2
-author:              Gerwin Klein (Data61), Corey Lewis (Data61), Matthew Fernandez (Data61), Japheth Lim (Data61)
-maintainer:          corey.lewis@data61.csiro.au
+author:              Gerwin Klein (Proofcraft), Corey Lewis (Proofcraft), Matthew Fernandez (Data61), Japheth Lim (Data61)
+maintainer:          corey.lewis@proofcraft.systems
 homepage:            https://github.com/seL4/capdl
 copyright:           Data61, CSIRO
+                     UNSW
+                     Proofcraft
 category:            Development
 build-type:          Simple
 extra-source-files:  README.md
