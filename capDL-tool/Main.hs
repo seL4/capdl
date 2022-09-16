@@ -165,6 +165,7 @@ genObjectSizeMap m =
                       , ("seL4_ARMSID",              ARMSID_T)
                       , ("seL4_ARMCB",               ARMCB_T)
                       , ("seL4_ARMSMC",              ARMSMC_T)
+                      , ("seL4_ARMSGI_Signal",       ARMSGISignal_T)
                       ]
 
 -- Abort with an error message if 'isFullyAllocated' fails.

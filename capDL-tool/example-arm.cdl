@@ -53,6 +53,8 @@ name/b = tcb
 y[5] = ep
 z = ep
 
+sgi1 = arm_sgi_signal(irq: 10, target: 2)
+
 } caps {
 
 rm_cn {
@@ -71,6 +73,8 @@ rm_cn {
 0x0e5: irq_handler[1];
 0x0e6: frame_nic2[] (RW, asid: (0x1, 0x1));
 --  126: iospace
+
+0x126: sgi1;
 
 0x127: irq_handler[2];
 0x128: frame_nic3[];

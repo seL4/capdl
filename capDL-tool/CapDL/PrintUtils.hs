@@ -176,6 +176,9 @@ prettyARMIRQTarget target = text "target:" <+> (text $ show target)
 prettyARMIODevice :: Word -> Doc
 prettyARMIODevice iospace = text "iospace:" <+> (text $ show iospace)
 
+prettyARMIRQ :: Word -> Doc
+prettyARMIRQ irq = text "irq:" <+> (text $ show irq)
+
 prettyFills :: Maybe [[String]] -> Doc
 prettyFills (Just fills) = text "fill:" <+> brackets (hsep (punctuate comma (map (braces . text . unwords) fills)))
 prettyFills Nothing = empty
@@ -220,6 +223,8 @@ prettyObjParams obj = case obj of
     ARMSID {} -> text "streamid"
     ARMCB {} -> text "contextbank"
     ARMSMC {} -> text "smc"
+    ARMSGISignal irq target -> text "arm_sgi_signal" <+>
+                               maybeParensList [prettyARMIRQ irq, prettyARMIRQTarget target]
 
 capParams [] = empty
 capParams xs = parens (hsep $ punctuate comma xs)

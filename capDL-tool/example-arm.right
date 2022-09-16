@@ -17,6 +17,7 @@ objects {
   rm_cn = cnode (10 bits)
   rm_pd = pd
   rm_tcb = tcb (fault_ep: 15, dom: 5, init: [10])
+  sgi1 = arm_sgi_signal (irq: 10, target: 2)
   test[5] = cnode (8 bits)
   timer = notification
   x = tcb (dom: 0)
@@ -56,6 +57,7 @@ objects {
     164: frame_nic1[0..63]
     229: irq_handler[1]
     230: frame_nic2[0..63] (RW, asid: (0x1, 0x1))
+    294: sgi1
     295: irq_handler[2]
     296: frame_nic3[0..3]
     301: timer (G)

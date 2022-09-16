@@ -117,6 +117,8 @@ data ObjParam =
       msi_irq_extraParam :: MSIIRQExtraParam }
   | ARMIRQExtraParam {
       arm_irq_extraParam :: ARMIRQExtraParam }
+  | ARMSGISignalIrq {
+      sgi_irq :: Word }
   | InitArguments {
       arguments :: [Word] }
   | DomainID {

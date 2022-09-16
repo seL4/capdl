@@ -19,7 +19,7 @@ from .Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
     Notification, TCB, Untyped, IOPageTable, Object, IRQ, IOPorts, IODevice, \
     ARMIODevice, VCPU, ASIDPool, SC, SchedControl, RTReply, ObjectType, \
     ObjectRights, IOAPICIRQ, MSIIRQ, IRQControl, get_object_size, ASIDControl, \
-    DomainControl, is_aligned, ARMIRQMode, ARMIRQ, ContextBank, StreamID, SMC
+    DomainControl, is_aligned, ARMIRQMode, ARMIRQ, ContextBank, StreamID, SMC, ARMSGISignal
 from capdl.util import ctz
 from .Spec import Spec
 
@@ -147,6 +147,8 @@ class ObjectAllocator(object):
 
             if notification is not None:
                 o.set_notification(notification)
+        elif type == ObjectType.seL4_ARM_SGI_Signal:
+            o = ARMSGISignal(name, **kwargs)
         elif type == ObjectType.seL4_IRQControl:
             o = IRQControl(name)
         elif type == ObjectType.seL4_ASID_Control:

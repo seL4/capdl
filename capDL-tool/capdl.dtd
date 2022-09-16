@@ -17,6 +17,8 @@
 <!ATTLIST object level CDATA #IMPLIED>
 <!ATTLIST object domain CDATA #IMPLIED>
 <!ATTLIST object device CDATA #IMPLIED>
+<!ATTLIST object irq CDATA #IMPLIED>
+<!ATTLIST object target CDATA #IMPLIED>
 
 <!ELEMENT cap EMPTY>
 <!ATTLIST cap id CDATA #REQUIRED>
