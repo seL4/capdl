@@ -88,6 +88,7 @@ showObjectAttrs (IOPorts sz) = [("size", show sz)]
 showObjectAttrs (IODevice _ dom pci) = [("domain", show dom), ("device", show pci)]
 showObjectAttrs (ARMIODevice _ iospace) = [("iospace", show iospace)]
 showObjectAttrs (IOPT _ level) = [("level", show level)]
+showObjectAttrs (ARMSGISignal irq target) = [("irq", show irq), ("target", show target)]
 showObjectAttrs _ = []
 
 --
@@ -120,6 +121,7 @@ showObjectName ARMIrq {} = "ARMIrq"
 showObjectName ARMSID {} = "ARMSID"
 showObjectName ARMCB {} = "ARMCB"
 showObjectName ARMSMC = "ARMSMC"
+showObjectName ARMSGISignal {} = "ARMSGISignal"
 
 --
 -- Get a cap's name.
@@ -160,6 +162,7 @@ showCapName SchedControlCap {} = "SchedControlCap"
 showCapName ARMSIDCap {} = "ARMSIDCap"
 showCapName ARMCBCap {} = "ARMCBCap"
 showCapName ARMSMCCap {} = "ARMSMCCap"
+showCapName ARMSGISignalCap {} = "ARMSGISignalCap"
 
 showExtraCapAttributes :: Cap -> [(String, String)]
 showExtraCapAttributes (EndpointCap _ capBadge _) = [("badge", show capBadge)]

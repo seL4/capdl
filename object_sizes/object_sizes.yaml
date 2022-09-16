@@ -67,3 +67,4 @@ seL4_ARMIRQ: 0
 seL4_ARMSID: 0
 seL4_ARMCB: 0
 seL4_ARMSMC: 0
+seL4_ARMSGI_Signal: 0

@@ -121,6 +121,7 @@ data Cap
         | ARMSMCCap        {
             capObj :: ObjID,
             capBadge :: Word }
+        | ARMSGISignalCap  { capObj :: ObjID }
 
         -- X86 specific caps
         | IOPortsCap {
@@ -208,6 +209,9 @@ data KernelObject a
         slots :: CapMap a,
         trigger :: Word,
         target :: Word }
+    | ARMSGISignal {
+        irq :: Word,
+        target :: Word }
 
 -- fake kernel objects for smmu
     | ARMSID
@@ -256,6 +260,7 @@ data KOType
     | ARMSID_T
     | ARMCB_T
     | ARMSMC_T
+    | ARMSGISignal_T
     | ASIDPool_T
     | PT_T
     | PD_T
