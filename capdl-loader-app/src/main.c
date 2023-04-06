@@ -1906,12 +1906,12 @@ static void init_copy_addr(seL4_BootInfo *bi)
      * the next 16mb alignment where we can map in a pagetable.
      */
     uintptr_t bi_start = (uintptr_t)bi;
-    copy_addr = ROUND_UP(bi_start + PAGE_SIZE_4K + bi->extraLen, 0x1000000);
+    copy_addr = ROUND_UP(bi_start + seL4_BootInfoFrameSize + bi->extraLen, 0x1000000);
 }
 
 static void cache_extended_bootinfo_headers(seL4_BootInfo *bi)
 {
-    uintptr_t cur = (uintptr_t)bi + PAGE_SIZE_4K;
+    uintptr_t cur = (uintptr_t)bi + seL4_BootInfoFrameSize;
     uintptr_t end = cur + bi->extraLen;
 
     while (cur < end) {
