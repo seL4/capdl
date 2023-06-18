@@ -17,8 +17,8 @@ copyright:           Data61, CSIRO
 category:            Development
 build-type:          Simple
 extra-source-files:  README.md
-cabal-version:       >=1.18
-tested-with:         GHC == 8.8.4, GHC == 9.0.2
+cabal-version:       1.18
+tested-with:         GHC == 9.2.8
 
 executable parse-capDL
   main-is:             Main.hs
@@ -32,7 +32,7 @@ executable parse-capDL
   build-depends:
                        -- Included libraries
                        array >=0.5 && <0.6,
-                       base >= 4.13 && <4.16,
+                       base >= 4.16,
                        containers >=0.6 && <0.7,
                        filepath >=1.4 && <1.5,
                        mtl >=2.2 && <2.3,
@@ -40,7 +40,7 @@ executable parse-capDL
                        unix >=2.7 && <3,
 
                        -- Other libraries
-                       base-compat >= 0.11 && <0.12,
+                       base-compat == 0.12.*,
                        lens >= 4.15,
                        MissingH >=1.4 && <1.6,
                        pretty >=1.1 && <1.2,
@@ -59,3 +59,5 @@ executable parse-capDL
 
   ghc-options:         -O2 -Werror -Wall -fno-warn-name-shadowing
                        -fno-warn-missing-signatures -fno-warn-type-defaults
+                       -fno-warn-incomplete-uni-patterns
+                       -fno-warn-incomplete-record-updates
