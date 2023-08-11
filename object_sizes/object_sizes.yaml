@@ -3,6 +3,7 @@
 #include <autoconf.h>
 #include <sel4/constants.h>
 #include <sel4/sel4_arch/constants.h>
+#include <sel4/sel4_arch/deprecated.h>
 #include <sel4/mode/types.h>
 seL4_TCBObject: seL4_TCBBits
 seL4_EndpointObject: seL4_EndpointBits
