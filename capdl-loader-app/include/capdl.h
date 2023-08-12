@@ -169,7 +169,9 @@ typedef enum {
     CDL_Frame         = seL4_ARM_SmallPageObject,
 #ifdef CONFIG_ARCH_AARCH64
     CDL_PUD           = seL4_ARM_PageUpperDirectoryObject,
+#if !(defined(CONFIG_ARM_HYPERVISOR_SUPPORT) && defined (CONFIG_ARM_PA_SIZE_BITS_40))
     CDL_PGD           = seL4_ARM_PageGlobalDirectoryObject,
+#endif
 #endif
 #ifdef CONFIG_ARM_HYPERVISOR_SUPPORT
     CDL_VCPU          = seL4_ARM_VCPUObject,
