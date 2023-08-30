@@ -9,15 +9,26 @@
 #include <autoconf.h>
 #include <capdl_loader_app/gen_config.h>
 
-#include <sel4/types.h>
-#include <sel4utils/mapping.h>
-#include <limits.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <utils/util.h>
+#include <sel4/sel4.h>
 
-#define CDL_VM_CacheEnabled         seL4_ARCH_Default_VMAttributes
-#define CDL_VM_CacheDisabled        seL4_ARCH_Uncached_VMAttributes
+#define BIT(n) (1ul<<(n))
+#define PACKED       __attribute__((__packed__))
+
+#if defined(CONFIG_ARCH_ARM)
+#define CDL_VM_CacheEnabled seL4_ARM_Default_VMAttributes
+#define CDL_VM_CacheDisabled 0
+
+#elif defined (CONFIG_ARCH_X86)
+#define CDL_VM_CacheEnabled seL4_X86_Default_VMAttributes
+#define CDL_VM_CacheDisabled seL4_X86_CacheDisabled
+
+#elif defined (CONFIG_ARCH_RISCV)
+#define CDL_VM_CacheEnabled seL4_RISCV_Default_VMAttributes
+#define CDL_VM_CacheDisabled 0
+
+#else
+#error "Unsupported architecture"
+#endif
 
 #if defined(CONFIG_ARCH_ARM)
 
@@ -122,17 +133,17 @@ typedef struct {
     seL4_CPtr mapped_frame_cap;
 
     /* This type tag actually has a more specific type, but we force it to be represented as a
-     * uint8_t to compress the size of this struct in memory.
+     * seL4_Uint8 to compress the size of this struct in memory.
      */
-    /* CDL_CapType */ uint8_t type;
+    /* CDL_CapType */ seL4_Uint8 type;
 
     /* The following map to more specific seL4 types, but the seL4 types are padded to word size,
      * wasting space. This padding is necessary for ABI compatibility, but we have no such
      * requirements here and can instead reduce the in-memory size of specs by packing these fields
      * into fewer bits.
      */
-    /* seL4_ARCH_VMAttributes */ unsigned vm_attribs: 3;
-    /* bool                   */ unsigned is_orig: 1;
+    /* unsigned */ unsigned vm_attribs: 3;
+    /* seL4_Bool              */ unsigned is_orig: 1;
 /* seL4_CapRights         */ unsigned rights:
     seL4_CapRightsBits;
 } PACKED CDL_Cap;
@@ -267,10 +278,10 @@ typedef enum {
 #endif
 
 typedef struct {
-    uint8_t priority;
-    uint8_t max_priority;
-    uint8_t affinity;
-    uint8_t domain;
+    seL4_Uint8 priority;
+    seL4_Uint8 max_priority;
+    seL4_Uint8 affinity;
+    seL4_Uint8 domain;
     seL4_Word pc;
     seL4_Word sp;
     const char *elf_name;
@@ -278,17 +289,17 @@ typedef struct {
     seL4_Word init_sz;
     seL4_CPtr fault_ep;
     seL4_Word ipcbuffer_addr;
-    bool resume;
+    seL4_Bool resume;
 } CDL_TCBExtraInfo;
 
 typedef struct {
-    uint64_t period;
-    uint64_t budget;
+    seL4_Uint64 period;
+    seL4_Uint64 budget;
     seL4_Word data;
 } CDL_SCExtraInfo;
 
 typedef struct {
-    uint8_t bank;
+    seL4_Uint8 bank;
 } CDL_CBExtraInfo;
 
 typedef struct {
@@ -328,18 +339,18 @@ typedef enum {
 
 typedef struct {
     CDL_FrameFill_BootInfoEnum_t type;
-    size_t src_offset;
+    seL4_Word src_offset;
 } CDL_FrameFill_BootInfoType_t;
 
 typedef struct {
     char *filename;
-    size_t file_offset;
+    seL4_Word file_offset;
 } CDL_FrameFill_FileDataType_t;
 
 typedef struct {
     CDL_FrameFillType_t type;
-    size_t dest_offset;
-    size_t dest_len;
+    seL4_Word dest_offset;
+    seL4_Word dest_len;
     union {
         CDL_FrameFill_BootInfoType_t bi_type;
         CDL_FrameFill_FileDataType_t file_data_type;
@@ -375,7 +386,7 @@ typedef struct {
     CDL_ObjectType type;
     /* The configuration for IO ports on x86 is currently overloaded into the
      * size_bits parameter. */
-    uint32_t size_bits;
+    seL4_Uint32 size_bits;
 
 } PACKED CDL_Object;
 
@@ -433,7 +444,7 @@ static inline CDL_CapData    CDL_Cap_Data(CDL_Cap *cap)
 {
     return cap->data;
 }
-static inline seL4_ARCH_VMAttributes CDL_Cap_VMAttributes(CDL_Cap *cap)
+static inline unsigned CDL_Cap_VMAttributes(CDL_Cap *cap)
 {
     return cap->vm_attribs;
 }
@@ -449,7 +460,7 @@ static inline CDL_IRQ        CDL_Cap_IRQ(CDL_Cap *cap)
 {
     return cap->irq;
 }
-static inline bool           CDL_Cap_IsOrig(CDL_Cap *cap)
+static inline seL4_Bool           CDL_Cap_IsOrig(CDL_Cap *cap)
 {
     return cap->is_orig;
 }
@@ -481,7 +492,7 @@ static inline seL4_CapRights_t CDL_seL4_Cap_Rights(CDL_Cap *cap)
                               !!(cap->rights & CDL_CanWrite));
 }
 
-static inline uint32_t CONST seL4_CapRights_get_capAllowAllRights(seL4_CapRights_t seL4_CapRights)
+static inline seL4_Uint32 CONST seL4_CapRights_get_capAllowAllRights(seL4_CapRights_t seL4_CapRights)
 {
     return (seL4_CapRights_get_capAllowRead(seL4_CapRights) &&
             seL4_CapRights_get_capAllowWrite(seL4_CapRights) &&
@@ -492,7 +503,7 @@ static inline uint32_t CONST seL4_CapRights_get_capAllowAllRights(seL4_CapRights
 static inline const char *CDL_Obj_Name(CDL_Object *obj)
 {
 #ifdef CONFIG_DEBUG_BUILD
-    if (obj->name == NULL) {
+    if (obj->name == seL4_Null) {
         return "<unnamed>";
     } else {
         return obj->name;
@@ -537,27 +548,27 @@ static inline seL4_Word CDL_TCB_IPCBuffer_Addr(CDL_Object *obj)
     return obj->tcb_extra.ipcbuffer_addr;
 }
 
-static inline uint8_t CDL_TCB_Priority(CDL_Object *obj)
+static inline seL4_Uint8 CDL_TCB_Priority(CDL_Object *obj)
 {
     return obj->tcb_extra.priority;
 }
 
-static inline uint8_t CDL_CB_Bank(CDL_Object *obj)
+static inline seL4_Uint8 CDL_CB_Bank(CDL_Object *obj)
 {
     return obj->cb_extra.bank;
 }
 
-static inline uint8_t CDL_TCB_MaxPriority(CDL_Object *obj)
+static inline seL4_Uint8 CDL_TCB_MaxPriority(CDL_Object *obj)
 {
     return obj->tcb_extra.max_priority;
 }
 
-static inline uint8_t CDL_TCB_Affinity(CDL_Object *obj)
+static inline seL4_Uint8 CDL_TCB_Affinity(CDL_Object *obj)
 {
     return obj->tcb_extra.affinity;
 }
 
-static inline uint32_t CDL_TCB_Domain(CDL_Object *obj)
+static inline seL4_Uint32 CDL_TCB_Domain(CDL_Object *obj)
 {
     return obj->tcb_extra.domain;
 }
@@ -577,12 +588,12 @@ static inline const char *CDL_TCB_ElfName(CDL_Object *obj)
     return obj->tcb_extra.elf_name;
 }
 
-static inline uint64_t CDL_SC_Period(CDL_Object *obj)
+static inline seL4_Uint64 CDL_SC_Period(CDL_Object *obj)
 {
     return obj->sc_extra.period;
 }
 
-static inline uint64_t CDL_SC_Budget(CDL_Object *obj)
+static inline seL4_Uint64 CDL_SC_Budget(CDL_Object *obj)
 {
     return obj->sc_extra.budget;
 }
