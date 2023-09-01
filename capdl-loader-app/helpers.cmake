@@ -77,14 +77,11 @@ function(BuildCapDLApplication)
         sel4runtime
         sel4
         cpio
-        sel4platsupport
-        sel4utils
         capdl_loader_app_Config
         sel4_autoconf
+        muslc
     )
-    if(KernelDebugBuild)
-        target_link_libraries("${CAPDL_BUILD_APP_OUTPUT}" sel4muslcsys)
-    endif()
+
 endfunction(BuildCapDLApplication)
 
 # Hook for CAmkES build system. This allows CAmkES projects to

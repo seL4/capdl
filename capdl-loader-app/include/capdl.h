@@ -12,7 +12,10 @@
 #include <sel4/sel4.h>
 
 #define BIT(n) (1ul<<(n))
+#define MASK(n) (BIT(n) - 1ul)
+
 #define PACKED       __attribute__((__packed__))
+#define UNUSED       __attribute__((__unused__))
 
 #if defined(CONFIG_ARCH_ARM)
 #define CDL_VM_CacheEnabled seL4_ARM_Default_VMAttributes

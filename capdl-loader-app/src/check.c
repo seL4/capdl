@@ -45,4 +45,3 @@ int _printf(const char *restrict fmt, ...)
     va_end(ap);
     return ret;
 }
-

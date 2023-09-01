@@ -4,37 +4,111 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include <autoconf.h>
-#include <capdl_loader_app/gen_config.h>
 
-#include <assert.h>
-#include <inttypes.h>
-#include <limits.h>
-
-#include <stdio.h>
-#include <string.h>
 #include <stdint.h>
-#include <inttypes.h>
-#include <sel4platsupport/platsupport.h>
-#include <cpio/cpio.h>
-#include <simple-default/simple-default.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
-#include <vka/kobject_t.h>
-#include <utils/util.h>
 #include <sel4/sel4.h>
-#include <sel4utils/sel4_zf_logif.h>
-#include "capdl.h"
+#include <cpio/cpio.h>
+#include <sel4runtime.h>
 
-#ifdef CONFIG_DEBUG_BUILD
-#include <utils/attribute.h>
-#include <muslcsys/vsyscall.h>
+#include <capdl_loader_app/gen_config.h>
+#ifdef CONFIG_ARCH_ARM
+#include <capdl_loader_app/platform_info.h>
 #endif
 #include "check.h"
 
+#include "capdl.h"
 #include "capdl_spec.h"
 
+
+#define CHAR_BIT 8
+
+/* Evaluate a Kconfig-provided configuration setting at compile-time. */
+#define config_set(macro) _is_set_(macro)
+#define _macrotest_1 ,
+#define _is_set_(value) _is_set__(_macrotest_##value)
+#define _is_set__(comma) _is_set___(comma 1, 0)
+#define _is_set___(_, v, ...) v
+
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
+
+#define PAGE_SIZE_4K 4096
+#define ROUND_UP(n, b) \
+    ({ typeof (n) _n = (n); \
+       typeof (b) _b = (b); \
+       (_n + (_n % _b == 0 ? 0 : (_b - (_n % _b)))); \
+    })
+
 #ifdef CONFIG_ARCH_ARM
-#include <capdl_loader_app/platform_info.h>
+#define ARCH ARM
+#define seL4_ARCH_SmallPageObject seL4_ARM_SmallPageObject
+#elif CONFIG_ARCH_X86
+#define ARCH X86
+#define seL4_ARCH_SmallPageObject seL4_X86_4K
+#elif CONFIG_ARCH_RISCV
+#define ARCH RISCV
+#define seL4_ARCH_SmallPageObject seL4_RISCV_4K_Page
+#else
+#error "Unsupported architecture"
+#endif
+
+#define SEL4_ARCH_DEF_XX(symbol, arch) seL4_##arch##_##symbol
+#define SEL4_ARCH_DEF_X(symbol, arch) SEL4_ARCH_DEF_XX(symbol, arch)
+#define SEL4_ARCH_DEF(symbol) SEL4_ARCH_DEF_X(symbol, ARCH)
+
+#define seL4_ARCH_Page_GetAddress_t SEL4_ARCH_DEF(Page_GetAddress_t)
+#define seL4_ARCH_Page_Unmap SEL4_ARCH_DEF(Page_Unmap)
+#define seL4_ARCH_Page_GetAddress SEL4_ARCH_DEF(Page_GetAddress)
+#define seL4_ARCH_ASIDPool_Assign SEL4_ARCH_DEF(ASIDPool_Assign)
+#define seL4_ARCH_ASIDControl_MakePool SEL4_ARCH_DEF(ASIDControl_MakePool)
+#define seL4_ARCH_VMAttributes SEL4_ARCH_DEF(VMAttributes)
+#define seL4_ARCH_Default_VMAttributes SEL4_ARCH_DEF(Default_VMAttributes)
+#define seL4_ARCH_PageTable_Map SEL4_ARCH_DEF(PageTable_Map)
+#define seL4_ARCH_Page_Map SEL4_ARCH_DEF(Page_Map)
+
+#ifdef CONFIG_ARCH_AARCH32
+#define PAGE_SIZES \
+    X_PAGE_SIZES(seL4_PageBits, seL4_ARM_SmallPageObject) \
+    X_PAGE_SIZES(seL4_LargePageBits, seL4_ARM_LargePageObject) \
+    X_PAGE_SIZES(seL4_SectionBits, seL4_ARM_SectionObject) \
+    X_PAGE_SIZES(seL4_SuperSectionBits, seL4_ARM_SuperSectionObject)
+
+#elif CONFIG_ARCH_AARCH64
+#define PAGE_SIZES \
+    X_PAGE_SIZES(seL4_PageBits, seL4_ARM_SmallPageObject) \
+    X_PAGE_SIZES(seL4_LargePageBits, seL4_ARM_LargePageObject) \
+    X_PAGE_SIZES(seL4_HugePageBits, seL4_ARM_HugePageObject)
+#elif CONFIG_ARCH_IA32
+#define PAGE_SIZES \
+    X_PAGE_SIZES(seL4_PageBits, seL4_X86_4K) \
+    X_PAGE_SIZES(seL4_LargePageBits, seL4_X86_LargePageObject)
+
+#elif CONFIG_ARCH_X86_64
+#define PAGE_SIZES \
+    X_PAGE_SIZES(seL4_PageBits, seL4_X86_4K) \
+    X_PAGE_SIZES(seL4_LargePageBits, seL4_X86_LargePageObject) \
+    X_PAGE_SIZES(seL4_HugePageBits, seL4_X64_HugePageObject)
+
+#elif CONFIG_ARCH_RISCV32
+#define PAGE_SIZES \
+    X_PAGE_SIZES(seL4_PageBits, seL4_RISCV_4K_Page) \
+    X_PAGE_SIZES(seL4_LargePageBits, seL4_RISCV_Mega_Page)
+
+#elif CONFIG_ARCH_RISCV64
+#define PAGE_SIZES \
+    X_PAGE_SIZES(seL4_PageBits, seL4_RISCV_4K_Page) \
+    X_PAGE_SIZES(seL4_LargePageBits, seL4_RISCV_Mega_Page) \
+    X_PAGE_SIZES(seL4_HugePageBits, seL4_RISCV_Giga_Page) \
+    X_PAGE_SIZES(seL4_TeraPageBits, seL4_RISCV_Tera_Page)
+
+#else
+#error "Unsupported architecture"
 #endif
 
 #ifdef CONFIG_ARCH_RISCV
@@ -98,6 +172,21 @@ static seL4_BootInfoHeader *extended_bootinfo_table[SEL4_BOOTINFO_HEADER_NUM] = 
 static seL4_CPtr get_free_slot(void)
 {
     return free_slot_start;
+}
+
+seL4_Word get_frame_object_type(seL4_Word object_size) {
+    switch (object_size) {
+
+#define X_PAGE_SIZES(bits, object_type) \
+    case bits: \
+        return object_type;
+
+        PAGE_SIZES
+#undef X_PAGE_SIZES
+        default:
+            return -1;
+        }
+
 }
 
 static void next_free_slot(void)
@@ -542,7 +631,7 @@ static int find_device_object(seL4_Word paddr, seL4_Word type, int size_bits, se
                 if (type == seL4_UntypedObject) {
                     /* if it's an untyped, create a temporary frame in it
                      * to get the address from */
-                    error = seL4_Untyped_Retype(free_slot, arch_kobject_get_type(KOBJECT_FRAME, seL4_PageBits), seL4_PageBits,
+                    error = seL4_Untyped_Retype(free_slot, seL4_ARCH_SmallPageObject, seL4_PageBits,
                                                 seL4_CapInitThreadCNode, 0, 0, free_slot + 2, 1);
                     ABORT_IFERR(error, "");
                     addr = seL4_ARCH_Page_GetAddress(free_slot + 2);
@@ -613,7 +702,7 @@ unsigned int create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_
 
     switch (CDL_Obj_Type(obj)) {
     case CDL_Frame:
-        obj_type = kobject_get_type(KOBJECT_FRAME, obj_size);
+        obj_type = get_frame_object_type(obj_size);
         break;
     case CDL_ASIDPool:
         obj_type = CDL_Untyped;
@@ -621,7 +710,7 @@ unsigned int create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_
         break;
 #ifdef CONFIG_KERNEL_MCS
     case CDL_SchedContext:
-        obj_size = kobject_get_size(KOBJECT_SCHED_CONTEXT, obj_size);
+        obj_size = obj_size > seL4_MinSchedContextBits ? obj_size : seL4_MinSchedContextBits;
         obj_type = (seL4_ArchObjectType) CDL_Obj_Type(obj);
         break;
 #endif
@@ -1998,8 +2087,8 @@ static void init_frame(CDL_Model *spec, CDL_ObjID obj_id, CDL_FrameFill_Element_
     }
     ABORT_IFERR(error, "");
 
-    ssize_t max = BIT(spec->objects[obj_id].size_bits) - frame_fill.dest_offset;
-    ABORT_IF(frame_fill.dest_len > max, "Bad spec, fill frame with len larger than frame size");
+    ABORT_IF(frame_fill.dest_offset + frame_fill.dest_len > BIT(spec->objects[obj_id].size_bits),
+        "Bad spec, fill frame with len larger than frame size");
 
     /* Check for which type */
     switch (frame_fill.type) {
@@ -2069,15 +2158,11 @@ static void mark_vspace_roots(CDL_Model *spec)
 #endif
 
 
-static void init_system(CDL_Model *spec)
+static void init_system(CDL_Model *spec, seL4_BootInfo *bootinfo)
 {
-    seL4_BootInfo *bootinfo = platsupport_get_bootinfo();
-    simple_t simple;
 
     cache_extended_bootinfo_headers(bootinfo);
     init_copy_addr(bootinfo);
-
-    simple_default_init_bootinfo(&simple, bootinfo);
 
     init_copy_frame(bootinfo);
 
@@ -2113,30 +2198,11 @@ static void init_system(CDL_Model *spec)
 
 }
 
-#ifdef CONFIG_DEBUG_BUILD
-/* We need to give malloc enough memory for musllibc to allocate memory
- * for stdin, stdout, and stderr. The heap pool base address and size is
- * expected to be page aligned.
- */
-extern char *morecore_area;
-extern size_t morecore_size;
-static char ALIGN(PAGE_SIZE_4K) debug_libc_morecore_area[PAGE_SIZE_4K];
-
-static void CONSTRUCTOR(MUSLCSYS_WITH_VSYSCALL_PRIORITY) init_bootinfo(void)
-{
-    /* Init memory area for musl. */
-    morecore_area = debug_libc_morecore_area;
-    morecore_size = sizeof(debug_libc_morecore_area);
-
-    /* Allow us to print via seL4_Debug_PutChar. */
-    platsupport_serial_setup_bootinfo_failsafe();
-}
-#endif
 
 int main(void)
 {
     LOGI("Starting CapDL Loader...");
-    init_system(&capdl_spec);
+    init_system(&capdl_spec, sel4runtime_bootinfo());
     LOGI("CapDL Loader done, suspending...");
     seL4_TCB_Suspend(seL4_CapInitThreadTCB);
 }
