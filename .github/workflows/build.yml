@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ '2.x', '3.9' ]
+        python-version: [ '3.x' ]
       fail-fast: false
     steps:
     - uses: actions/checkout@v2
@@ -41,12 +41,11 @@ jobs:
     - name: Install python packages
       run: |
         cd python-capdl-tool
-        pip install -r requirements.txt
-        pip install nose future
+        pip3 install -r requirements.txt
     - name: Run tests
       run: |
         cd python-capdl-tool/tests
-        nosetests --exe
+        PYTHONPATH=../ ./runall.py
 
   capDL-tool:
     name: capDL-tool (ghc)
