@@ -95,10 +95,13 @@ add_config_library(capdl_loader_app "${configure_string}")
 # Later on the user will construct a rule for actually generating the capdl executable from a
 # different project directory
 add_custom_target(capdl_app_properties)
-set_property(TARGET capdl_app_properties PROPERTY C_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c")
+get_target_property(MUSL_SOURCE_DIR muslc_gen SOURCE_DIR)
+set_property(TARGET capdl_app_properties PROPERTY C_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c" "${CMAKE_CURRENT_SOURCE_DIR}/src/check.c")
 set_property(
     TARGET capdl_app_properties
     PROPERTY INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${MUSL_SOURCE_DIR}/src/internal"
+    "${MUSL_SOURCE_DIR}/arch/aarch64"
 )
 
 RequireFile(CAPDL_LOADER_BUILD_HELPERS helpers.cmake)
