@@ -12,15 +12,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define __thread
 #include <sel4/sel4.h>
 #include <cpio/cpio.h>
-#include <sel4runtime.h>
 
 #include <capdl_loader_app/gen_config.h>
 #ifdef CONFIG_ARCH_ARM
 #include <capdl_loader_app/platform_info.h>
 #endif
 #include "check.h"
+
+#include "entry.h"
 
 #include "capdl.h"
 #include "capdl_spec.h"
@@ -129,6 +131,8 @@
 
 #define MAX_STREAM_IDS 60
 
+seL4_IPCBuffer *__sel4_ipc_buffer;
+
 static seL4_CPtr capdl_to_sel4_orig[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 static seL4_CPtr capdl_to_sel4_copy[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
 static seL4_CPtr capdl_to_sel4_irq[CONFIG_CAPDL_LOADER_MAX_OBJECTS];
@@ -172,6 +176,52 @@ static seL4_BootInfoHeader *extended_bootinfo_table[SEL4_BOOTINFO_HEADER_NUM] = 
 static seL4_CPtr get_free_slot(void)
 {
     return free_slot_start;
+}
+
+char *strcpy(char *dest, const char *src) {
+    size_t i;
+    if (!dest) {
+        return dest;
+    }
+    for (i = 0; src && src[i] != 0; i++) {
+        dest[i] = src[i];
+    }
+    dest[i] = '\0';
+
+    return dest;
+}
+
+char *strncpy(char *dest, const char *src, size_t n) {
+    size_t i;
+    if (!dest) {
+        return dest;
+    }
+    for (i = 0; i < n && src && src[i] != 0; i++) {
+        dest[i] = src[i];
+    }
+    while (i < n) {
+        dest[i] = '\0';
+        i++;
+    }
+
+    return dest;
+
+}
+
+int raise(int sig) {
+    abort();
+
+}
+
+_Noreturn void abort(void) {
+    seL4_TCB_Suspend(seL4_CapInitThreadTCB);
+    while(1);
+}
+
+_Noreturn void __assert_fail(const char *expr, const char *file, int line, const char *func)
+{
+    LOGF("Assertion failed: %s (%s: %s: %d)\n", expr, file, func, line);
+    abort();
 }
 
 seL4_Word get_frame_object_type(seL4_Word object_size) {
@@ -2199,10 +2249,12 @@ static void init_system(CDL_Model *spec, seL4_BootInfo *bootinfo)
 }
 
 
-int main(void)
+int main(seL4_BootInfo *boot_info)
 {
+    __sel4_ipc_buffer = boot_info->ipcBuffer;
+
     LOGI("Starting CapDL Loader...");
-    init_system(&capdl_spec, sel4runtime_bootinfo());
+    init_system(&capdl_spec, boot_info);
     LOGI("CapDL Loader done, suspending...");
     seL4_TCB_Suspend(seL4_CapInitThreadTCB);
 }

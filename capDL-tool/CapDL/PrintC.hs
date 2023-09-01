@@ -500,6 +500,7 @@ printC allocType (Model arch objs irqNode cdt untypedCovers) _ _ =
     text $
     "/* Generated file. Your changes will be overwritten. */" +++
     "" +++
+    "#define __thread" +++
     "#include <capdl.h>" +++
     "#include <sel4/sel4.h>" +++
     "" +++

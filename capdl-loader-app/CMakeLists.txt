@@ -31,6 +31,14 @@ config_string(
 )
 
 config_string(
+    CapDLLoaderRootStack
+    CAPDL_LOADER_ROOT_STACK
+    "Size of the initial stack for the root task"
+    DEFAULT
+    16384
+)
+
+config_string(
     CapDLLoaderFillsPerFrame
     CAPDL_LOADER_FILLS_PER_FRAME
     "Maximum number of fill commands per frame."
@@ -89,19 +97,111 @@ config_option(
 
 add_config_library(capdl_loader_app "${configure_string}")
 
-# The capdl-loader-app requires outside configuration in order to build. To achieve this
-# we just declare a target here with custom properties for describing the source and headers.
-# This is done here as at this point we know the source directory and can construct these things.
-# Later on the user will construct a rule for actually generating the capdl executable from a
-# different project directory
-add_custom_target(capdl_app_properties)
+
+if(DEFINED platform_yaml)
+
+    find_file(PLATFORM_SIFT platform_sift.py PATHS ${CMAKE_MODULE_PATH} NO_CMAKE_FIND_ROOT_PATH)
+    mark_as_advanced(FORCE PLATFORM_SIFT)
+    if("${PLATFORM_SIFT}" STREQUAL "PLATFORM_SIFT-NOTFOUND")
+        message(
+            FATAL_ERROR
+                "Failed to find platform_sift.py. Consider using -DPLATFORM_SIFT=/path/to/file"
+        )
+    endif()
+
+    set(
+        MEMORY_REGIONS
+        "${CMAKE_BINARY_DIR}/capdl/capdl-loader-app/gen_config/capdl_loader_app/platform_info.h"
+    )
+    add_custom_command(
+        COMMAND ${PLATFORM_SIFT} --emit-c-syntax ${platform_yaml} > ${MEMORY_REGIONS}
+        OUTPUT ${MEMORY_REGIONS}
+    )
+    add_custom_target(mem_regions DEPENDS ${platform_yaml} ${PLATFORM_SIFT} ${MEMORY_REGIONS})
+    set_property(
+        SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/capdl/capdl-loader-app/src/main.c
+        PROPERTY OBJECT_DEPENDS mem_regions
+    )
+endif()
+
 get_target_property(MUSL_SOURCE_DIR muslc_gen SOURCE_DIR)
-set_property(TARGET capdl_app_properties PROPERTY C_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c" "${CMAKE_CURRENT_SOURCE_DIR}/src/check.c")
+
+if(KernelDebugBuild)
+    set(print_sources
+        # Debug sources for printing
+        src/check.c
+        ${MUSL_SOURCE_DIR}/src/stdio/vfprintf.c
+        ${MUSL_SOURCE_DIR}/src/stdio/fwrite.c
+        ${MUSL_SOURCE_DIR}/src/stdio/__towrite.c
+        ${MUSL_SOURCE_DIR}/src/multibyte/wctomb.c
+        ${MUSL_SOURCE_DIR}/src/multibyte/wcrtomb.c
+        ${MUSL_SOURCE_DIR}/src/math/__signbitl.c
+        ${MUSL_SOURCE_DIR}/src/math/__fpclassifyl.c
+        ${MUSL_SOURCE_DIR}/src/math/frexpl.c
+        ${MUSL_SOURCE_DIR}/src/string/strnlen.c
+        ${MUSL_SOURCE_DIR}/src/string/memchr.c
+    )
+endif()
+
+
+# Build the application
+add_library(capdl_base OBJECT EXCLUDE_FROM_ALL
+    src/main.c
+    # Add implementations of memset and memcpy from lib musl
+    ${MUSL_SOURCE_DIR}/src/string/memset.c
+    ${MUSL_SOURCE_DIR}/src/string/memcpy.c
+
+    ${print_sources}
+    )
+
+target_include_directories(
+    capdl_base
+    PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/include"
+        ${MUSL_SOURCE_DIR}/src/internal
+        ${MUSL_SOURCE_DIR}/arch/aarch64
+)
+target_link_libraries(
+    capdl_base
+    PRIVATE
+    sel4
+    cpio
+    capdl_loader_app_Config
+    sel4_autoconf
+    muslc
+)
+
+if(DEFINED platform_yaml)
+    add_dependencies("capdl_base" mem_regions)
+endif()
+
+separate_arguments(
+    cmake_c_flags_sep NATIVE_COMMAND "${CMAKE_C_FLAGS}"
+)
+add_custom_command(
+    OUTPUT capdl-loader.o
+    COMMAND
+        ${CMAKE_C_COMPILER} ${cmake_c_flags_sep} -static -nostdlib -z max-page-size=0x1000 -Wl,-r
+            $<TARGET_OBJECTS:capdl_base>
+            $<TARGET_OBJECTS:cpio>
+            -o capdl-loader.o
+    DEPENDS $<TARGET_OBJECTS:capdl_base> $<TARGET_OBJECTS:cpio> COMMAND_EXPAND_LISTS
+)
+
+add_custom_target(
+    capdl_loader_precompile
+    DEPENDS capdl-loader.o
+)
+
+add_library(capdl_loader_base STATIC IMPORTED GLOBAL)
+set_property(TARGET capdl_loader_base PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/capdl-loader.o")
 set_property(
-    TARGET capdl_app_properties
+    TARGET capdl_loader_base
     PROPERTY INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include"
     "${MUSL_SOURCE_DIR}/src/internal"
     "${MUSL_SOURCE_DIR}/arch/aarch64"
 )
-
-RequireFile(CAPDL_LOADER_BUILD_HELPERS helpers.cmake)
+add_library(capdl_loader INTERFACE)
+add_dependencies(capdl_loader capdl_loader_base)
+set_property(TARGET capdl_loader PROPERTY INTERFACE_LINK_LIBRARIES capdl_loader_base)
+target_include_directories(capdl_loader INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")

@@ -26,60 +26,37 @@ function(BuildCapDLApplication)
         CPIO_SYMBOL
         _capdl_archive
     )
-
-    if(DEFINED platform_yaml)
-
-        find_file(PLATFORM_SIFT platform_sift.py PATHS ${CMAKE_MODULE_PATH} NO_CMAKE_FIND_ROOT_PATH)
-        mark_as_advanced(FORCE PLATFORM_SIFT)
-        if("${PLATFORM_SIFT}" STREQUAL "PLATFORM_SIFT-NOTFOUND")
-            message(
-                FATAL_ERROR
-                    "Failed to find platform_sift.py. Consider using -DPLATFORM_SIFT=/path/to/file"
-            )
-        endif()
-
-        set(
-            MEMORY_REGIONS
-            "${CMAKE_BINARY_DIR}/capdl/capdl-loader-app/gen_config/capdl_loader_app/platform_info.h"
-        )
-        add_custom_command(
-            COMMAND ${PLATFORM_SIFT} --emit-c-syntax ${platform_yaml} > ${MEMORY_REGIONS}
-            OUTPUT ${MEMORY_REGIONS}
-        )
-        add_custom_target(mem_regions DEPENDS ${platform_yaml} ${PLATFORM_SIFT} ${MEMORY_REGIONS})
-        set_property(
-            SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/capdl/capdl-loader-app/src/main.c
-            PROPERTY OBJECT_DEPENDS mem_regions
-        )
-    endif()
-
-    # Build the application
-    add_executable(
-        "${CAPDL_BUILD_APP_OUTPUT}"
-        EXCLUDE_FROM_ALL
-        $<TARGET_PROPERTY:capdl_app_properties,C_FILES>
-        ${CAPDL_LOADER_APP_C_FILES}
-        ${CAPDL_BUILD_APP_OUTPUT}_archive.o
-        ${CAPDL_BUILD_APP_C_SPEC}
+    separate_arguments(
+        cmake_c_flags_sep NATIVE_COMMAND "${CMAKE_C_FLAGS}"
     )
 
-    if(DEFINED platform_yaml)
-        add_dependencies("${CAPDL_BUILD_APP_OUTPUT}" mem_regions)
-    endif()
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${CAPDL_BUILD_APP_OUTPUT}.bin
+        BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/${CAPDL_BUILD_APP_OUTPUT}
+        COMMAND_EXPAND_LISTS
+        COMMAND ${CMAKE_C_COMPILER} ${cmake_c_flags_sep}  -static -nostdlib -z max-page-size=0x1000
 
-    add_dependencies("${CAPDL_BUILD_APP_OUTPUT}" ${CAPDL_BUILD_APP_DEPENDS})
-    target_include_directories(
-        "${CAPDL_BUILD_APP_OUTPUT}"
-        PRIVATE $<TARGET_PROPERTY:capdl_app_properties,INCLUDE_DIRS>
+            "-I$<JOIN:$<TARGET_PROPERTY:capdl_loader,INTERFACE_INCLUDE_DIRECTORIES>,;-I>"
+            "-I$<JOIN:$<TARGET_PROPERTY:sel4,INTERFACE_INCLUDE_DIRECTORIES>,;-I>"
+            "-I$<JOIN:$<TARGET_PROPERTY:sel4_autoconf,INTERFACE_INCLUDE_DIRECTORIES>,;-I>"
+            -I$<TARGET_PROPERTY:capdl_loader_app_Config,INTERFACE_INCLUDE_DIRECTORIES>
+            $<TARGET_OBJECTS:capdl_loader_base>
+            ${CAPDL_BUILD_APP_OUTPUT}_archive.o
+            ${CAPDL_BUILD_APP_C_SPEC}
+            -lgcc
+            -o ${CMAKE_CURRENT_BINARY_DIR}/${CAPDL_BUILD_APP_OUTPUT}
+        COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/${CAPDL_BUILD_APP_OUTPUT} ${CMAKE_CURRENT_BINARY_DIR}/${CAPDL_BUILD_APP_OUTPUT}.bin
+        DEPENDS  ${CAPDL_BUILD_APP_OUTPUT}_archive.o capdl_loader $<TARGET_OBJECTS:capdl_loader_base>
+        "${CAPDL_BUILD_APP_ELF}"
+         ${CAPDL_BUILD_APP_DEPENDS}
     )
-    target_link_libraries(
-        "${CAPDL_BUILD_APP_OUTPUT}"
-        sel4runtime
-        sel4
-        cpio
-        capdl_loader_app_Config
-        sel4_autoconf
-        muslc
+
+    add_custom_target("${CAPDL_BUILD_APP_OUTPUT}-custom" DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${CAPDL_BUILD_APP_OUTPUT}.bin)
+
+    add_library("${CAPDL_BUILD_APP_OUTPUT}" STATIC IMPORTED GLOBAL)
+    add_dependencies("${CAPDL_BUILD_APP_OUTPUT}" "${CAPDL_BUILD_APP_OUTPUT}-custom")
+    set_property(
+        TARGET "${CAPDL_BUILD_APP_OUTPUT}"
+        PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/${CAPDL_BUILD_APP_OUTPUT}"
     )
 
 endfunction(BuildCapDLApplication)

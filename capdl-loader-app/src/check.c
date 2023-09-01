@@ -45,3 +45,19 @@ int _printf(const char *restrict fmt, ...)
     va_end(ap);
     return ret;
 }
+
+
+int __lockfile(FILE *f) {
+    abort();
+}
+
+void __unlockfile(FILE *f) {
+    abort();
+}
+_Thread_local int errno;
+char *strerror(int e)
+{
+    abort();
+}
+
+void __stdio_exit_needed(void){}
