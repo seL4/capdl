@@ -2130,7 +2130,7 @@ static void CONSTRUCTOR(MUSLCSYS_WITH_VSYSCALL_PRIORITY) init_bootinfo(void)
     /* Allow us to print via seL4_Debug_PutChar. */
     platsupport_serial_setup_bootinfo_failsafe();
 }
-#endif
+#endif /* CONFIG_DEBUG_BUILD */
 
 int main(void)
 {
