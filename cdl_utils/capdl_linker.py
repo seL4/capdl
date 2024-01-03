@@ -8,6 +8,7 @@
 from capdl.Object import register_object_sizes, Untyped
 from capdl.Allocator import ASIDTableAllocator, BestFitAllocator
 from capdl import ELF, lookup_architecture, TCB, valid_architectures
+from importlib.metadata import version
 from jinja2 import Environment, BaseLoader, FileSystemLoader
 import sys
 import argparse
@@ -15,10 +16,8 @@ import pickle
 import logging
 import os
 import tempfile
-import pkg_resources
 import yaml
 import six
-pkg_resources.require("jinja2>=2.10")
 
 
 CSPACE_TEMPLATE_FILE = os.path.join(os.path.dirname(__file__), "templates/cspace.template.c")
@@ -29,6 +28,10 @@ def manifest(cap_symbols, region_symbols, architecture, targets):
     Generates a c file from CSPACE_TEMPLATE_FILE with some runtime information
     about CSpace slots and special address ranges
     """
+    jinja2_version = version("jinja2")
+    if jinja2_version < "2.10":
+        raise Warning("Jinja2 should be >= 2.10")
+
     temp_file = open(CSPACE_TEMPLATE_FILE, 'r').read()
     template = Environment(loader=BaseLoader).from_string(temp_file)
 
