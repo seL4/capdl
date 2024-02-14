@@ -149,7 +149,6 @@ class ELF(object):
         existing_pages = []
         if addr_space:
             # Update symbols with their vaddrs in the AddressSpaceAllocator if we were given one
-            existing_pages = []
             for (symbol, (sizes, caps)) in iteritems(addr_space.get_symbols_and_clear()):
                 assert self.get_symbol_size(symbol) >= sum(sizes), \
                     "Symbol (%s:%d) must have same or greater size than supplied cap range (%d)" % (
