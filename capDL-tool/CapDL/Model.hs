@@ -369,8 +369,11 @@ tcbSCSlot = 6
 tcbTempFaultEPSlot :: Word
 tcbTempFaultEPSlot = 7
 
+tcbBoundNotificationSlot :: Word
+tcbBoundNotificationSlot = 8
+
 tcbBoundVCPUSlot :: Word
-tcbBoundVCPUSlot = 8
+tcbBoundVCPUSlot = 9
 
 --
 -- The string used when defining an IOSpaceMasterCap, an ASIDControlCap,
