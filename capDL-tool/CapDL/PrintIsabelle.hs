@@ -507,7 +507,7 @@ printFooter :: Doc
 printFooter = text "end"
 
 printIsabelle :: String -> ObjectSizeMap -> Model Word -> Doc
-printIsabelle name objSizeMap (Model (arch@ARM11) ms irqNode cdt untypedCovers) =
+printIsabelle name objSizeMap (Model (arch@AARCH32) ms irqNode cdt untypedCovers) =
     printHeader name $+$ text "" $+$
 
     printObjIDs objSizeMap objAddrs ms irqNode $+$
@@ -535,4 +535,4 @@ printIsabelle name objSizeMap (Model (arch@ARM11) ms irqNode cdt untypedCovers) 
                           Map.toList ms
 
 printIsabelle _ _ _ =
-    error "Currently only the ARM11 architecture is supported when parsing to Isabelle"
+    error "Currently only the AARCH32 architecture is supported when parsing to Isabelle"

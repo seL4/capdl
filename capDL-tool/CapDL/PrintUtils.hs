@@ -379,9 +379,9 @@ same (name1, obj1) (name2, obj2) =
     then sameName name1 name2 && slots obj1 == slots obj2
     else sameName name1 name2
 
-prettyArch ARM11 = text "arm11"
 prettyArch IA32  = text "ia32"
 prettyArch X86_64 = text "x86_64"
+prettyArch AARCH32 = text "aarch32"
 prettyArch AARCH64 = text "aarch64"
 prettyArch RISCV = text "riscv"
 

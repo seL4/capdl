@@ -16,7 +16,7 @@
 " Note that this supports CPP commands in your CapDL as well.
 "
 
-syn keyword CapDLKeyword arch caps objects arm11 ia32
+syn keyword CapDLKeyword arch caps objects ia32 x86_64 aarch32 aarch64 riscv
 syn match CapDLIRQMap "\<irq maps\>"
 syn match CapDLIRQ "\<irq\>\( maps\)\@!"
 syn keyword CapDLObject notification asid_pool cnode ep frame io_device io_ports io_pt pd pt tcb ut
