@@ -321,6 +321,7 @@ koType (MSIIrq {}) = MSIIrqSlot_T
 koType (ARMIrq {}) = ARMIrqSlot_T
 koType (ARMSID {}) = ARMSID_T
 koType (ARMCB {}) = ARMCB_T
+koType ARMSMC = ARMSMC_T
 
 objAt :: (KernelObject Word -> Bool) -> ObjID -> Model Word -> Bool
 objAt p ref = maybe False p . maybeObject ref
@@ -357,6 +358,7 @@ capTyp (IRQMSIHandlerCap {}) = MSIIrqSlot_T
 capTyp (ARMIRQHandlerCap {}) = ARMIrqSlot_T
 capTyp (ARMSIDCap {}) = ARMSID_T
 capTyp (ARMCBCap {}) = ARMCB_T
+capTyp (ARMSMCCap {}) = ARMSMC_T
 capTyp _ = error "cap has no object"
 
 checkTypAt :: Cap -> Model Word -> ObjID -> Word -> Logger Bool
@@ -406,10 +408,12 @@ validCapArch X86_64 (IOPTCap {}) = True
 validCapArch ARM11 (ARMIOSpaceCap {}) = True
 validCapArch ARM11 (ARMIRQHandlerCap {}) = True
 validCapArch AARCH64 (ARMIRQHandlerCap {}) = True
+validCapArch AARCH64 (ARMIOSpaceCap {}) = True
 validCapArch AARCH64 (PUDCap {}) = True
 validCapArch AARCH64 (PGDCap {}) = True
 validCapArch AARCH64 (ARMSIDCap {}) = True
 validCapArch AARCH64 (ARMCBCap {}) = True
+validCapArch AARCH64 (ARMSMCCap {}) = True
 validCapArch _ _ = False
 
 checkCapArch :: Arch -> Cap -> ObjID -> Word -> Logger Bool
@@ -466,6 +470,8 @@ validObjArch AARCH64 (PUD {}) = True
 validObjArch AARCH64 (PGD {}) = True
 validObjArch AARCH64 (ARMSID {}) = True
 validObjArch AARCH64 (ARMCB {}) = True
+validObjArch AARCH64 (ARMSMC {}) = True
+validObjArch AARCH64 (ARMIODevice {}) = True
 validObjArch _ _ = False
 
 checkObjArch :: Arch -> KernelObject Word -> ObjID -> Logger Bool

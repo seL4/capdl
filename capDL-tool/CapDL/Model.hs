@@ -118,6 +118,9 @@ data Cap
         | ARMIRQHandlerCap { capObj :: ObjID }
         | ARMSIDCap        { capObj :: ObjID }
         | ARMCBCap         { capObj :: ObjID }
+        | ARMSMCCap        {
+            capObj :: ObjID,
+            capBadge :: Word }
 
         -- X86 specific caps
         | IOPortsCap {
@@ -209,6 +212,8 @@ data KernelObject a
     | ARMSID
     | ARMCB { bankNumber :: Maybe Word }
 
+    | ARMSMC
+
 -- X86 specific objects
     | IOPorts { ports :: (Word, Word) }
     | IODevice {
@@ -249,6 +254,7 @@ data KOType
     | ARMIrqSlot_T
     | ARMSID_T
     | ARMCB_T
+    | ARMSMC_T
     | ASIDPool_T
     | PT_T
     | PD_T
@@ -414,6 +420,7 @@ objID = capObj
 hasRights :: Cap -> Bool
 hasRights (NotificationCap {})   = True
 hasRights (EndpointCap {})        = True
+hasRights (ARMSMCCap {})          = True
 hasRights (FrameCap {})           = True
 hasRights _                       = False
 

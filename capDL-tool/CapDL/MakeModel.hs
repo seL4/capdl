@@ -479,6 +479,7 @@ objectOf n obj =
         Obj RTReply_T [] [] -> RTReply
         Obj ARMSID_T [] [] -> ARMSID
         Obj ARMCB_T ps [] -> ARMCB (getCBExtraInfo ps)
+        Obj ARMSMC_T [] [] -> ARMSMC
         Obj _ _ (_:_) ->
           error $ "Only untyped caps can have objects as content: " ++
                   n ++ " = " ++ show obj
@@ -603,6 +604,8 @@ validCapPars (Endpoint {}) ps =
     subsetConstrs (removeConstr (Rights undefined) ps) [Badge undefined]
 validCapPars (Notification {}) ps =
     subsetConstrs (removeConstr (Rights undefined) ps) [Badge undefined]
+validCapPars (ARMSMC {}) ps =
+    subsetConstrs ps [Badge undefined]
 validCapPars (TCB {}) ps =
     subsetConstrs ps [Reply, MasterReply] &&
     (not (containsConstr Reply ps) || not (containsConstr MasterReply ps))
@@ -655,6 +658,7 @@ objCapOf containerName obj objRef params =
         ARMIrq {} -> ARMIRQHandlerCap objRef
         ARMSID {} -> ARMSIDCap objRef
         ARMCB {} -> ARMCBCap objRef
+        ARMSMC -> ARMSMCCap objRef (getBadge params)
     else error ("Incorrect params for cap to " ++ printID objRef ++ " in " ++
                 printID containerName ++ "; got " ++ show params)
 

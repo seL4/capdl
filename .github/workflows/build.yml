@@ -16,7 +16,7 @@ jobs:
     name: Language Spec PDF
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Install texlive and pandoc
       run: |
         sudo apt-get update
@@ -31,32 +31,31 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ '2.x', '3.9' ]
+        python-version: [ '3.9', '3.x' ]
       fail-fast: false
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install python packages
       run: |
         cd python-capdl-tool
-        pip install -r requirements.txt
-        pip install nose future
+        pip3 install -r requirements.txt
     - name: Run tests
       run: |
         cd python-capdl-tool/tests
-        nosetests --exe
+        PYTHONPATH=../ ./runall.py
 
   capDL-tool:
     name: capDL-tool (ghc)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - run: |
         sudo apt-get update
         sudo apt-get install libxml2-utils
-    - uses: actions/setup-haskell@v1.1.4
+    - uses: haskell/actions/setup@v2
       with:
         enable-stack: true
         stack-setup-ghc: true

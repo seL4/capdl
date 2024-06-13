@@ -7,7 +7,8 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-from capdl.Object import Object, Frame, CNode, Endpoint, Notification, SchedControl
+from capdl.Object import Object, Frame, CNode, Endpoint, Notification, \
+    SchedControl, SMC
 
 
 class Cap(object):
@@ -48,7 +49,8 @@ class Cap(object):
     def set_badge(self, badge):
         # Only endpoint caps can be badged.
         assert isinstance(self.referent, Endpoint) or \
-            isinstance(self.referent, Notification)
+            isinstance(self.referent, Notification) or \
+            isinstance(self.referent, SMC)
         assert badge % 2**28 == badge, 'badges can be a maximum of 28 bits'
         self.badge = badge
 
@@ -85,7 +87,7 @@ class Cap(object):
             return "sched_control (core: %d)" % self.referent.core
 
         if isinstance(self.referent,
-                      (Frame, Endpoint, Notification)):
+                      (Frame, Endpoint, Notification, SMC)):
             is_frame = isinstance(self.referent, Frame)
             rights = [sym for sym, flag in
                       [('R', self.read),
@@ -101,7 +103,7 @@ class Cap(object):
         if isinstance(self.referent, Frame) and \
                 self.mapping_container is not None:
             extra.append('mapping: (%s, %d)' % (self.mapping_container.name, self.mapping_slot))
-        if isinstance(self.referent, (Endpoint, Notification)) and \
+        if isinstance(self.referent, (Endpoint, Notification, SMC)) and \
            self.badge is not None:
             extra.append('badge: %d' % self.badge)
         if isinstance(self.referent, CNode):
