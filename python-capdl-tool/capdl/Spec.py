@@ -16,7 +16,7 @@ class Spec(object):
     A CapDL specification.
     """
 
-    def __init__(self, arch='arm11'):
+    def __init__(self, arch='aarch32'):
         self.arch = arch
         self.objs = set()
 
@@ -48,7 +48,7 @@ class Spec(object):
                'caps {\n%(caps)s\n}\n\n' \
                'irq maps {\n%(irqs)s\n}' % {
 
-                   # Architecture; arm11 or ia32
+                   # Architecture; aarch32 or ia32
                    'arch': self.arch.capdl_name(),
 
                    # Kernel objects

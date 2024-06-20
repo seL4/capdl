@@ -152,7 +152,7 @@ in section [Modules](#modules).
 
 ### Modules
 
-      arch ::= 'arch' ('ia32' | 'arm11')
+      arch ::= 'arch' ('ia32' | 'x86_64' | 'aarch32' | 'aarch64' | 'riscv' )
 
       module ::= arch (obj_decls | cap_decls | irq_decls | cdt_decls)+
 
@@ -205,7 +205,8 @@ architecture the system is intended for.
                       objects :: Map ObjID Object
                   }
 
-    data Arch = IA32 | ARM11
+    data Arch = IA32 | X86_64 | AARCH32 | AARCH64 | RISCV
+
 
 Objects are described by the following data type. We are mainly
 interested in what capabilities an object contains. We also store
@@ -380,7 +381,8 @@ A list of ranges `name[r1,r2,..r3]` refers to the union of the ranges
 
 ### Module
 
-      arch ::= 'arch' ('ia32' | 'arm11')
+      arch ::= 'arch' ('ia32' | 'x86_64' | 'aarch32' | 'aarch64' | 'riscv')
+
       module ::= arch (obj_decls | cap_decls)+
 
 A module maps to a full `Model` in the data model. Its `Arch` component

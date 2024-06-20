@@ -28,7 +28,7 @@ def consume(iterator):
 
 
 class PageCollection(object):
-    def __init__(self, name='', arch='arm11', infer_asid=True, vspace_root=None):
+    def __init__(self, name='', arch='aarch32', infer_asid=True, vspace_root=None):
         self.name = name
         self.arch = arch
         self._pages = {}
@@ -145,7 +145,7 @@ class PageCollection(object):
         return spec
 
 
-def create_address_space(regions, name='', arch='arm11'):
+def create_address_space(regions, name='', arch='aarch32'):
     assert isinstance(regions, list)
 
     pages = PageCollection(name, arch)
