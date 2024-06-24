@@ -1,40 +1,71 @@
-<--
+<!--
      Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
 
      SPDX-License-Identifier: BSD-2-Clause
 -->
 
-Revision history for capDL
+# Version history for capDL
 
-This file should be word wrapped to 120 characters
+<!-- This file should be word wrapped to 120 characters -->
 
 ---
-Upcoming release
 
-## Changes
+## Upcoming release
 
+### Changes
 
-## Upgrade Notes
+* add support for SMC capability
+* enable MCS build; use `seL4_TCB_SetAffinity` only for non-MCS kernels
+* allow `SchedControlCap` to refer to a secondary core
+* minimal update for seL4 AArch64 VSpace API change, removing `seL4_ARM_PageGlobalDirectoryObject`
+* `object_sizes`: add include for deprecated constants, because some definitions
+  that `object_sizes` depends on are now found in a `deprecated.h` header file.
+* Clean up and clarify `arm11` usage in capDL despite ARMv6 removal
+* `cdl_utils`: remove `simpleeval` python dependency
+* Run GitHub tests with python 3.9
+* added vulnerability reporting policy
+
+#### capdl-loader
+
+* use `seL4_BootInfoFrameSize` instead of hard-coded page size
+* python + loader: Add support for generating fault handler caps with specific
+  rights. Behaviour is unchanged (`seL4_AllRights`) if no rights are provided.
+* ensure heap is aligned
+
+#### capDL-tool
+
+* update to LTS Haskell 20.25, ghc-9.2.8
+* fix several cases in `validObjPars`: `Period`, `IOAPIC`, `MSIHandle`, `CBNumber`
+
+### Upgrade Notes
+
+* existing capDL specs should continue to work
+* AArch64 VSpace changes may allow simplification of some capDL specs
+
 ---
-0.2.1 2021-06-10
+
+## 0.2.1 2021-06-10
+
 Using seL4 version 12.1.0
 
-## Changes
+### Changes
 
 * Added page-upper-directory caps to the valid TCB check for platforms like QEMU arm-virt as they use different paging
   structures.
 * Added const qualifiers to the capdl-loader-app to avoid compiler warnings against other libraries.
 * Improved the README for the capdl-loader-app.
 
-## Upgrade Notes
+### Upgrade Notes
 
 * None to be aware of. This is not a source-breaking or binary-breaking release.
 
 ---
-capdl-0.2.0 2020-10-27
+
+## capdl-0.2.0 2020-10-27
+
 Using seL4 version 12.0.0
 
-## Changes
+### Changes
 
 * Convert to SPDX license tags. This includes marking all documentation files CC-BY-SA-4.0.
 
@@ -53,12 +84,12 @@ Using seL4 version 12.0.0
 * Add TCB Resume field to capDL object and support raw TCB object creation.
 * Add GitHub actions scripts. These scripts replicate internal CI checks directly on GitHub
 
-### capDL-tool
+#### capDL-tool
 
 * rework validObjCap and check TCB slots, which allows vcpus for all architectures.
 * convert CapDL language specification to Markdown.
 
-### Capdl-loader-app
+#### Capdl-loader-app
 
 * Improve log output.
 * Initialise libc in debug builds.
@@ -72,7 +103,7 @@ Using seL4 version 12.0.0
 * Fix issue where large DTB images inside BootInfo would overlap reserved memory address used to initialise frames.
 * Remove CONFIG_CAPDL_LOADER_ALLOW_NO_CSPACE config option as it has been unused for a while.
 
-### Capdl-linker:
+#### Capdl-linker
 
 * Optimize spec generation performance:
   - Sort elf symbols by their vaddr.
@@ -80,10 +111,12 @@ Using seL4 version 12.0.0
 * Fix Python syntax warnings when `capdl_linker.py` is invoked.
 
 ---
-0.1.0 2019-11-19
+
+## 0.1.0 2019-11-19
+
 Using seL4 version 11.0.0
 
-## Changes
+### Changes
 
 * Add GrantReply access right for endpoint capabilities.
   - This is a new right available on seL4 Endpoint object capabilities.
