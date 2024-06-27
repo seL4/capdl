@@ -23,3 +23,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: seL4/ci-actions/link-check@master
+        with:
+          # produces 403 for link checkers now:
+          exclude_urls: ".*haskellstack.org.*"
