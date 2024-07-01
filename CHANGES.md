@@ -14,6 +14,15 @@
 
 ### Changes
 
+
+### Upgrade Notes
+---
+
+## 0.3 2024-07-01
+Using seL4 version 13.0.0
+
+### Changes
+
 * add support for SMC capability
 * add support for binding notifications to TCBs
 * enable MCS build; use `seL4_TCB_SetAffinity` only for non-MCS kernels
