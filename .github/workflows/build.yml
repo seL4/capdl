@@ -55,7 +55,7 @@ jobs:
     - run: |
         sudo apt-get update
         sudo apt-get install libxml2-utils
-    - uses: haskell/actions/setup@v2
+    - uses: haskell-actions/setup@v2
       with:
         enable-stack: true
         stack-setup-ghc: true
