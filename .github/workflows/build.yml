@@ -59,6 +59,7 @@ jobs:
       with:
         enable-stack: true
         stack-setup-ghc: true
+        ghc-version: 9.2.8
     - name: Build and test
       run: |
         cd capDL-tool
