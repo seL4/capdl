@@ -14,8 +14,10 @@
 
 ### Changes
 
+* remove `pyaml` python dependency and use `pyyaml` (import `yaml`) directly.
 
 ### Upgrade Notes
+
 ---
 
 ## 0.3 2024-07-01

@@ -14,7 +14,7 @@ import logging
 from collections import namedtuple, deque, defaultdict
 
 from elftools.elf.elffile import ELFFile
-from pyaml import yaml
+import yaml
 from sortedcontainers import SortedList
 
 from capdl import register_object_sizes
