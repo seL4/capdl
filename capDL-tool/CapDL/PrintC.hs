@@ -142,7 +142,7 @@ showCap objs (FrameCap id rights _ cached maybe_mapping) _ is_orig _ =
     ", .is_orig = " ++ is_orig ++
     ", .rights = " ++ showRights rights ++
     ", .vm_attribs = " ++
-          (if cached then "seL4_ARCH_Default_VMAttributes" else "CDL_VM_CacheDisabled") ++
+          (if cached then "CDL_VM_CacheEnabled" else "CDL_VM_CacheDisabled") ++
     ", .mapping_container_id = " ++
           (case maybe_mapping of
                Just (mapping_container, _) -> showObjID objs mapping_container;
@@ -220,7 +220,7 @@ showSlots objs obj_id (x:xs) irqNode cdt ms =
     where
         index = fst x
         slot = showCap objs (snd x) irqNode is_orig ms
-        is_orig = if Map.notMember (obj_id, index) cdt then "true" else "false"
+        is_orig = if Map.notMember (obj_id, index) cdt then "1" else "0"
 
 memberSlots :: Map ObjID Int -> ObjID -> CapMap Word -> IRQMap -> CDT -> ObjMap Word -> String
 memberSlots objs obj_id slots irqNode cdt ms =
@@ -447,7 +447,7 @@ showUntypedDerivations :: AllocationType -> Map ObjID Int -> CoverMap -> String
 showUntypedDerivations DynamicAlloc{} _ untypedCovers
   | all null (Map.elems untypedCovers) =
       ".num_untyped = 0," +++
-      ".untyped = NULL,"
+      ".untyped = 0,"
   | otherwise = error $
       "refusing to generate spec for dynamic allocation because the " ++
       "following untypeds already have children:\n" ++
@@ -500,6 +500,7 @@ printC allocType (Model arch objs irqNode cdt untypedCovers) _ _ =
     text $
     "/* Generated file. Your changes will be overwritten. */" +++
     "" +++
+    "#define __thread" +++
     "#include <capdl.h>" +++
     "#include <sel4/sel4.h>" +++
     "" +++
