@@ -12,9 +12,9 @@ set(objsz_file object_sizes.yaml)
 add_custom_command(
     OUTPUT ${objsz_file}
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${objsz_file}
-    COMMAND
-        ${CMAKE_C_COMPILER} -E -P "-I$<JOIN:$<TARGET_PROPERTY:sel4,INCLUDE_DIRECTORIES>,;-I>" - >
-        ${objsz_file} < ${CMAKE_CURRENT_SOURCE_DIR}/${objsz_file} COMMAND_EXPAND_LISTS
+    COMMAND ${CMAKE_C_COMPILER} -E -P "-I$<JOIN:$<TARGET_PROPERTY:sel4,INCLUDE_DIRECTORIES>,;-I>" -
+            > ${objsz_file} < ${CMAKE_CURRENT_SOURCE_DIR}/${objsz_file}
+    COMMAND_EXPAND_LISTS
     DEPENDS sel4
 )
 

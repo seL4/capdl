@@ -14,10 +14,8 @@ include(debug)
 function(CapDLToolInstall target program_path)
     # Require the parse-capDL tool
     create_depfile_by_find(
-        depfile_commands
-        "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/parse-capDL"
-        "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/parse-capDL.d"
-        "${CapDLToolDirectory}/"
+        depfile_commands "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/parse-capDL"
+        "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/parse-capDL.d" "${CapDLToolDirectory}/"
     )
 
     include(memoize)
@@ -47,7 +45,10 @@ function(CapDLToolInstall target program_path)
         ${USES_TERMINAL_DEBUG}
     )
     add_custom_target(${target} DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/parse-capDL")
-    set(${program_path} "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/parse-capDL" PARENT_SCOPE)
+    set(${program_path}
+        "${CMAKE_CURRENT_BINARY_DIR}/capDL-tool/parse-capDL"
+        PARENT_SCOPE
+    )
 endfunction()
 
 # Create target for creating capdl C file from cdl spec
@@ -59,7 +60,15 @@ endfunction()
 # capdl_tool: Path to capdl parse tool
 # MAX_IRQS: Named argument for size of IRQ array (Deprecated)
 # DEPENDS: Any target or file dependencies that the parse command depends on
-function(CapDLToolCFileGen target output static_alloc object_sizes input capdl_tool)
+function(
+    CapDLToolCFileGen
+    target
+    output
+    static_alloc
+    object_sizes
+    input
+    capdl_tool
+)
     cmake_parse_arguments(PARSE_ARGV 6 CAPDL "" "MAX_IRQS" "DEPENDS")
     if(NOT "${CAPDL_UNPARSED_ARGUMENTS}" STREQUAL "")
         message(FATAL_ERROR "Unknown arguments to CapDLToolCFileGen")
@@ -77,10 +86,7 @@ function(CapDLToolCFileGen target output static_alloc object_sizes input capdl_t
     # Invoke the parse-capDL tool to turn the CDL spec into a C spec
     add_custom_command(
         OUTPUT ${output}
-        COMMAND
-            ${capdl_tool}
-            --code
-                ${output} ${alloc_type_opt} ${object_sizes_opt} "${input}"
+        COMMAND ${capdl_tool} --code ${output} ${alloc_type_opt} ${object_sizes_opt} "${input}"
         DEPENDS "${input}" "${object_sizes}" ${CAPDL_DEPENDS}
     )
     add_custom_target(${target} DEPENDS ${output} ${object_sizes})

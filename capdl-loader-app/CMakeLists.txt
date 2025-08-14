@@ -31,12 +31,8 @@ config_string(
 )
 
 config_string(
-    CapDLLoaderFillsPerFrame
-    CAPDL_LOADER_FILLS_PER_FRAME
-    "Maximum number of fill commands per frame."
-    DEFAULT
-    1
-    UNQUOTE
+    CapDLLoaderFillsPerFrame CAPDL_LOADER_FILLS_PER_FRAME
+    "Maximum number of fill commands per frame." DEFAULT 1 UNQUOTE
 )
 
 config_option(
@@ -80,11 +76,8 @@ config_option(
 )
 
 config_option(
-    CapDLLoaderStaticAlloc
-    CAPDL_LOADER_STATIC_ALLOC
-    "Build the loader to expect a statically allocated capDL spec."
-    DEFAULT
-    OFF
+    CapDLLoaderStaticAlloc CAPDL_LOADER_STATIC_ALLOC
+    "Build the loader to expect a statically allocated capDL spec." DEFAULT OFF
 )
 
 add_config_library(capdl_loader_app "${configure_string}")
@@ -97,8 +90,7 @@ add_config_library(capdl_loader_app "${configure_string}")
 add_custom_target(capdl_app_properties)
 set_property(TARGET capdl_app_properties PROPERTY C_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c")
 set_property(
-    TARGET capdl_app_properties
-    PROPERTY INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    TARGET capdl_app_properties PROPERTY INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
 RequireFile(CAPDL_LOADER_BUILD_HELPERS helpers.cmake)
