@@ -20,16 +20,17 @@ function(BuildCapDLApplication)
     endif()
     # Build a CPIO archive out of the provided ELF files
     include(cpio)
-    MakeCPIO(
-        ${CAPDL_BUILD_APP_OUTPUT}_archive.o
-        "${CAPDL_BUILD_APP_ELF}"
-        CPIO_SYMBOL
-        _capdl_archive
+    MakeCPIO(${CAPDL_BUILD_APP_OUTPUT}_archive.o "${CAPDL_BUILD_APP_ELF}" CPIO_SYMBOL
+             _capdl_archive
     )
 
     if(DEFINED platform_yaml)
 
-        find_file(PLATFORM_SIFT platform_sift.py PATHS ${CMAKE_MODULE_PATH} NO_CMAKE_FIND_ROOT_PATH)
+        find_file(
+            PLATFORM_SIFT platform_sift.py
+            PATHS ${CMAKE_MODULE_PATH}
+            NO_CMAKE_FIND_ROOT_PATH
+        )
         mark_as_advanced(FORCE PLATFORM_SIFT)
         if("${PLATFORM_SIFT}" STREQUAL "PLATFORM_SIFT-NOTFOUND")
             message(
@@ -38,8 +39,7 @@ function(BuildCapDLApplication)
             )
         endif()
 
-        set(
-            MEMORY_REGIONS
+        set(MEMORY_REGIONS
             "${CMAKE_BINARY_DIR}/capdl/capdl-loader-app/gen_config/capdl_loader_app/platform_info.h"
         )
         add_custom_command(
@@ -55,12 +55,9 @@ function(BuildCapDLApplication)
 
     # Build the application
     add_executable(
-        "${CAPDL_BUILD_APP_OUTPUT}"
-        EXCLUDE_FROM_ALL
-        $<TARGET_PROPERTY:capdl_app_properties,C_FILES>
-        ${CAPDL_LOADER_APP_C_FILES}
-        ${CAPDL_BUILD_APP_OUTPUT}_archive.o
-        ${CAPDL_BUILD_APP_C_SPEC}
+        "${CAPDL_BUILD_APP_OUTPUT}" EXCLUDE_FROM_ALL
+        $<TARGET_PROPERTY:capdl_app_properties,C_FILES> ${CAPDL_LOADER_APP_C_FILES}
+        ${CAPDL_BUILD_APP_OUTPUT}_archive.o ${CAPDL_BUILD_APP_C_SPEC}
     )
 
     if(DEFINED platform_yaml)
@@ -69,8 +66,7 @@ function(BuildCapDLApplication)
 
     add_dependencies("${CAPDL_BUILD_APP_OUTPUT}" ${CAPDL_BUILD_APP_DEPENDS})
     target_include_directories(
-        "${CAPDL_BUILD_APP_OUTPUT}"
-        PRIVATE $<TARGET_PROPERTY:capdl_app_properties,INCLUDE_DIRS>
+        "${CAPDL_BUILD_APP_OUTPUT}" PRIVATE $<TARGET_PROPERTY:capdl_app_properties,INCLUDE_DIRS>
     )
     target_link_libraries(
         "${CAPDL_BUILD_APP_OUTPUT}"
@@ -90,5 +86,8 @@ endfunction(BuildCapDLApplication)
 # Hook for CAmkES build system. This allows CAmkES projects to
 # propagate the capDL allocation setting into the loader.
 function(SetCapDLLoaderStaticAlloc)
-    set(CapDLLoaderStaticAlloc ON CACHE BOOL "" FORCE)
+    set(CapDLLoaderStaticAlloc
+        ON
+        CACHE BOOL "" FORCE
+    )
 endfunction()
