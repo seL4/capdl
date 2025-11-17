@@ -88,7 +88,7 @@ class ObjectAllocator(object):
         if type == ObjectType.seL4_UntypedObject:
             size_bits = kwargs.get('size_bits', 12)
             paddr = kwargs.get('paddr', None)
-            assert(paddr != 0)
+            assert (paddr != 0)
             o = Untyped(name, size_bits, paddr)
         elif type == ObjectType.seL4_TCBObject:
             o = TCB(name)
@@ -362,7 +362,7 @@ class ASIDTableAllocator(object):
         Therefore, we raise AllocatorException if the spec's asid_high numbers cannot
         be obtained by the C loader.
         """
-        assert(isinstance(spec, Spec))
+        assert (isinstance(spec, Spec))
 
         num_asid_high = get_object_size(ObjectType.seL4_ASID_Table)
         free_asid_highs = SortedSet(range(num_asid_high))
@@ -436,7 +436,7 @@ class UntypedAllocator(six.with_metaclass(abc.ABCMeta, object)):
 class AllocQueue:
 
     def __init__(self, s):
-        assert(isinstance(s, Spec))
+        assert (isinstance(s, Spec))
         # dict of unfungible objects, sorted by paddr.
         self.unfun_objects = SortedDict(lambda x: -x)
         # dict of lists of fungible objects, indexed by size_bits
@@ -519,7 +519,7 @@ class BestFitAllocator(UntypedAllocator):
     def _overlap(before, after):
         assert isinstance(before, Untyped)
         assert isinstance(after, Untyped)
-        assert(before.paddr <= after.paddr)
+        assert (before.paddr <= after.paddr)
         return not (before.paddr < after.paddr and ((before.paddr + before.get_size()) < (after.paddr + after.get_size())))
 
     @staticmethod
@@ -568,8 +568,8 @@ class BestFitAllocator(UntypedAllocator):
             # no objects of the size we were looking for -- try for two of a smaller size
             first = self._fill_from_objects(objects, untyped, size_bits - 1, spec)
             second = self._fill_from_objects(objects, untyped, size_bits - 1, spec)
-            assert(first == 0 or first == size_bits - 1)
-            assert(second == 0 or second == size_bits - 1)
+            assert (first == 0 or first == size_bits - 1)
+            assert (second == 0 or second == size_bits - 1)
             if first == second:
                 if first == 0:
                     # we successfully allocated all of the space
@@ -585,7 +585,7 @@ class BestFitAllocator(UntypedAllocator):
                 return 0
 
     def _use_untyped(self, objects, untyped, size_bytes, is_device, spec):
-        assert(untyped.remaining() >= size_bytes)
+        assert (untyped.remaining() >= size_bytes)
 
         while size_bytes:
             # size_bits is calculated from the minimum alignment between the goal
@@ -602,7 +602,7 @@ class BestFitAllocator(UntypedAllocator):
                     # we failed to fill from objects at all
                     self._add_placeholder(untyped, size_bits, spec)
             size_bytes -= (1 << size_bits)
-            assert(size_bytes >= 0)
+            assert (size_bytes >= 0)
 
     def _next_ut(self):
         if not self.ut_iter:
@@ -613,7 +613,7 @@ class BestFitAllocator(UntypedAllocator):
             raise AllocatorException("Out of untyped memory to allocate from")
 
     def allocate(self, s):
-        assert(isinstance(s, Spec))
+        assert (isinstance(s, Spec))
 
         if not len(s.objs):
             # nothing to do
