@@ -1154,6 +1154,13 @@ static void init_tcb(CDL_Model *spec, CDL_ObjID tcb)
                       CDL_Obj_Name(get_spec_object(spec, CDL_Cap_ObjID(cdl_notification))), CDL_Obj_Name(cdl_tcb));
     }
 
+#ifdef CONFIG_HAVE_FPU
+    if (CDL_TCB_FPUDisabled(cdl_tcb)) {
+        seL4_TCB_SetFlags_t res = seL4_TCB_SetFlags(sel4_tcb, 0, seL4_TCBFlag_fpuDisabled);
+        ZF_LOGF_IFERR(res.error, "Failed to disable FPU for TCB %s", CDL_Obj_Name(cdl_tcb));
+    }
+#endif
+
 #if defined(CONFIG_ARM_HYPERVISOR_SUPPORT) || defined(CONFIG_VTX)
     if (sel4_vcpu) {
 #ifdef CONFIG_ARM_HYPERVISOR_SUPPORT
