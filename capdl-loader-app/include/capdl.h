@@ -279,6 +279,7 @@ typedef struct {
     seL4_CPtr fault_ep;
     seL4_Word ipcbuffer_addr;
     bool resume;
+    bool fpu_disabled;
 } CDL_TCBExtraInfo;
 
 typedef struct {
@@ -571,6 +572,11 @@ static inline seL4_Word CDL_TCB_PC(CDL_Object *obj)
 static inline seL4_Word CDL_TCB_SP(CDL_Object *obj)
 {
     return obj->tcb_extra.sp;
+}
+
+static inline bool (CDL_Object *obj)
+{
+    return obj->tcb_extra.fpu_disabled;
 }
 
 static inline const char *CDL_TCB_ElfName(CDL_Object *obj)
