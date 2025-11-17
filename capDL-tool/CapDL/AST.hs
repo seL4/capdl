@@ -43,6 +43,8 @@ data TCBExtraParam =
       affinity :: Integer }
   | Resume {
       resume :: Bool }
+  | FPUDisabled {
+      fpuDisabled :: Bool }
    deriving (Show, Eq, Ord, Typeable, Data)
 
 data FrameExtraParam =
@@ -58,7 +60,7 @@ data SCExtraParam =
       scData :: Word }
    deriving (Show, Eq, Ord, Typeable, Data)
 
-data CBExtraParam = 
+data CBExtraParam =
     CBNumber {
       cbNumber :: Word }
     deriving (Eq, Show, Ord, Typeable, Data)

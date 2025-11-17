@@ -2,7 +2,7 @@ arch arm11
 
 objects {
 
-  adder_adder_0_control_tcb = tcb (addr: 1355776, ip: 96804, sp: 1347584, prio: 254, max_prio: 254, affinity: 0, fault_ep: 2, dom: 0, init: [1])
+  adder_adder_0_control_tcb = tcb (addr: 1355776, ip: 96804, sp: 1347584, prio: 254, max_prio: 254, affinity: 0, fpu_disabled: True, fault_ep: 2, dom: 0, init: [1])
   adder_adder_0_fault_handler_tcb = tcb (addr: 1429504, ip: 96804, sp: 1421312, prio: 255, max_prio: 254, affinity: 0, dom: 0, init: [5])
   adder_adder_a_0000_tcb = tcb (addr: 1392640, ip: 96804, sp: 1384448, prio: 254, max_prio: 254, affinity: 0, fault_ep: 4, dom: 0, init: [3])
   adder_cnode = cnode (4 bits)
@@ -205,19 +205,19 @@ objects {
     1: adder_group_bin_pd
     4: adder_frame__camkes_ipc_buffer_adder_0_control (RW)
   }
-  
+
   adder_adder_0_fault_handler_tcb {
     0: adder_cnode (guard_size: 28)
     1: adder_group_bin_pd
     4: adder_frame__camkes_ipc_buffer_adder_0_fault_handler (RW)
   }
-  
+
   adder_adder_a_0000_tcb {
     0: adder_cnode (guard_size: 28)
     1: adder_group_bin_pd
     4: adder_frame__camkes_ipc_buffer_adder_a_0000 (RW)
   }
-  
+
   adder_cnode {
     1: adder_adder_0_control_tcb
     2: adder_fault_ep (badge: 1, RWP)
@@ -230,24 +230,24 @@ objects {
     9: adder_post_init_ep (RW)
     10: p_ep (R)
   }
-  
+
   adder_group_bin_pd {
     0: pt_adder_group_bin_0000
     1: pt_adder_group_bin_0003
   }
-  
+
   client_client_0_control_tcb {
     0: client_cnode (guard_size: 28)
     1: client_group_bin_pd
     4: client_frame__camkes_ipc_buffer_client_0_control (RW)
   }
-  
+
   client_client_0_fault_handler_tcb {
     0: client_cnode (guard_size: 28)
     1: client_group_bin_pd
     4: client_frame__camkes_ipc_buffer_client_0_fault_handler (RW)
   }
-  
+
   client_cnode {
     1: client_client_0_control_tcb
     2: client_fault_ep (badge: 1, RWP)
@@ -258,12 +258,12 @@ objects {
     7: client_post_init_ep (RW)
     8: p_ep (badge: 1, WP)
   }
-  
+
   client_group_bin_pd {
     0: pt_client_group_bin_0000
     1: pt_client_group_bin_0003
   }
-  
+
   pt_adder_group_bin_0000 {
     16: frame_adder_group_bin_0000 (RWX)
     32: frame_adder_group_bin_0001 (RWX)
@@ -281,7 +281,7 @@ objects {
     224: frame_adder_group_bin_0023 (RWX)
     240: frame_adder_group_bin_0047 (RWX)
   }
-  
+
   pt_adder_group_bin_0003 {
     0: frame_adder_group_bin_0025 (RWX)
     16: frame_adder_group_bin_0049 (RWX)
@@ -308,7 +308,7 @@ objects {
     93: adder_frame__camkes_ipc_buffer_adder_0_fault_handler (RW)
     95: s_data_0_obj (RWX, uncached)
   }
-  
+
   pt_client_group_bin_0000 {
     16: frame_client_group_bin_0000 (RWX)
     32: frame_client_group_bin_0001 (RWX)
@@ -326,7 +326,7 @@ objects {
     224: frame_client_group_bin_0016 (RWX)
     240: frame_client_group_bin_0036 (RWX)
   }
-  
+
   pt_client_group_bin_0003 {
     0: frame_client_group_bin_0018 (RWX)
     16: frame_client_group_bin_0037 (RWX)
@@ -344,7 +344,7 @@ objects {
     80: client_frame__camkes_ipc_buffer_client_0_fault_handler (RW)
     82: s_data_0_obj (RWX, uncached)
   }
-  
+
 } cdt {
 
 } irq maps {

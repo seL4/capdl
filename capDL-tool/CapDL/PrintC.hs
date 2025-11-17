@@ -281,6 +281,7 @@ showObjectFields objs obj_id (TCB slots faultEndpoint info domain argv) _ _ _ =
     ".init_sz = " ++ show (length argv) ++ "," +++
     ".domain = " ++ show domain ++ "," +++
     ".resume = " ++ show resume' ++ "," +++
+    ".fpu_disabled = " ++ show fpu_disabled ++ "," +++
     ".fault_ep = " ++ show fault_ep ++ "," +++
     "}," +++
     memberSlots objs obj_id slots Map.empty Map.empty Map.empty -- IRQ, cdt and obj map not required
@@ -293,6 +294,8 @@ showObjectFields objs obj_id (TCB slots faultEndpoint info domain argv) _ _ _ =
         pc = case info of {Just i -> case ip i of {Just v -> v; _ -> 0}; _ -> 0}
         stack = case info of {Just i -> case sp i of {Just v -> v; _ -> 0}; _ -> 0}
         fault_ep = case faultEndpoint of {Just w -> w; _ -> 0}
+        fpu_disabled = case info of {Just i -> case fpuDisabled i of {Just True -> 1; Just False -> 0; _ -> 0}; _ -> 0}
+
 showObjectFields objs obj_id (CNode slots sizeBits) irqNode cdt ms =
     ".type = " ++ t ++ "," +++
     ".size_bits = " ++ show sizeBits ++ "," +++

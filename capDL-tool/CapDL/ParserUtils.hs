@@ -217,6 +217,12 @@ tcb_resume = do
     colon
     keyw "True" (Resume True) <|> keyw "False" (Resume False)
 
+tcb_fpu_disabled :: MapParser TCBExtraParam
+tcb_fpu_disabled = do
+    reserved "fpu_disabled"
+    colon
+    keyw "True" (FPUDisabled True) <|> keyw "False" (FPUDisabled False)
+
 tcb_extra_param :: MapParser ObjParam
 tcb_extra_param = do
     param <-   (tcb_addr
@@ -225,7 +231,8 @@ tcb_extra_param = do
             <|> tcb_prio
             <|> tcb_max_prio
             <|> tcb_resume
-            <|> tcb_affinity)
+            <|> tcb_affinity
+            <|> tcb_fpu_disabled)
     return $ TCBExtraParam param
 
 tcb_dom :: MapParser ObjParam
