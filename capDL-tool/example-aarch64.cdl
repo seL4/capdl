@@ -1,0 +1,144 @@
+/*
+ * Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+ *
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
+arch aarch64
+
+objects {
+
+rm_ut = ut {
+  rm_tcb = tcb (init: [10], dom: 5, fault_ep: 0xF)
+  something = ut (8 bits) {
+    rm_cn = cnode (10 bits)
+  }
+  rm_pd = pgd
+  rm_ap = asid_pool (asid_high: 0x1)
+
+  linux_pd = pt
+
+  rm_ut_small[50] = ut (12 bits)
+  rm_ut_big[100] = ut (20 bits)
+
+  frame_nic1[64] = frame (4k)
+  -- io space??
+
+  frame_nic2[64] = frame (4k)
+  -- io space??
+
+  frame_nic3[4] = frame (4k)
+  -- io space??
+
+  timer = notification
+  control = ep
+  test[5] = cnode (8 bits)
+}
+
+rm_ut_small[0] = ut {
+  name_b
+}
+
+rm_ut_small[0]/g = tcb
+
+irq_handler[3] = irq
+nic1_notification = notification
+
+cnode_booter = cnode (8 bits)
+
+name_b/name = ut (8 bits) { y[..2], z }
+
+name_b = ut (10 bits)
+name/name2/name3/x = tcb
+y[5] = ep
+z = ep
+
+}
+
+caps {
+
+rm_cn {
+  001: rm_tcb
+  002: rm_cn (guard: 0, guard_size: 0)
+  003: rm_pd (asid: (0x1, 0x1))
+  006: rm_ap
+0x00b: linux_pd;
+0x00c: rm_ut_small[3..5];
+0x00f: rm_ut_small[7..20, 23, 27..];
+0x03e: rm_ut_big[];
+
+0x0a3: irq_handler[0];
+0x0a4: name[] = frame_nic1[];
+
+0x0e5: irq_handler[1];
+0x0e6: frame_nic2[] (RW, asid: (0x1, 0x1));
+--  126: iospace
+
+0x126: sgi_signal (target: 0, irq: 1)
+
+0x127: irq_handler[2];
+0x128: frame_nic3[];
+--  12c: iospace
+
+0x12d: timer (G)
+0x12e: control (badge: 10)
+
+0x12f: name2 = <cap_name> (masked: R);
+  304: test[0]
+  305: test[1]
+  306: test[1,2]
+  308: <name3>
+0x200: <name2> - child_of name2
+0x201: <name2> - child_of (rm_cn, 0x12f)
+0x202: <name[]>
+}
+
+rm_tcb {
+    vspace: rm_pd
+    cspace: rm_cn
+}
+
+cap_name = (rm_tcb, cspace)
+cap_name2 = (irq_table, 0)
+
+cnode_booter {
+  001: rm_ut
+  sched_control (core: 0)
+}
+
+test[2..] {
+  001: name3 = name_b
+  0x200: rm_cn
+}
+
+test[1] {
+  001: name_b
+  2: g (reply)
+  0x200: rm_cn
+}
+
+cap_test = (test[1],0x200)
+
+test[0] {
+  1: <cap_test>
+}
+
+rm_ap {
+  1: rm_pd
+}
+
+} irq maps {
+
+  irq_handler[]
+
+} cdt {
+
+(cnode_booter, 1) {
+  (rm_cn, 0x12d)
+}
+
+cap_test {
+  (rm_cn, 0x12e)
+}
+
+}

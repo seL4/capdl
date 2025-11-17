@@ -1,0 +1,103 @@
+arch aarch64
+
+objects {
+
+  cnode_booter = cnode (8 bits)
+  control = ep
+  frame_nic1[64] = frame (4k)
+  frame_nic2[64] = frame (4k)
+  frame_nic3[4] = frame (4k)
+  g = tcb (dom: 0)
+  irq_handler[3] = irq
+  linux_pd = pt
+  nic1_notification = notification
+  rm_ap = asid_pool (asid_high: 0x1)
+  rm_cn = cnode (10 bits)
+  rm_pd = pgd
+  rm_tcb = tcb (fault_ep: 15, dom: 5, init: [10])
+  test[5] = cnode (8 bits)
+  timer = notification
+  x = tcb (dom: 0)
+  y[5] = ep
+  z = ep
+
+  name = ut (8 bits) {y[0..2], z, name2}
+  name2 = ut {name3}
+  name3 = ut {x}
+  name_b = ut (10 bits) {name}
+  rm_ut = ut {rm_tcb, something, rm_pd, rm_ap, linux_pd,
+              rm_ut_small[0..49], rm_ut_big[0..99], frame_nic1[0..63],
+              frame_nic2[0..63], frame_nic3[0..3], timer, control, test[0..4]}
+  rm_ut_big[100] = ut (20 bits)
+  rm_ut_small[50] = ut (12 bits)
+  rm_ut_small[0] = ut (12 bits) {name_b, g}
+  something = ut (8 bits) {rm_cn}
+
+} caps {
+
+  cnode_booter {
+    1: rm_ut
+    2: sched_control (core: 0)
+  }
+
+  rm_ap {1: rm_pd}
+
+  rm_cn {
+    1: rm_tcb
+    2: rm_cn
+    3: rm_pd
+    6: rm_ap
+    11: linux_pd
+    12: rm_ut_small[3..5, 7..20, 23, 27..49]
+    62: rm_ut_big[0..99]
+    163: irq_handler[0]
+    164: frame_nic1[0..63]
+    229: irq_handler[1]
+    230: frame_nic2[0..63] (RW, asid: (0x1, 0x1))
+    294: sgi_signal (target: 0, irq: 1)
+    295: irq_handler[2]
+    296: frame_nic3[0..3]
+    301: timer (G)
+    302: control (badge: 10)
+    303: rm_cn
+    304: test[0..1, 1..2]
+    308: name_b
+    512: rm_cn
+    513: rm_cn
+    514: frame_nic1[0..63]
+  }
+
+  rm_tcb {
+    0: rm_cn
+    1: rm_pd
+  }
+
+  test[0] {1: rm_cn}
+
+  test[1] {
+    1: name_b
+    2: g (reply)
+    512: rm_cn
+  }
+
+  test[2..4] {
+    1: name_b
+    512: rm_cn
+  }
+
+} cdt {
+
+  (cnode_booter, 1) {(rm_cn, 301)}
+
+  (test[1], 512) {(rm_cn, 302)}
+
+  (rm_cn, 303) {
+    (rm_cn, 512)
+    (rm_cn, 513)
+  }
+
+} irq maps {
+
+  0: irq_handler[0..2]
+
+}
