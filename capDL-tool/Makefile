@@ -10,7 +10,9 @@ TARGET=parse-capDL
 all: $(TARGET)
 
 .PHONY: tests
-tests: example-arm.test-OK example-ia32.test-OK hello-dump.test-OK cap-dist-elf-simpleserver.test-OK camkes-adder-arm.test-OK camkes-adder-arm.test-thy-OK
+tests: example-arm.test-OK example-ia32.test-OK example-aarch64.test-OK \
+       hello-dump.test-OK cap-dist-elf-simpleserver.test-OK camkes-adder-arm.test-OK \
+			 camkes-adder-arm.test-thy-OK
 
 %.parse %.dot %.xml: %.cdl $(TARGET)
 	stack exec $(TARGET) -- -t $*.parse -x $*.xml -d $*.dot $< || rm -f $*.parse $*.dot $*.xml
