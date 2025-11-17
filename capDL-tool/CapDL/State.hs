@@ -507,7 +507,7 @@ validObjCap :: Arch -> KernelObject Word -> Word -> Cap -> Bool
 validObjCap arch (TCB {}) slot cap = validTCBSlotCap arch slot cap
 validObjCap _ (CNode _ 0) slot cap = slot == 0 && is _NotificationCap cap -- FIXME: we should add a separate IRQObject
 validObjCap _ (CNode {}) _ _ = True
-validObjCap _ (ASIDPool {}) _ cap = is _PDCap cap
+validObjCap arch (ASIDPool {}) _ cap = validTCBSlotCap arch tcbVTableSlot cap
 validObjCap RISCV (PT {}) _ cap = is _FrameCap cap || is _PTCap cap
 validObjCap _ (PT {}) _ cap = is _FrameCap cap
 validObjCap _ (PD {}) _ cap = is _FrameCap cap || is _PTCap cap
