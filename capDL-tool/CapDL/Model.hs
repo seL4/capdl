@@ -147,7 +147,8 @@ data TCBExtraInfo = TCBExtraInfo {
     prio :: Maybe Integer,
     max_prio :: Maybe Integer,
     affin :: Maybe Integer,
-    resume :: Maybe Bool }
+    resume :: Maybe Bool,
+    fpuDisabled :: Maybe Bool }
     deriving (Eq, Show)
 
 data SCExtraInfo = SCExtraInfo {

@@ -232,15 +232,20 @@ getTCBresume [] = Nothing
 getTCBresume (TCBExtraParam (Resume resume) : _) = Just resume
 getTCBresume (_ : xs) = getTCBresume xs
 
+getTCBFPUDisabled :: [ObjParam] -> Maybe Bool
+getTCBFPUDisabled [] = Nothing
+getTCBFPUDisabled (TCBExtraParam (FPUDisabled d) : _) = Just d
+getTCBFPUDisabled (_ : xs) = getTCBFPUDisabled xs
+
 getExtraInfo :: Name -> [ObjParam] -> Maybe TCBExtraInfo
 getExtraInfo n params =
     -- FIXME: This is really hacky hardcoding the acceptable combinations of attributes.
-    case (getTCBAddr params, getTCBip params, getTCBsp params, getTCBprio params, getTCBmax_prio params, getTCBaffinity params, getTCBresume params) of
-        (Just addr, Just ip, Just sp, Just prio, Just max_prio, Just affinity, resume) ->
-            Just $ TCBExtraInfo addr (Just ip) (Just sp) (Just prio) (Just max_prio) (Just affinity) resume
-        (Just addr, Nothing, Nothing, Nothing, Nothing, Just affinity, resume) ->
-            Just $ TCBExtraInfo addr Nothing Nothing Nothing Nothing (Just affinity) resume
-        (Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing) -> Nothing
+    case (getTCBAddr params, getTCBip params, getTCBsp params, getTCBprio params, getTCBmax_prio params, getTCBaffinity params, getTCBresume params, getTCBFPUDisabled params) of
+        (Just addr, Just ip, Just sp, Just prio, Just max_prio, Just affinity, resume, fpuDisabled) ->
+            Just $ TCBExtraInfo addr (Just ip) (Just sp) (Just prio) (Just max_prio) (Just affinity) resume fpuDisabled
+        (Just addr, Nothing, Nothing, Nothing, Nothing, Just affinity, resume, fpuDisabled) ->
+            Just $ TCBExtraInfo addr Nothing Nothing Nothing Nothing (Just affinity) resume fpuDisabled
+        (Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing) -> Nothing
         params -> error $ "Incorrect extra tcb parameters: " ++ n ++ show params
 
 getTCBDom :: [ObjParam] -> Integer

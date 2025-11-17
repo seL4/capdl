@@ -9,7 +9,7 @@
 arch arm11
 
 objects {
-adder_adder_0_control_tcb = tcb (addr: 0x14b000,ip: 0x17a24,sp: 0x149000,prio: 254,max_prio: 254,affinity: 0,init: [1],fault_ep: 0x00000002)
+adder_adder_0_control_tcb = tcb (addr: 0x14b000,ip: 0x17a24,sp: 0x149000,prio: 254,max_prio: 254,affinity: 0,init: [1],fault_ep: 0x00000002, fpu_disabled: True)
 adder_adder_0_fault_handler_tcb = tcb (addr: 0x15d000,ip: 0x17a24,sp: 0x15b000,prio: 255,max_prio: 254,affinity: 0,init: [5])
 adder_adder_a_0000_tcb = tcb (addr: 0x154000,ip: 0x17a24,sp: 0x152000,prio: 254,max_prio: 254,affinity: 0,init: [3],fault_ep: 0x00000004)
 adder_cnode = cnode (4 bits)
