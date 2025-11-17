@@ -9,6 +9,7 @@ Files:
   capDL-tool/camkes-adder-arm.thy.right
   capDL-tool/cap-dist-elf-simpleserver.right
   capDL-tool/example-arm.right
+  capDL-tool/example-aarch64.right
   capDL-tool/example-ia32.right
   capDL-tool/hello-dump.right
   python-capdl-tool/tests/resources/arm-hello.bin
