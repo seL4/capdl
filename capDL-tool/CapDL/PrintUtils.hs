@@ -168,10 +168,10 @@ prettyMSIPCIFun :: Word -> Doc
 prettyMSIPCIFun fun = text "msi_pci_fun:" <+> (text $ show fun)
 
 prettyARMIRQTrigger :: Word -> Doc
-prettyARMIRQTrigger trigger = text "irq_trigger:" <+> (text $ show trigger)
+prettyARMIRQTrigger trigger = text "trigger:" <+> (text $ show trigger)
 
 prettyARMIRQTarget :: Word -> Doc
-prettyARMIRQTarget target = text "irq_target:" <+> (text $ show target)
+prettyARMIRQTarget target = text "target:" <+> (text $ show target)
 
 prettyARMIODevice :: Word -> Doc
 prettyARMIODevice iospace = text "iospace:" <+> (text $ show iospace)
