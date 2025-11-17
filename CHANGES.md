@@ -15,13 +15,19 @@
 ### Changes
 
 * Add support for fpu_disabled flag on TCBs for platforms with CONFIG_HAVE_FPU.
-* remove `pyaml` python dependency and use `pyyaml` (import `yaml`) directly.
+* Add support for SGISignal capability. SGISignal capabilities in capDL point
+  to an `arm_sgi_signal` object with `(irg: <num>, target: <num>)` properties
+  that define the destination of the SGI.
+* Remove `pyaml` python dependency and use `pyyaml` (import `yaml`) directly.
 
 ### Upgrade Notes
+
+* existing capDL specs should continue to work without change
 
 ---
 
 ## 0.3 2024-07-01
+
 Using seL4 version 13.0.0
 
 ### Changes
