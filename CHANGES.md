@@ -14,6 +14,9 @@
 
 ### Changes
 
+* add support for SGISignal capability to capDL-tool, but not capdl-loader-app
+  and python-capdl-tool yet. If there is demand for support in capdl-loader-app
+  and python-capdl-tool, please let us know.
 * remove `pyaml` python dependency and use `pyyaml` (import `yaml`) directly.
 
 ### Upgrade Notes
