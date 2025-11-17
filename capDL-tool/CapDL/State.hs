@@ -407,6 +407,7 @@ validCapArch X86_64 (IOSpaceCap {}) = True
 validCapArch X86_64 (IOPTCap {}) = True
 validCapArch ARM11 (ARMIOSpaceCap {}) = True
 validCapArch ARM11 (ARMIRQHandlerCap {}) = True
+validCapArch ARM11 (ARMSGISignalCap {}) = True
 validCapArch AARCH64 (ARMIRQHandlerCap {}) = True
 validCapArch AARCH64 (ARMIOSpaceCap {}) = True
 validCapArch AARCH64 (PUDCap {}) = True
@@ -414,6 +415,7 @@ validCapArch AARCH64 (PGDCap {}) = True
 validCapArch AARCH64 (ARMSIDCap {}) = True
 validCapArch AARCH64 (ARMCBCap {}) = True
 validCapArch AARCH64 (ARMSMCCap {}) = True
+validCapArch AARCH64 (ARMSGISignalCap {}) = True
 validCapArch _ _ = False
 
 checkCapArch :: Arch -> Cap -> ObjID -> Word -> Logger Bool

@@ -590,6 +590,15 @@ cap_param =
         colon
         (container_name, slot) <- cap_ref
         return $ FrameMapping container_name slot
+    <|> do
+        reserved "target"
+        colon
+        target <- number
+        comma
+        reserved "irq"
+        colon
+        irq <- number
+        return $ ARMSGIParams target irq
 
 cap_params :: MapParser [CapParam]
 cap_params =

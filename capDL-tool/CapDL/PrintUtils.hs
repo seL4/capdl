@@ -317,6 +317,7 @@ maybeCapParams cap = case cap of
     PTCap _ asid -> capParams (maybeAsid asid)
     PDCap _ asid -> capParams (maybeAsid asid)
     SchedControlCap core -> capParams (prettyCore core)
+    ARMSGISignalCap target irq -> capParams (prettyParemNum "target" target ++ prettyParemNum "irq" irq)
     _ -> empty
 
 printCap :: Cap -> Doc
@@ -327,6 +328,7 @@ printCap cap = case cap of
     IRQControlCap -> text irqControl
     DomainCap -> text domain
     (SchedControlCap {}) -> text schedControl
+    (ARMSGISignalCap {}) -> text armSGISginal
     _ -> text $ fst $ objID cap
 
 sameName :: ObjID -> ObjID -> Bool

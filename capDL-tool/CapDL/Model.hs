@@ -118,9 +118,12 @@ data Cap
         | ARMIRQHandlerCap { capObj :: ObjID }
         | ARMSIDCap        { capObj :: ObjID }
         | ARMCBCap         { capObj :: ObjID }
-        | ARMSMCCap        {
+        | ARMSMCCap {
             capObj :: ObjID,
             capBadge :: Word }
+        | ARMSGISignalCap {
+            capTarget :: Word,
+            capIrq :: Word }
 
         -- X86 specific caps
         | IOPortsCap {
@@ -376,8 +379,7 @@ tcbBoundVCPUSlot :: Word
 tcbBoundVCPUSlot = 9
 
 --
--- The string used when defining an IOSpaceMasterCap, an ASIDControlCap,
--- an IRQControlCap, a DomainCap or a SchedControlCap.
+-- The string used when defining a cap without an associated object.
 --
 ioSpaceMaster :: String
 ioSpaceMaster = "io_space_master"
@@ -394,8 +396,11 @@ domain = "domain"
 schedControl :: String
 schedControl = "sched_control"
 
+armSGISginal :: String
+armSGISginal = "sgi_signal"
+
 capStrings :: [String]
-capStrings = [ioSpaceMaster, asidControl, irqControl, domain, schedControl]
+capStrings = [ioSpaceMaster, asidControl, irqControl, domain, schedControl, armSGISginal]
 
 --
 -- Determine if the given capability points to an object.
@@ -407,6 +412,7 @@ hasObjID ASIDControlCap = False
 hasObjID IRQControlCap = False
 hasObjID DomainCap = False
 hasObjID (SchedControlCap {}) = False
+hasObjID (ARMSGISignalCap {}) = False
 hasObjID _  = True
 
 --

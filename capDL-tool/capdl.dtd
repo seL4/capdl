@@ -28,6 +28,8 @@
 <!ATTLIST cap guardSize CDATA #IMPLIED>
 <!ATTLIST cap ports CDATA #IMPLIED>
 <!ATTLIST cap cached CDATA #IMPLIED>
+<!ATTLIST cap target CDATA #IMPLIED>
+<!ATTLIST cap irq CDATA #IMPLIED>
 
 <!ELEMENT untypedCovers (cover*)>
 

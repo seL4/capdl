@@ -267,6 +267,8 @@ printCap _ _ _ real  (PDCap id asid) =
     text "PageDirectoryCap" <+> printID id <+> printReal real <+>
     printMaybeAsid asid
 printCap _ _ _ _ ASIDControlCap = text "AsidControlCap"
+printCap _ _ _ _ (ARMSGISignalCap target irq) =
+    text "SGISignalCap" <+> num irq <+> num target
 printCap ms _ _ _ (ASIDPoolCap id) =
     text "AsidPoolCap" <+> printID id <+> asidHigh
     -- In capDL, asid_high is a property of the asid_pool (as it should be),

@@ -163,6 +163,10 @@ showCap objs (ARMSMCCap id badge) _ is_orig _ =
     ", .is_orig = " ++ is_orig ++
     ", .data = { .tag = CDL_CapData_Badge, .badge = " ++ show badge ++ "}}"
 
+showCap _ (ARMSGISignalCap target irq) _ is_orig _ =
+    "{.type = CDL_SGISignalCap, .target = " ++ show target ++ ", .irq = " ++ show irq ++
+    ", .is_orig = " ++ is_orig ++ "}"
+
 showCap objs (PTCap id _) _ is_orig _ =
     "{.type = CDL_PTCap, .obj_id = " ++ showObjID objs id ++
     ", .is_orig = " ++ is_orig ++ "}"

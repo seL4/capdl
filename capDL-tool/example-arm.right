@@ -56,6 +56,7 @@ objects {
     164: frame_nic1[0..63]
     229: irq_handler[1]
     230: frame_nic2[0..63] (RW, asid: (0x1, 0x1))
+    294: sgi_signal (target: 0, irq: 1)
     295: irq_handler[2]
     296: frame_nic3[0..3]
     301: timer (G)

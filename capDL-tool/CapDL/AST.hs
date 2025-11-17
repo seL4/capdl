@@ -58,7 +58,7 @@ data SCExtraParam =
       scData :: Word }
    deriving (Show, Eq, Ord, Typeable, Data)
 
-data CBExtraParam = 
+data CBExtraParam =
     CBNumber {
       cbNumber :: Word }
     deriving (Eq, Show, Ord, Typeable, Data)
@@ -165,6 +165,9 @@ data CapParam
     | FrameMapping {
         container :: NameRef,
         slotIndex :: Word }
+    | ARMSGIParams {
+        sgi_target :: Word,
+        sgi_irq :: Word }
     deriving (Show, Eq, Ord, Typeable, Data)
 
 data CapMapping

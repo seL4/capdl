@@ -72,6 +72,8 @@ rm_cn {
 0x0e6: frame_nic2[] (RW, asid: (0x1, 0x1));
 --  126: iospace
 
+0x126: sgi_signal (target: 0, irq: 1)
+
 0x127: irq_handler[2];
 0x128: frame_nic3[];
 --  12c: iospace

@@ -680,6 +680,7 @@ checkSlot Nothing = getSlot
 validCapPars' :: Name -> [CapParam] -> Bool
 validCapPars' name ps
     | name == schedControl = subsetConstrs ps [Core undefined]
+    | name == armSGISginal = length ps == 1
     | otherwise = null ps
 
 getCore :: ObjID -> [CapParam] -> Word
@@ -695,6 +696,7 @@ capOf' containerName capName ps
     | capName == irqControl = IRQControlCap
     | capName == domain = DomainCap
     | capName == schedControl = SchedControlCap (getCore containerName ps)
+    | capName == armSGISginal = ARMSGISignalCap (sgi_target (head ps)) (sgi_irq (head ps))
     | otherwise =
         error ("capOf' called with a name it doesn't know about: " ++ capName)
 
