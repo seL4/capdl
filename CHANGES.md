@@ -14,6 +14,7 @@
 
 ### Changes
 
+* Add support for fpu_disabled flag on TCBs for platforms with CONFIG_HAVE_FPU.
 * remove `pyaml` python dependency and use `pyyaml` (import `yaml`) directly.
 
 ### Upgrade Notes
