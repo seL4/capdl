@@ -192,7 +192,7 @@ class Frame(Object):
         self.paddr = paddr
         self.fill = fill
         # check the size is aligned to a power of 2
-        assert(self.size == (1 << self.get_size_bits()))
+        assert (self.size == (1 << self.get_size_bits()))
 
     def set_fill(self, fill):
         self.fill = fill
@@ -416,10 +416,10 @@ class Untyped(Object):
         """Add a child to this untyped. The child *must* align with the current
         watermark, and must fit into the untyped"""
         assert isinstance(child, Object)
-        assert(self.remaining() >= child.get_size())
-        assert(paddr is None or is_aligned(paddr, child.get_size_bits()))
+        assert (self.remaining() >= child.get_size())
+        assert (paddr is None or is_aligned(paddr, child.get_size_bits()))
         if paddr:
-            assert(self.watermark_paddr() == paddr)
+            assert (self.watermark_paddr() == paddr)
         self.children.append(child)
         self.watermark += child.get_size()
         return self.remaining()
