@@ -574,7 +574,7 @@ static inline seL4_Word CDL_TCB_SP(CDL_Object *obj)
     return obj->tcb_extra.sp;
 }
 
-static inline bool (CDL_Object *obj)
+static inline bool CDL_TCB_FPUDisabled(CDL_Object *obj)
 {
     return obj->tcb_extra.fpu_disabled;
 }
