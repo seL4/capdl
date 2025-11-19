@@ -15,6 +15,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <muslcsys/sys_morecore.h>
 #include <sel4platsupport/platsupport.h>
 #include <cpio/cpio.h>
 #include <simple-default/simple-default.h>
@@ -2142,20 +2143,19 @@ static void init_system(CDL_Model *spec)
  * for stdin, stdout, and stderr. The heap pool base address and size is
  * expected to be page aligned.
  */
-extern char *morecore_area;
-extern size_t morecore_size;
 static char ALIGN(PAGE_SIZE_4K) debug_libc_morecore_area[PAGE_SIZE_4K];
 
 static void CONSTRUCTOR(MUSLCSYS_WITH_VSYSCALL_PRIORITY) init_bootinfo(void)
 {
     /* Init memory area for musl. */
-    morecore_area = debug_libc_morecore_area;
-    morecore_size = sizeof(debug_libc_morecore_area);
+    sel4muslcsys_setup_morecore_region(
+        debug_libc_morecore_area,
+        sizeof(debug_libc_morecore_area));
 
     /* Allow us to print via seL4_Debug_PutChar. */
     platsupport_serial_setup_bootinfo_failsafe();
 }
-#endif
+#endif /* CONFIG_DEBUG_BUILD */
 
 int main(void)
 {
