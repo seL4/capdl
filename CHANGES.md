@@ -14,6 +14,15 @@
 
 ### Changes
 
+
+### Upgrade Notes
+---
+
+## 0.4.0 2025-11-25
+Using seL4 version 14.0.0
+
+### Changes
+
 * Add support for fpu_disabled flag on TCBs for platforms with CONFIG_HAVE_FPU.
 * Add support for SGISignal capability. SGISignal capabilities in capDL point
   to an `arm_sgi_signal` object with `(irg: <num>, target: <num>)` properties
