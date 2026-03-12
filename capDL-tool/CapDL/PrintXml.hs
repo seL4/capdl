@@ -8,8 +8,7 @@ module CapDL.PrintXml (printXml) where
 import CapDL.Model
 import CapDL.PrintUtils
 
-import Prelude ()
-import Prelude.Compat
+import Prelude hiding ((<>))
 import Text.PrettyPrint
 import Data.Maybe (fromMaybe)
 import qualified Data.Map as Map
@@ -238,9 +237,23 @@ printCDT :: CDT -> Doc
 printCDT cdt =
     xmlSurround "cdt" [] $ vcat (map printCDTRelation (Map.toList cdt))
 
+printSchedItem :: (Word, Word) -> Doc
+printSchedItem (dom, duration) =
+    text $ emptyTag "item" [("domain", show dom), ("duration", show duration)]
+
+printDomSched :: Maybe DomSchedule -> Word -> Doc
+printDomSched Nothing _ = text ""
+printDomSched (Just sched) dstart =
+    xmlSurround "domains" [("start_index", show dstart)]
+        (xmlSurround "schedule" [] $ vcat (map printSchedItem sched))
+
 -- Print the contents of a model in XML format.
 printXml :: String -> Model Word -> Doc
-printXml _ (Model arch ms _ cdt untypedCovers) =
-    text xml_header
-        $+$ (xmlSurround "model" [("arch", show arch)] $ printObjects ms $+$ printUntypedCovers untypedCovers $+$ printCDT cdt)
-        $+$ text "\n"
+printXml _ (Model arch ms _ cdt untypedCovers dsched dstart) =
+    text xml_header $+$
+    xmlSurround "model" [("arch", show arch)] (
+        printObjects ms $+$
+        printUntypedCovers untypedCovers $+$
+        printCDT cdt $+$
+        printDomSched dsched dstart) $+$
+    text "\n"

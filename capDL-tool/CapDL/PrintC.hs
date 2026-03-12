@@ -507,7 +507,7 @@ showASIDPoolDerivations objs ms =
        "},"
 
 printC :: AllocationType -> Model Word -> Idents CapName -> CopyMap -> Doc
-printC allocType (Model arch objs irqNode cdt untypedCovers) _ _ =
+printC allocType (Model arch objs irqNode cdt untypedCovers _ _) _ _ = -- FIXME dom: TODO
     text $
     "/* Generated file. Your changes will be overwritten. */" +++
     "" +++

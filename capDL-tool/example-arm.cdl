@@ -142,3 +142,8 @@ cap_test {
 }
 
 }
+
+domains {
+  schedule: [(0, 10), (1, 10), (0, 0), (0, 2)]
+  start_index: 10
+}

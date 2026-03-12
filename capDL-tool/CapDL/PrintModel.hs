@@ -185,7 +185,7 @@ prettyIRQNode irqNode =
         irqs -> vcat irqs $+$ text ""
 
 prettyMappings :: Printing a => Model a -> Doc
-prettyMappings (Model _ ms irqNode cdt untypedCovers) =
+prettyMappings (Model _ ms irqNode cdt untypedCovers _ _) =
     text "objects {" $+$
     text "" $+$
     nest indent (prettyObjects ms) $+$
@@ -203,10 +203,27 @@ prettyMappings (Model _ ms irqNode cdt untypedCovers) =
     nest indent (prettyIRQNode irqNode) $+$
     text "}"
 
+prettyWordPair :: (Word, Word) -> Doc
+prettyWordPair (a,b) = parens (num a <> comma <+> num b)
+
+prettySchedule :: DomSchedule -> Doc
+prettySchedule sched = fsep $ punctuate comma (map prettyWordPair sched)
+
+prettyDomains :: Maybe DomSchedule -> Word -> Doc
+prettyDomains Nothing _ = text ""
+prettyDomains (Just sched) dstart =
+    text "" $+$
+    text "domains {" $+$
+    nest indent (text "schedule:" <+> brackets (prettySchedule sched)) $+$
+    nest indent (text "start_index:" <+> num dstart) $+$
+    text "}" $+$
+    text ""
+
 prettyHeader arch =
     text "arch" <+> prettyArch arch $+$
     text ""
 
 pretty model =
     prettyHeader (arch model) $+$
-    prettyMappings model
+    prettyMappings model $+$
+    prettyDomains (optDomSchedule model) (domStart model)

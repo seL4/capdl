@@ -312,6 +312,8 @@ getUTCover = Map.findWithDefault []
 
 type CDT = Map CapRef CapRef
 
+type DomSchedule = [(Word, Word)]
+
 --
 -- The state of the system.
 --
@@ -337,7 +339,9 @@ data Model a
     objects :: ObjMap a,
     irqNode :: IRQMap,
     cdt :: CDT,
-    untypedCovers :: CoverMap }
+    untypedCovers :: CoverMap,
+    optDomSchedule :: Maybe DomSchedule,
+    domStart :: Word }
   deriving Show
 
 data Idents cap_id = Idents {

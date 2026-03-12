@@ -104,3 +104,8 @@ objects {
   0: irq_handler[0..2]
 
 }
+
+domains {
+  schedule: [(0, 10), (1, 10), (0, 0), (0, 2)]
+  start_index: 10
+}

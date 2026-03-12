@@ -218,6 +218,9 @@ data Decl
     | CDTDecl {
         parentRef :: SlotRef,
         children :: [Either Decl SlotRef] }
+    | DomainDecl {
+        domSchedule :: [(Word, Word)],
+        domStart :: Word }
     deriving Show
 
 data Module = Module {
