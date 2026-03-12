@@ -4,7 +4,7 @@
      SPDX-License-Identifier: BSD-2-Clause
 -->
 
-<!ELEMENT model (objects*, untypedCovers*, cdt*)>
+<!ELEMENT model (objects*, untypedCovers*, cdt*, domains?)>
 <!ATTLIST model arch CDATA #IMPLIED>
 
 <!ELEMENT objects (object*)>
@@ -46,3 +46,11 @@
 <!ELEMENT cdtRelation EMPTY>
 <!ATTLIST cdtRelation child CDATA #REQUIRED>
 <!ATTLIST cdtRelation parent CDATA #REQUIRED>
+
+<!ELEMENT domains (schedule)>
+<!ATTLIST domains start_index CDATA #REQUIRED>
+
+<!ELEMENT schedule (item*)>
+<!ELEMENT item EMPTY>
+<!ATTLIST item domain CDATA #REQUIRED>
+<!ATTLIST item duration CDATA #REQUIRED>

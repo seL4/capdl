@@ -99,9 +99,50 @@ cap_decls = do
     reserved "caps"
     braces $ many (try cap_name_decl <|> try cap_decl)
 
+opt_start_index :: MapParser Word
+opt_start_index =
+    do
+        reserved "start_index"
+        colon
+        number
+    <|>
+    return 0
+
+word_pair :: MapParser (Word, Word)
+word_pair =
+    parens $ do
+        a <- number
+        comma
+        b <- number
+        return (a, b)
+
+dom_schedule :: MapParser [(Word, Word)]
+dom_schedule = do
+    reserved "schedule"
+    colon
+    brackets $ sepEndBy1 word_pair comma
+
+dom_content :: MapParser Decl
+dom_content =
+    do
+        sched <- dom_schedule
+        dstart <- opt_start_index
+        return $ DomainDecl sched dstart
+    <|>
+    do
+        dstart <- opt_start_index
+        sched <- dom_schedule
+        return $ DomainDecl sched dstart
+
+dom_decls :: MapParser [Decl]
+dom_decls = do
+    reserved "domains"
+    content <- braces dom_content
+    return [content]
+
 decl_section :: MapParser [Decl]
 decl_section =
-    obj_decls <|> cap_decls <|> irq_decls <|> cdt_decls
+    obj_decls <|> cap_decls <|> irq_decls <|> cdt_decls <|> dom_decls
 
 capDLModule :: MapParser Module
 capDLModule = do

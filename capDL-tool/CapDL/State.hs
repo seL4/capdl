@@ -182,8 +182,9 @@ flatten' _ objs (n, obj)
         in Map.insert n obj' objs
 
 flatten :: Model Word -> Model [Word]
-flatten m@(Model arch objs irqNode cdt untypedCovers) =
-    Model arch (foldl (flatten' m) Map.empty (Map.toList objs)) irqNode cdt untypedCovers
+flatten m@(Model arch objs irqNode cdt untypedCovers doms dstart) =
+    Model arch (foldl (flatten' m) Map.empty (Map.toList objs))
+          irqNode cdt untypedCovers doms dstart
 
 -- slots of one object
 getSlots :: ObjID -> Kernel (CapMap Word)
@@ -552,7 +553,7 @@ checkObjs arch m = do
     allM (checkObj arch m) objs
 
 allCovers :: Model Word -> [[ObjID]]
-allCovers (Model _ _ _ _ covMap) =
+allCovers (Model _ _ _ _ covMap _ _) =
     let covers = map snd (Map.toList covMap)
     in filter (not . null) covers
 
@@ -574,7 +575,7 @@ checkUntyped m ref = do
     return valid
 
 checkUntypeds :: Model Word -> Logger Bool
-checkUntypeds m@(Model _ _ _ _ covMap) = do
+checkUntypeds m@(Model _ _ _ _ covMap _ _) = do
     let objs = map fst (Map.toList covMap)
     allM (checkUntyped m) objs
 
