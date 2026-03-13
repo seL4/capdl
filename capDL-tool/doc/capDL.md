@@ -6,7 +6,7 @@
 
 <!-- title: capDL Language Specification -->
 
-This document defines capDL revision 1.0, a language for capability
+This document defines capDL revision 1.1, a language for capability
 distributions.
 
 # Background and Purpose
@@ -146,15 +146,22 @@ in section [Modules](#modules).
 
 ### CDT Declarations
 
-      cdt_decls ::='cdt' '{' cdt_decl* '}'
+      cdt_decls ::= 'cdt' '{' cdt_decl* '}'
 
       cdt_decl ::= slot_ref '{' ((slot_ref | cdt_decl) ';'?)* '}'
+
+### Domain Schedule Declarations
+
+      dom_decls ::= 'domains' '{' sched_decl ('start_index' ':' number)? '}'
+
+      sched_decl ::= 'schedule' ':' '[' sched_item (',' sched_item)* ','? ']'
+      sched_item ::= '(' number ',' number ')'
 
 ### Modules
 
       arch ::= 'arch' ('ia32' | 'arm11')
 
-      module ::= arch (obj_decls | cap_decls | irq_decls | cdt_decls)+
+      module ::= arch (obj_decls | cap_decls | irq_decls | cdt_decls | dom_decls)+
 
 # Semantics
 
@@ -172,6 +179,7 @@ data model.
 ## Data Model
 
 ### Rationale
+
 The purpose of capDL is describing a snapshot of the capability
 distribution in a system running on the seL4 microkernel. For this
 purpose, we need to know which objects exist in the system and which
@@ -505,3 +513,29 @@ for rights masks, guard 0, guard size 0, and badge 0. The IRQControl cap
 is specified using the reserved `ObjID` `irq_control`, similarly
 ASIDControlCap is specified by `asid_control` and IOSpaceMasterCap by
 `io_space_master`.
+
+### Domains
+
+    dom_delcs ::= 'domains' '{' sched_decl ('start_index' ':' number)? '}'
+
+    sched_decl ::= 'schedule' ':' '[' sched_item (',' sched_item)* ','? ']'
+    sched_item ::= '(' number ',' number ')'
+
+The Domain schedule declaration is optional and only required for system
+initialisation, not for reasoning about capability distribution.
+
+The domain schedule list is a list of pairs where the first component is
+the domain and the second component the duration. (0, 0) denotes a schedule
+end marker. See [RFC-20] for detail on domain schedule semantics.
+
+The optional domain `start_index` (value 0 if left out) denotes which item of
+the domain schedule the initialiser will switch to before initialiser execution
+ends.
+
+If no domain schedule is provided or the kernel is configured with only one
+domain, the initialiser will not configure any domains and not perform any
+domain schedule start. If no schedule is provided but the kernel is configured
+with domain scheduler support, the initial domain will keep running after the
+initialiser ends.
+
+[RFC-20]: https://github.com/seL4/rfcs/blob/0200-domain-schedules/src/proposed/0200-domain-schedules.md
