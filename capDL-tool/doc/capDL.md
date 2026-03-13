@@ -159,7 +159,7 @@ in section [Modules](#modules).
 
 ### Modules
 
-      arch ::= 'arch' ('ia32' | 'arm11')
+      arch ::= 'arch' ('ia32' | 'arm11' | 'x86_64' | 'aarch64' | 'riscv')
 
       module ::= arch (obj_decls | cap_decls | irq_decls | cdt_decls | dom_decls)+
 
@@ -213,7 +213,7 @@ architecture the system is intended for.
                       objects :: Map ObjID Object
                   }
 
-    data Arch = IA32 | ARM11
+    data Arch = IA32 | ARM11 | X86_64 | AARCH64 | RISCV
 
 Objects are described by the following data type. We are mainly
 interested in what capabilities an object contains. We also store
@@ -341,7 +341,7 @@ the authority to map/unmap page directories into/from the ASID pool.
 Mapping a frame into a page table for instance, needs the frame cap to
 specify which frame to map with which rights and the PT cap to specify
 in which page table. The IOPorts capability gives access to a set of
-IOPorts on the ia32 architecture. The IOSpaceMasterCap confers the
+IOPorts on the ia32 and x86_64 architectures. The IOSpaceMasterCap confers the
 authority to create IOSpace caps for specific devices. IOSpaceCaps point
 to IODevices and confer the authority to set the root IOPageTable for
 that device. IOPTCaps are the IOMMU analogue to PT and PD caps in normal
@@ -388,7 +388,7 @@ A list of ranges `name[r1,r2,..r3]` refers to the union of the ranges
 
 ### Module
 
-      arch ::= 'arch' ('ia32' | 'arm11')
+      arch ::= 'arch' ('ia32' | 'arm11' | 'x86_64' | 'aarch64' | 'riscv')
       module ::= arch (obj_decls | cap_decls)+
 
 A module maps to a full `Model` in the data model. Its `Arch` component
