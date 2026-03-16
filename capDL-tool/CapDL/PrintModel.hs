@@ -201,7 +201,8 @@ prettyMappings (Model _ ms irqNode cdt untypedCovers _ _) =
     text "} irq maps {" $+$
     text "" $+$
     nest indent (prettyIRQNode irqNode) $+$
-    text "}"
+    text "}" $+$
+    text ""
 
 prettyWordPair :: (Word, Word) -> Doc
 prettyWordPair (a,b) = parens (num a <> comma <+> num b)
@@ -210,9 +211,8 @@ prettySchedule :: DomSchedule -> Doc
 prettySchedule sched = fsep $ punctuate comma (map prettyWordPair sched)
 
 prettyDomains :: Maybe DomSchedule -> Word -> Doc
-prettyDomains Nothing _ = text ""
+prettyDomains Nothing _ = mempty
 prettyDomains (Just sched) dstart =
-    text "" $+$
     text "domains {" $+$
     nest indent (text "schedule:" <+> brackets (prettySchedule sched)) $+$
     nest indent (text "start_index:" <+> num dstart) $+$
