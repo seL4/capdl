@@ -23,6 +23,7 @@ import qualified Data.Map as Map
 import Data.Map (Map)
 import qualified Data.Set as Set
 import Data.Bits
+import Data.Word (Word64)
 import Numeric (showHex)
 import Text.PrettyPrint
 
@@ -37,7 +38,7 @@ s1 +++ s2 = s1 ++ "\n" ++ s2
 joinBy :: String -> [String] -> String
 joinBy = intercalate
 
-hex :: Word -> String
+hex :: (Show a, Integral a) => a -> String
 hex x = "0x" ++ showHex x ""
 
 -- This prints paddrs in hex, except that Nothing (no fixed address)
@@ -506,8 +507,33 @@ showASIDPoolDerivations objs ms =
            joinBy ",\n" ["    " ++ idStr | idStr <- array] +++
        "},"
 
+showDomainScheduleItem :: (Word, Word64) -> String
+showDomainScheduleItem (domain, duration) =
+    let dbits = 56
+        mask n = (1 `shiftL` n) - 1
+        entry = fromIntegral domain `shiftL` dbits .|. duration .&. mask dbits
+    in hex entry
+
+showDomainSchedule :: DomSchedule -> String
+showDomainSchedule dsched =
+    "(uint64_t[]){" +++
+    "    " ++ joinBy ", " (map showDomainScheduleItem dsched) +++
+    "}"
+
+showDomains :: Maybe DomSchedule -> Maybe Word -> Word -> String
+showDomains Nothing _ _ =
+    ".domainSchedule = NULL," +++
+    ".domainScheduleLength = 0," +++
+    ".domainSetStart = -1," +++
+    ".domainIndexShift = 0,"
+showDomains (Just dsched) dstart dshift =
+    ".domainSchedule = " ++ showDomainSchedule dsched ++ "," +++
+    ".domainScheduleLength = " ++ show (length dsched) ++ "," +++
+    ".domainSetStart = " ++ maybe "-1" show dstart ++ "," +++
+    ".domainIndexShift = " ++ show dshift ++ ","
+
 printC :: AllocationType -> Model Word -> Idents CapName -> CopyMap -> Doc
-printC allocType (Model arch objs irqNode cdt untypedCovers _ _ _) _ _ = -- FIXME dom: TODO
+printC allocType (Model arch objs irqNode cdt untypedCovers dsched dstart dshift) _ _ =
     text $
     "/* Generated file. Your changes will be overwritten. */" +++
     "" +++
@@ -527,6 +553,7 @@ printC allocType (Model arch objs irqNode cdt untypedCovers _ _ _) _ _ = -- FIXM
     memberObjects obj_ids obj_list irqNode cdt objs +++
     showUntypedDerivations allocType obj_ids untypedCovers +++
     showASIDPoolDerivations obj_ids objs +++
+    showDomains dsched dstart dshift +++
     "};"
     where objs_sz = length $ Map.toList objs
           obj_list = case allocType of

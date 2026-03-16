@@ -2092,6 +2092,49 @@ static void mark_vspace_roots(CDL_Model *spec)
 }
 #endif
 
+static void init_domains(CDL_Model *spec)
+{
+    if (CONFIG_NUM_DOMAINS == 1 && spec->domainSchedule == NULL) {
+        return;
+    }
+
+    if (CONFIG_NUM_DOMAINS == 1 && spec->domainSchedule != NULL) {
+        ZF_LOGD(" CONFIG_NUM_DOMAINS == 1, but schedule provided.");
+        ZF_LOGD(" Skipping domain initialisation...");
+        return;
+    }
+
+    if (CONFIG_NUM_DOMAINS > 1 && spec->domainSchedule == NULL) {
+        ZF_LOGD(" No domain schedule provided.");
+        ZF_LOGD(" Skipping domain initialisation...");
+        return;
+    }
+
+    ZF_LOGD(" Initialising domains...");
+    assert(spec->domainScheduleLength > 0);
+
+    for (seL4_Word i = 0; i < spec->domainScheduleLength; i++) {
+        uint64_t entry = spec->domainSchedule[i];
+        /* avoid MASK macro, because it contains a word size guard */
+        uint64_t duration = entry & ((1ull << 56) - 1ull);
+        seL4_DomainSet_ScheduleConfigure(seL4_CapDomain,
+                                         i + spec->domainIndexShift,
+                                         entry >> 56, /* domain */
+                                         duration);
+    }
+}
+
+static void start_domain_schedule(CDL_Model *spec)
+{
+    if (CONFIG_NUM_DOMAINS == 1 || spec->domainSchedule == NULL || spec->domainSetStart == -1) {
+        return;
+    }
+
+    ZF_LOGD(" Starting domain schedule...");
+    int error = seL4_DomainSet_ScheduleSetStart(seL4_CapDomain,
+                                                spec->domainSetStart + spec->domainIndexShift);
+    ZF_LOGF_IFERR(error, "Failed to start domain schedule.");
+}
 
 static void init_system(CDL_Model *spec)
 {
@@ -2128,13 +2171,13 @@ static void init_system(CDL_Model *spec)
     init_scs(spec);
     init_tcbs(spec);
     init_cspace(spec);
+    init_domains(spec);
     start_threads(spec);
 
     ZF_LOGD("%d of %d CSlots used (%.2LF%%)", get_free_slot(),
             BIT(CONFIG_ROOT_CNODE_SIZE_BITS),
             ((long double)get_free_slot() / BIT(CONFIG_ROOT_CNODE_SIZE_BITS))
             * 100);
-
 }
 
 #ifdef CONFIG_DEBUG_BUILD
@@ -2162,5 +2205,13 @@ int main(void)
     ZF_LOGI("Starting CapDL Loader...");
     init_system(&capdl_spec);
     ZF_LOGI(A_RESET A_FG_G "CapDL Loader done, suspending..." A_RESET "");
+
+    /* Start domain schedule (if present) only after everything else is done,
+       because the initialiser may not run any more and this call may not
+       return. */
+    start_domain_schedule(&capdl_spec);
+
+    /* We will get here either in the non-domain case, or in the case where the
+       domain schedule runs domain 0 at some point. */
     seL4_TCB_Suspend(seL4_CapInitThreadTCB);
 }

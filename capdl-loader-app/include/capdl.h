@@ -419,6 +419,23 @@ typedef struct {
            which the loader uses for loading other component VSpaces. */
     seL4_Word num_asid_slots;
     CDL_ObjID *asid_slots;
+
+    /* Array of size domainScheduleLength where each entry consists of an
+       8-bit domain number (highest 8 bits) and 56 bit duration (low bits) in ticks.
+       NULL, if no domain schedule should be configured. */
+    uint64_t *domainSchedule;
+
+    /* Length of the domain schedule array. Must be > 0 if domainSchedule is not NULL. */
+    seL4_Word domainScheduleLength;
+
+    /* At which index in the domainSchedule array to start the domain schedule.
+       -1 if no DomainSetStart call should be made. */
+    seL4_Word domainSetStart;
+
+    /* At which starting index the domainSchedule should be configured in the kernel,
+       i.e. kernelDomainSchedule[i + domainIndexShift] = domainSchedule[i].
+       The start domain will be configured as domainSetStart + domainIndexShift. */
+    seL4_Word domainIndexShift;
 } CDL_Model;
 
 /* helper functions ---------------------------------------------------------------------------- */
