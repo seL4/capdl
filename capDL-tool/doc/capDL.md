@@ -152,7 +152,10 @@ in section [Modules](#modules).
 
 ### Domain Schedule Declarations
 
-      dom_decls ::= 'domains' '{' sched_decl ('start_index' ':' number)? '}'
+      dom_decls ::= 'domains' '{' dom_decl+ '}'
+      dom_decl ::= sched_decl
+                 | 'domain_set_start' ':' (number | 'no_start')
+                 | 'index_shift' ':' number
 
       sched_decl ::= 'schedule' ':' '[' sched_item (',' sched_item)* ','? ']'
       sched_item ::= '(' number ',' number ')'
@@ -516,21 +519,34 @@ ASIDControlCap is specified by `asid_control` and IOSpaceMasterCap by
 
 ### Domains
 
-    dom_delcs ::= 'domains' '{' sched_decl ('start_index' ':' number)? '}'
+      dom_decls ::= 'domains' '{' dom_decl+ '}'
+      dom_decl ::= sched_decl
+                 | 'domain_set_start' ':' (number | 'no_start')
+                 | 'index_shift' ':' number
 
-    sched_decl ::= 'schedule' ':' '[' sched_item (',' sched_item)* ','? ']'
-    sched_item ::= '(' number ',' number ')'
+      sched_decl ::= 'schedule' ':' '[' sched_item (',' sched_item)* ','? ']'
+      sched_item ::= '(' number ',' number ')'
 
 The Domain schedule declaration is optional and only required for system
 initialisation, not for reasoning about capability distribution.
 
 The domain schedule list is a list of pairs where the first component is
 the domain and the second component the duration. (0, 0) denotes a schedule
-end marker. See [RFC-20] for detail on domain schedule semantics.
+end marker. At most one domain schedule declaration is accepted.
+See [RFC-20] for detail on domain schedule semantics.
 
-The optional domain `start_index` (value 0 if left out) denotes which item of
-the domain schedule the initialiser will switch to before initialiser execution
-ends.
+The optional `domain_set_start` value (0 if left out) denotes which item of the
+provided domain schedule the initialiser will switch to when initialiser
+execution ends, using the seL4 API `DomainSetStart`. At most one start index
+declaration is accepted. A value of `no_start` means that the current domain 0
+will keep running and no `DomainSetStart` call is performed.
+
+The optional domain `index_shift` (value 0 if left out) denotes at which index
+the declared domain schedule should be configured in the kernel. The first entry
+of the domain schedule declaration will be configured at index `index_shift`,
+the second at `index_shift + 1` and so on. The `domain_set_start` value will
+also be shifted and configured as `domain_set_start + index_shift` in the
+kernel. At most one shift index declaration is accepted.
 
 If no domain schedule is provided or the kernel is configured with only one
 domain, the initialiser will not configure any domains and not perform any

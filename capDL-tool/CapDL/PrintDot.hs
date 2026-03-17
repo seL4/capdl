@@ -251,5 +251,5 @@ printDot' name arch ms covers =
        rbrace
 
 printDot :: DotPrinting a => String -> Model a -> Doc
-printDot name (Model arch ms _ _ untypedCovers _ _) =
+printDot name (Model arch ms _ _ untypedCovers _ _ _) =
     printDot' name arch ms untypedCovers

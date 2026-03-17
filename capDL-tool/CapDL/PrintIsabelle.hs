@@ -509,7 +509,7 @@ printFooter = text "end"
 -- There is currently no support for the domain scheduler in the Isabelle capDL formalisation,
 -- so we can only produce output when it is set to Nothing.
 printIsabelle :: String -> ObjectSizeMap -> Model Word -> Doc
-printIsabelle name objSizeMap (Model (arch@ARM11) ms irqNode cdt untypedCovers Nothing _) =
+printIsabelle name objSizeMap (Model (arch@ARM11) ms irqNode cdt untypedCovers Nothing _ _) =
     printHeader name $+$ text "" $+$
 
     printObjIDs objSizeMap objAddrs ms irqNode $+$

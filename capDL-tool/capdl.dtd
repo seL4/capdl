@@ -48,7 +48,8 @@
 <!ATTLIST cdtRelation parent CDATA #REQUIRED>
 
 <!ELEMENT domains (schedule)>
-<!ATTLIST domains start_index CDATA #REQUIRED>
+<!ATTLIST domains domain_set_start CDATA #REQUIRED>
+<!ATTLIST domains index_shift CDATA #REQUIRED>
 
 <!ELEMENT schedule (item*)>
 <!ELEMENT item EMPTY>

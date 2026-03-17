@@ -201,6 +201,15 @@ data KODecl = KODecl {
     object :: KO
 } deriving (Show, Eq)
 
+data DomainDeclItem
+    = DomScheduleDecl {
+          domSchedule :: [(Word, Word64)] }
+    | DomStartDecl {
+          domStart :: Word }
+    | DomIdxShiftDecl {
+          domIdxShift :: Word }
+    deriving (Show, Eq)
+
 data Decl
     = ObjDecl {
         theKODecl :: KODecl }
@@ -219,8 +228,7 @@ data Decl
         parentRef :: SlotRef,
         children :: [Either Decl SlotRef] }
     | DomainDecl {
-        domSchedule :: [(Word, Word)],
-        domStart :: Word }
+        domainDeclItems :: [DomainDeclItem] }
     deriving Show
 
 data Module = Module {
