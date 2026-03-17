@@ -312,7 +312,7 @@ getUTCover = Map.findWithDefault []
 
 type CDT = Map CapRef CapRef
 
-type DomSchedule = [(Word, Word)]
+type DomSchedule = [(Word, Word64)]
 
 --
 -- The state of the system.

@@ -12,6 +12,7 @@ import CapDL.PrintUtils
 import Prelude ()
 import Prelude.Compat hiding ((<>))
 import Text.PrettyPrint
+import Data.Word (Word64)
 import Data.List.Compat
 import qualified Data.Map as Map
 
@@ -204,8 +205,8 @@ prettyMappings (Model _ ms irqNode cdt untypedCovers _ _ _) =
     text "}" $+$
     text ""
 
-prettyWordPair :: (Word, Word) -> Doc
-prettyWordPair (a,b) = parens (num a <> comma <+> num b)
+prettyWordPair :: (Word, Word64) -> Doc
+prettyWordPair (a,b) = parens (num a <> comma <+> integer (toInteger b))
 
 prettySchedule :: DomSchedule -> Doc
 prettySchedule sched = fsep $ punctuate comma (map prettyWordPair sched)
