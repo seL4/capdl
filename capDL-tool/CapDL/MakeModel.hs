@@ -767,19 +767,19 @@ validMapping :: [CapMapping] -> Bool
 validMapping mappings = not $ hasCopy mappings && hasUnnumbered mappings
 
 addCap :: Model Word -> (ObjID, [CapMapping]) -> Model Word
-addCap (Model arch objs irqNode cdt untypedCovers doms dstart) (id, mappings) =
+addCap (Model arch objs irqNode cdt untypedCovers doms dstart dshift) (id, mappings) =
     case Map.lookup id objs of
         Nothing -> error ("Unknown cap container: " ++ printID id)
         Just obj ->
             if validMapping mappings
             then Model arch (Map.insert id mapped objs) irqNode
-                       cdt untypedCovers doms dstart
+                       cdt untypedCovers doms dstart dshift
             else error $ printID id ++
                                 " uses both copies of caps and unnumbered slots"
             where mapped = evalSlotState (addMappings objs id obj mappings)
 
 addCapDecl :: Model Word -> Decl -> Model Word
-addCapDecl m@(Model _ objs _ _ _ _ _) (CapDecl names mappings) =
+addCapDecl m@(Model _ objs _ _ _ _ _ _) (CapDecl names mappings) =
     foldl' addCap m (zip (refToIDs objs names) (repeat mappings))
 addCapDecl s _ = s
 
@@ -905,7 +905,7 @@ addCapCopy _ _ _ m _ = m
 -- the place. factor out.
 addCapCopies :: Idents CapName -> CapRefMappings -> NameRef ->
               Model Word -> CapMapping -> Model Word
-addCapCopies ids refs names m@(Model _ map _ _ _ _ _) copy =
+addCapCopies ids refs names m@(Model _ map _ _ _ _ _ _) copy =
     foldl' (\model obj -> addCapCopy ids refs obj model copy) m
           (refToIDs map names)
 
@@ -998,17 +998,35 @@ addCDTCapDecls :: ObjMap Word -> Idents CapName -> CDT -> [Decl] -> CDT
 addCDTCapDecls objs ids = foldl' (addCDTCapDecl objs ids)
 
 isDomainDecl :: Decl -> Bool
-isDomainDecl (DomainDecl _ _) = True
+isDomainDecl (DomainDecl _) = True
 isDomainDecl _ = False
 
-getDomSchedule :: [Decl] -> Maybe DomSchedule
+isDomScheduleDecl :: DomainDeclItem -> Bool
+isDomScheduleDecl (DomScheduleDecl _) = True
+isDomScheduleDecl _ = False
+
+isDomStartDecl :: DomainDeclItem -> Bool
+isDomStartDecl (DomStartDecl _) = True
+isDomStartDecl _ = False
+
+isDomIdxShiftDecl :: DomainDeclItem -> Bool
+isDomIdxShiftDecl (DomIdxShiftDecl _) = True
+isDomIdxShiftDecl _ = False
+
+getDomSchedule :: [DomainDeclItem] -> Maybe DomSchedule
 getDomSchedule [] = Nothing
-getDomSchedule [DomainDecl sched _] = Just sched
+getDomSchedule [DomScheduleDecl sched] = Just sched
 getDomSchedule _ = error "Must declare at most one domains section"
 
-getDomStart :: [Decl] -> Word
-getDomStart [DomainDecl _ start] = start
-getDomStart _ = 0
+getDomStart :: [DomainDeclItem] -> Word
+getDomStart [] = 0
+getDomStart [DomStartDecl start] = start
+getDomStart _ = error "Must declare at most one domain_set_start index"
+
+getDomIdxShift :: [DomainDeclItem] -> Word
+getDomIdxShift [] = 0
+getDomIdxShift [DomIdxShiftDecl shift] = shift
+getDomIdxShift _ = error "Must declare at most one domain index shift"
 
 makeModel :: Module -> Logger (Model Word, Idents CapName, CopyMap)
 makeModel (Module arch decls) = do
@@ -1020,8 +1038,10 @@ makeModel (Module arch decls) = do
         copies = getCapCopyDecls ids objs' decls
         cdt = getCDTDecls ids decls
         cdt' = addCDTCapDecls objs' ids cdt decls
-        optDom = getDomSchedule (filter (isDomainDecl) decls)
-        dstart = getDomStart (filter (isDomainDecl) decls)
+        domItems = concatMap domainDeclItems (filter isDomainDecl decls)
+        optDom = getDomSchedule $ filter isDomScheduleDecl domItems
+        dstart = getDomStart $ filter isDomStartDecl domItems
+        dshift = getDomIdxShift $ filter isDomIdxShiftDecl domItems
     covers <- dedupCoverIDs $ getUntypedCovers Nothing objs' Map.empty decls
     return (flip (addCapCopyDecls ids refs) decls .
                   addCapDecls decls $

@@ -35,7 +35,7 @@ projectFrame capset =
   Set.fromList $ concat [[(r, capObj) | r <- Set.toList rights] | (FrameCap capObj rights Nothing True Nothing) <- Set.toList capset]
 
 somefn :: Model Word -> IO ()
-somefn (Model _ objects _ _ _ _ _) =
+somefn (Model _ objects _ _ _ _ _ _) =
   do matrix <- newEmptyMatrix $ length tcbIDs
      leaksTos matrix objDict tcbDirectCaps
      warshall matrix
@@ -48,7 +48,7 @@ somefn (Model _ objects _ _ _ _ _) =
     objDict = Map.fromList (zip tcbIDs [0..])
 
 transitiveClosure :: Model Word -> IO (Model Word)
-transitiveClosure model@(Model _ objects _ _ _ _ _) =
+transitiveClosure model@(Model _ objects _ _ _ _ _ _) =
   do matrix <- newEmptyMatrix $ length tcbIDs
      leaksTos matrix objDict tcbDirectCaps
      warshall matrix
@@ -64,7 +64,7 @@ transitiveClosure model@(Model _ objects _ _ _ _ _) =
     f (objID, cspace) (_, cspace') = (objID, cspace' `Set.difference` cspace)
 
 leakMatrix :: Model Word -> IO (String, String, Model Word)
-leakMatrix model@(Model _ objects _ _ _ _ _) =
+leakMatrix model@(Model _ objects _ _ _ _ _ _) =
   do authMatrix <- newEmptyMatrix $ mSize
      leaksTos authMatrix objDict tcbDirectCaps
      warshall authMatrix
@@ -95,8 +95,8 @@ leakMatrix model@(Model _ objects _ _ _ _ _) =
     objDict' = Map.fromList (zip [0..] tcbIDs)
 
 updateModel :: Model Word -> [(ObjID, Set Cap)] -> Model Word
-updateModel (Model arch objects irqNode cdt untypedCovers doms dstart) tcbs =
-    Model arch (foldr f objects tcbs) irqNode cdt untypedCovers doms dstart
+updateModel (Model arch objects irqNode cdt untypedCovers doms dstart dshift) tcbs =
+    Model arch (foldr f objects tcbs) irqNode cdt untypedCovers doms dstart dshift
   where
     f (tcb, cspace) objects =
       let rootCNodeID = rootCNodeOf objects tcb

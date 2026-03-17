@@ -341,7 +341,8 @@ data Model a
     cdt :: CDT,
     untypedCovers :: CoverMap,
     optDomSchedule :: Maybe DomSchedule,
-    domStart :: Word }
+    domStart :: Word,
+    domIdxShift :: Word }
   deriving Show
 
 data Idents cap_id = Idents {

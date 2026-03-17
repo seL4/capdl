@@ -241,19 +241,20 @@ printSchedItem :: (Word, Word) -> Doc
 printSchedItem (dom, duration) =
     text $ emptyTag "item" [("domain", show dom), ("duration", show duration)]
 
-printDomSched :: Maybe DomSchedule -> Word -> Doc
-printDomSched Nothing _ = text ""
-printDomSched (Just sched) dstart =
-    xmlSurround "domains" [("start_index", show dstart)]
+printDomSched :: Maybe DomSchedule -> Word -> Word -> Doc
+printDomSched Nothing _ _ = text ""
+printDomSched (Just sched) dstart dshift =
+    xmlSurround "domains"
+        [("domain_set_start", show dstart), ("index_shift", show dshift)]
         (xmlSurround "schedule" [] $ vcat (map printSchedItem sched))
 
 -- Print the contents of a model in XML format.
 printXml :: String -> Model Word -> Doc
-printXml _ (Model arch ms _ cdt untypedCovers dsched dstart) =
+printXml _ (Model arch ms _ cdt untypedCovers dsched dstart dshift) =
     text xml_header $+$
     xmlSurround "model" [("arch", show arch)] (
         printObjects ms $+$
         printUntypedCovers untypedCovers $+$
         printCDT cdt $+$
-        printDomSched dsched dstart) $+$
+        printDomSched dsched dstart dshift) $+$
     text "\n"

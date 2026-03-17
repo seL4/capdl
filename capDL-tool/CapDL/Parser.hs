@@ -99,46 +99,36 @@ cap_decls = do
     reserved "caps"
     braces $ many (try cap_name_decl <|> try cap_decl)
 
-opt_start_index :: MapParser Word
-opt_start_index =
-    do
-        reserved "start_index"
-        colon
-        number
-    <|>
-    return 0
-
-word_pair :: MapParser (Word, Word)
+word_pair :: MapParser (Word, Word64)
 word_pair =
     parens $ do
         a <- number
         comma
-        b <- number
+        b <- integer64
         return (a, b)
 
-dom_schedule :: MapParser [(Word, Word)]
-dom_schedule = do
-    reserved "schedule"
-    colon
-    brackets $ sepEndBy1 word_pair comma
-
-dom_content :: MapParser Decl
+dom_content :: MapParser DomainDeclItem
 dom_content =
     do
-        sched <- dom_schedule
-        dstart <- opt_start_index
-        return $ DomainDecl sched dstart
+        reserved "domain_set_start"
+        colon
+        fmap DomStartDecl number
     <|>
     do
-        dstart <- opt_start_index
-        sched <- dom_schedule
-        return $ DomainDecl sched dstart
+        reserved "schedule"
+        colon
+        fmap DomScheduleDecl $ brackets $ sepEndBy1 word_pair comma
+    <|>
+    do
+        reserved "index_shift"
+        colon
+        fmap DomIdxShiftDecl number
 
 dom_decls :: MapParser [Decl]
 dom_decls = do
     reserved "domains"
-    content <- braces dom_content
-    return [content]
+    items <- braces $ many dom_content
+    return [DomainDecl items]
 
 decl_section :: MapParser [Decl]
 decl_section =
