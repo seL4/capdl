@@ -18,7 +18,7 @@ import Data.Maybe
 import Data.List.Compat
 import qualified Data.Either as Either
 import Data.Data
-import Data.Word
+import Data.Word (Word64)
 import Data.Bits
 import Data.Function (on)
 import qualified Data.Set as Set
@@ -1028,6 +1028,31 @@ getDomIdxShift [] = 0
 getDomIdxShift [DomIdxShiftDecl shift] = shift
 getDomIdxShift _ = error "Must declare at most one domain index shift"
 
+checkDomainItem :: (Word, Word64) -> Bool
+checkDomainItem (domain, duration) =
+    let itemStr = "Domain schedule item " ++ show (domain, duration) ++ ": "
+    in
+        if duration == 0 && domain /= 0
+        then error $ itemStr ++ "Duration cannot be zero for non-end-markers. End marker is (0, 0)."
+        else if domain > 255
+        then error $ itemStr ++ "Domain must be in [0 .. 255]"
+        else if duration >= 2^56
+        then error $ itemStr ++ "Duration must be less than 2^56"
+        else True
+
+checkDomains :: Model a -> Model a
+checkDomains m@(Model _ _ _ _ _ (Just sched) dstart _) =
+    if fromIntegral dstart >= length sched
+    then error $ "Start index is " ++ show dstart ++ ", but must be in [0.." ++
+                     show (length sched - 1) ++ "] for the given schedule."
+    else if not $ all checkDomainItem sched
+    then error "Invalid domain schedule" -- actual error will be raised in checkDomainItem
+    else if sched !! (fromIntegral dstart) == (0, 0)
+    then error $ "Start index (" ++ show dstart ++
+                     ") must not point to the end marker (0, 0) in the schedule."
+    else m
+checkDomains m = m
+
 makeModel :: Module -> Logger (Model Word, Idents CapName, CopyMap)
 makeModel (Module arch decls) = do
     let objs = addObjects Map.empty decls
@@ -1044,6 +1069,6 @@ makeModel (Module arch decls) = do
         dshift = getDomIdxShift $ filter isDomIdxShiftDecl domItems
     covers <- dedupCoverIDs $ getUntypedCovers Nothing objs' Map.empty decls
     return (flip (addCapCopyDecls ids refs) decls .
-                  addCapDecls decls $
-              Model arch objs' irqs cdt' covers optDom dstart,
+                  addCapDecls decls $ checkDomains $
+              Model arch objs' irqs cdt' covers optDom dstart dshift,
             ids, copies)

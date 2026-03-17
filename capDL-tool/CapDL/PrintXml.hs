@@ -10,6 +10,7 @@ import CapDL.PrintUtils
 
 import Prelude hiding ((<>))
 import Text.PrettyPrint
+import Data.Word (Word64)
 import Data.Maybe (fromMaybe)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -237,7 +238,7 @@ printCDT :: CDT -> Doc
 printCDT cdt =
     xmlSurround "cdt" [] $ vcat (map printCDTRelation (Map.toList cdt))
 
-printSchedItem :: (Word, Word) -> Doc
+printSchedItem :: (Word, Word64) -> Doc
 printSchedItem (dom, duration) =
     text $ emptyTag "item" [("domain", show dom), ("duration", show duration)]
 

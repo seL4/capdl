@@ -12,6 +12,7 @@ import Prelude ()
 import Prelude.Compat
 import CapDL.AST
 import CapDL.ParserUtils
+import Data.Word (Word64)
 
 import Text.ParserCombinators.Parsec
 
