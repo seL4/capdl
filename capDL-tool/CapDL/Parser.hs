@@ -113,7 +113,8 @@ dom_content =
     do
         reserved "domain_set_start"
         colon
-        fmap DomStartDecl number
+        maybeStart <- fmap Just number <|> fmap (const Nothing) (reserved "no_start")
+        return $ DomStartDecl maybeStart
     <|>
     do
         reserved "schedule"

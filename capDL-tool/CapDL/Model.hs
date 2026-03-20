@@ -341,7 +341,7 @@ data Model a
     cdt :: CDT,
     untypedCovers :: CoverMap,
     optDomSchedule :: Maybe DomSchedule,
-    domStart :: Word,
+    domStart :: Maybe Word,
     domIdxShift :: Word }
   deriving Show
 

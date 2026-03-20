@@ -1018,8 +1018,8 @@ getDomSchedule [] = Nothing
 getDomSchedule [DomScheduleDecl sched] = Just sched
 getDomSchedule _ = error "Must declare at most one domains section"
 
-getDomStart :: [DomainDeclItem] -> Word
-getDomStart [] = 0
+getDomStart :: [DomainDeclItem] -> Maybe Word
+getDomStart [] = Just 0
 getDomStart [DomStartDecl start] = start
 getDomStart _ = error "Must declare at most one domain_set_start index"
 
@@ -1041,16 +1041,16 @@ checkDomainItem (domain, duration) =
         else True
 
 checkDomains :: Model a -> Model a
-checkDomains m@(Model _ _ _ _ _ (Just sched) dstart _) =
-    if fromIntegral dstart >= length sched
-    then error $ "Start index is " ++ show dstart ++ ", but must be in [0.." ++
-                     show (length sched - 1) ++ "] for the given schedule."
-    else if not $ all checkDomainItem sched
-    then error "Invalid domain schedule" -- actual error will be raised in checkDomainItem
-    else if sched !! (fromIntegral dstart) == (0, 0)
-    then error $ "Start index (" ++ show dstart ++
-                     ") must not point to the end marker (0, 0) in the schedule."
-    else m
+checkDomains m@(Model _ _ _ _ _ (Just sched) dstart _)
+    | isJust dstart && fromIntegral (fromJust dstart) >= length sched =
+        error $ "Start index is " ++ show (fromJust dstart) ++ ", but must be in [0.." ++
+                    show (length sched - 1) ++ "] for the given schedule."
+    | not $ all checkDomainItem sched =
+        error "Invalid domain schedule" -- actual error will be raised in checkDomainItem
+    | isJust dstart && sched !! fromIntegral (fromJust dstart) == (0, 0) =
+        error $ "Start index (" ++ show (fromJust dstart) ++
+                    ") must not point to the end marker (0, 0) in the schedule."
+    | otherwise = m
 checkDomains m = m
 
 makeModel :: Module -> Logger (Model Word, Idents CapName, CopyMap)

@@ -205,7 +205,7 @@ data DomainDeclItem
     = DomScheduleDecl {
           domSchedule :: [(Word, Word64)] }
     | DomStartDecl {
-          domStart :: Word }
+          domStart :: Maybe Word }
     | DomIdxShiftDecl {
           domIdxShift :: Word }
     deriving (Show, Eq)
