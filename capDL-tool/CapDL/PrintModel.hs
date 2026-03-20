@@ -211,12 +211,12 @@ prettyWordPair (a,b) = parens (num a <> comma <+> integer (toInteger b))
 prettySchedule :: DomSchedule -> Doc
 prettySchedule sched = fsep $ punctuate comma (map prettyWordPair sched)
 
-prettyDomains :: Maybe DomSchedule -> Word -> Word -> Doc
+prettyDomains :: Maybe DomSchedule -> Maybe Word -> Word -> Doc
 prettyDomains Nothing _ _ = mempty
 prettyDomains (Just sched) dstart dshift =
     text "domains {" $+$
     nest indent (text "schedule:" <+> brackets (prettySchedule sched)) $+$
-    nest indent (text "domain_set_start:" <+> num dstart) $+$
+    nest indent (text "domain_set_start:" <+> maybe (text "no_start") num dstart) $+$
     nest indent (text "index_shift:" <+> num dshift) $+$
     text "}" $+$
     text ""
