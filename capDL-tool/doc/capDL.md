@@ -554,4 +554,4 @@ domain schedule start. If no schedule is provided but the kernel is configured
 with domain scheduler support, the initial domain will keep running after the
 initialiser ends.
 
-[RFC-20]: https://github.com/seL4/rfcs/blob/0200-domain-schedules/src/proposed/0200-domain-schedules.md
+[RFC-20]: https://github.com/seL4/rfcs/blob/main/src/implemented/0200-domain-schedules.md
