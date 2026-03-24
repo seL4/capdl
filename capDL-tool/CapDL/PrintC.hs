@@ -138,7 +138,7 @@ showCap _ (ARMIRQHandlerCap id) irqNode is_orig _ =
     ", .is_orig = " ++ is_orig ++
     ", .irq = " ++ show (lookupByValue (== id) irqNode) ++ "}"
     -- Caps have obj_ids, or IRQs, but not both.
-showCap objs (FrameCap id rights _ cached maybe_mapping) _ is_orig _ =
+showCap objs (FrameCap id rights _ cached _ maybe_mapping) _ is_orig _ =
     "{.type = CDL_FrameCap, .obj_id = " ++ showObjID objs id ++
     ", .is_orig = " ++ is_orig ++
     ", .rights = " ++ showRights rights ++

@@ -27,6 +27,7 @@ class Cap(object):
         self.guard_size = 0
         self.badge = None
         self.cached = True
+        self.executable = True
         self.ports = None
         self.mapping_container = None
         self.mapping_slot = None
@@ -92,14 +93,15 @@ class Cap(object):
             rights = [sym for sym, flag in
                       [('R', self.read),
                        ('W', self.write),
-                       ('X', is_frame and self.grant),
-                       ('G', not is_frame and self.grant),
+                       ('G', self.grant),
                        ('P', self.grantreply)]
                       if flag]
             extra.append(''.join(rights))
 
         if isinstance(self.referent, Frame) and not self.cached:
             extra.append('uncached')
+        if isinstance(self.referent, Frame) and not self.executable:
+            extra.append('execute_never')
         if isinstance(self.referent, Frame) and \
                 self.mapping_container is not None:
             extra.append('mapping: (%s, %d)' % (self.mapping_container.name, self.mapping_slot))

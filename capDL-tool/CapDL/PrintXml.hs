@@ -170,7 +170,7 @@ showExtraCapAttributes (NotificationCap _ capBadge _) = [("badge", show capBadge
 showExtraCapAttributes (ARMSMCCap _ capBadge) = [("badge", show capBadge)]
 showExtraCapAttributes (CNodeCap _ guard guardSize) =
     [("guard", show guard), ("guardSize", show guardSize)]
-showExtraCapAttributes (FrameCap _ _ _ False _) = [("cached", "False")]
+showExtraCapAttributes (FrameCap _ _ _ cached executable _) = [ ("cached", "False") | not cached ] ++ [ ("executable", "False") | not executable ]
 showExtraCapAttributes _ = []
 
 --
