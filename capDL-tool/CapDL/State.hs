@@ -624,7 +624,7 @@ flattenCNodeSlots ((_, CNode slots _) : xs) = map snd (Map.toList slots) ++ flat
 flattenCNodeSlots (_ : xs) = flattenCNodeSlots xs
 
 isMappedFrameCap :: Cap -> Bool
-isMappedFrameCap (FrameCap _ _ _ _ (Just _)) = True
+isMappedFrameCap (FrameCap _ _ _ _ _ (Just _)) = True
 isMappedFrameCap _ = False
 
 -- Returns list containing each element in argument list occuring more than once.
@@ -708,7 +708,7 @@ checkMappedFrameCapsOnlyInCNodes m =
 -- mapping to a frame.
 checkMappedFrameCaps :: Model Word -> Logger Bool
 checkMappedFrameCaps m = do
-    let mappings = map (\(FrameCap _ _ _ _ (Just x)) -> x) $
+    let mappings = map (\(FrameCap _ _ _ _ _ (Just x)) -> x) $
                       filter isMappedFrameCap $ flattenCNodeSlots $ allObjs m
     no_duplicates <- checkDuplicateMappedFrameCaps mappings
     sane_mappings <- checkMappedFrameCapsSanity m mappings

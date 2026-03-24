@@ -511,7 +511,6 @@ right =
         chr 'R' Read
     <|> chr 'W' Write
     <|> chr 'G' Grant
-    <|> chr 'X' Grant
     <|> chr 'P' GrantReply
 
 parse_rights :: MapParser CapRights
@@ -600,6 +599,12 @@ cap_param =
     <|> do
         reserved "uncached"
         return $ Cached False
+    <|> do
+        reserved "executable"
+        return $ Executable True
+    <|> do
+        reserved "execute_never"
+        return $ Executable False
     <|> do
         reserved "mapping"
         colon
