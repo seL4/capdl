@@ -10,6 +10,7 @@ import CapDL.Model
 
 import Prelude ()
 import Prelude.Compat
+import Control.Monad
 import Control.Monad.State
 import Control.Monad.Writer
 import Data.Maybe
