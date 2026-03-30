@@ -14,11 +14,32 @@
 
 ### Changes
 
+* Add support for domain schedules in `capDL-tool`, `capdl-loader-app`, and
+  `python-capdl-tool`. Domain schedules can optionally be provided in a separate
+  section of capDL specifications. By default, the provided schedule will be
+  started after the initialiser finishes. Provide `no_start` to suppress domain
+  schedule start.
+
+  If the kernel is not configured for domain scheduling, any provided schedule
+  will be ignored.
+
 
 ### Upgrade Notes
+
+No changes are necessary for kernel configurations that do not use the domain
+scheduler. For kernel configurations with domain scheduler support, instead of
+providing the schedule in a separate `.c` file, the domain schedule should be
+provided in the capDL specification instead. Schedules can be transcribed one to
+one without change, leaving `domain_set_start` and `shift_index` at defaults.
+The difference in intended behaviour is that the schedule will only start
+running after the initialiser is finished. Schedules may previously have
+included timing for initialisation --- consider if the schedule should be
+adjusted accordingly.
+
 ---
 
 ## 0.4.0 2025-11-25
+
 Using seL4 version 14.0.0
 
 ### Changes
