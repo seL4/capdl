@@ -14,6 +14,15 @@
 
 ### Changes
 
+
+### Upgrade Notes
+---
+
+## 0.5.0 2026-03-31
+Using seL4 version 15.0.0
+
+### Changes
+
 * Add support for domain schedules in `capDL-tool`, `capdl-loader-app`, and
   `python-capdl-tool`. Domain schedules can optionally be provided in a separate
   section of capDL specifications. By default, the provided schedule will be
