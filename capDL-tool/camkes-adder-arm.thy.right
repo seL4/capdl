@@ -702,21 +702,21 @@ lemma client_client_0_fault_handler_tcb_object_slots:
   by (simp add: client_client_0_fault_handler_tcb_def object_slots_def)
 
 definition pt_adder_group_bin_0000_caps :: "cdl_cap_map" where
-"pt_adder_group_bin_0000_caps \<equiv> [16 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0000_id {Read, Write, Grant} 16 Fake None ,
-                                        32 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0001_id {Read, Write, Grant} 16 Fake None ,
-                                        48 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0004_id {Read, Write, Grant} 16 Fake None ,
-                                        64 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0011_id {Read, Write, Grant} 16 Fake None ,
-                                        80 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0036_id {Read, Write, Grant} 16 Fake None ,
-                                        96 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0015_id {Read, Write, Grant} 16 Fake None ,
-                                        112 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0039_id {Read, Write, Grant} 16 Fake None ,
-                                        128 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0017_id {Read, Write, Grant} 16 Fake None ,
-                                        144 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0041_id {Read, Write, Grant} 16 Fake None ,
-                                        160 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0019_id {Read, Write, Grant} 16 Fake None ,
-                                        176 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0043_id {Read, Write, Grant} 16 Fake None ,
-                                        192 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0021_id {Read, Write, Grant} 16 Fake None ,
-                                        208 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0045_id {Read, Write, Grant} 16 Fake None ,
-                                        224 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0023_id {Read, Write, Grant} 16 Fake None ,
-                                        240 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0047_id {Read, Write, Grant} 16 Fake None ]"
+"pt_adder_group_bin_0000_caps \<equiv> [16 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0000_id {Read, Write} 16 Fake None ,
+                                        32 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0001_id {Read, Write} 16 Fake None ,
+                                        48 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0004_id {Read, Write} 16 Fake None ,
+                                        64 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0011_id {Read, Write} 16 Fake None ,
+                                        80 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0036_id {Read, Write} 16 Fake None ,
+                                        96 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0015_id {Read, Write} 16 Fake None ,
+                                        112 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0039_id {Read, Write} 16 Fake None ,
+                                        128 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0017_id {Read, Write} 16 Fake None ,
+                                        144 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0041_id {Read, Write} 16 Fake None ,
+                                        160 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0019_id {Read, Write} 16 Fake None ,
+                                        176 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0043_id {Read, Write} 16 Fake None ,
+                                        192 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0021_id {Read, Write} 16 Fake None ,
+                                        208 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0045_id {Read, Write} 16 Fake None ,
+                                        224 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0023_id {Read, Write} 16 Fake None ,
+                                        240 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0047_id {Read, Write} 16 Fake None ]"
 
 definition pt_adder_group_bin_0000 :: "cdl_object" where
 "pt_adder_group_bin_0000 \<equiv> Types_D.PageTable \<lparr> cdl_page_table_caps = pt_adder_group_bin_0000_caps \<rparr>"
@@ -726,14 +726,14 @@ lemma pt_adder_group_bin_0000_object_slots:
   by (simp add: pt_adder_group_bin_0000_def object_slots_def)
 
 definition pt_adder_group_bin_0003_caps :: "cdl_cap_map" where
-"pt_adder_group_bin_0003_caps \<equiv> [0 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0025_id {Read, Write, Grant} 16 Fake None ,
-                                        16 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0049_id {Read, Write, Grant} 16 Fake None ,
-                                        32 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0027_id {Read, Write, Grant} 16 Fake None ,
-                                        48 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0002_id {Read, Write, Grant} 16 Fake None ,
-                                        64 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0029_id {Read, Write, Grant} 12 Fake None ,
-                                        65 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0013_id {Read, Write, Grant} 12 Fake None ,
-                                        66 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0014_id {Read, Write, Grant} 12 Fake None ,
-                                        67 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0016_id {Read, Write, Grant} 12 Fake None ,
+"pt_adder_group_bin_0003_caps \<equiv> [0 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0025_id {Read, Write} 16 Fake None ,
+                                        16 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0049_id {Read, Write} 16 Fake None ,
+                                        32 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0027_id {Read, Write} 16 Fake None ,
+                                        48 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0002_id {Read, Write} 16 Fake None ,
+                                        64 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0029_id {Read, Write} 12 Fake None ,
+                                        65 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0013_id {Read, Write} 12 Fake None ,
+                                        66 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0014_id {Read, Write} 12 Fake None ,
+                                        67 \<mapsto> Types_D.FrameCap False frame_adder_group_bin_0016_id {Read, Write} 12 Fake None ,
                                         69 \<mapsto> Types_D.FrameCap False stack__camkes_stack_adder_0_control_0_adder_obj_id {Read, Write} 12 Fake None ,
                                         70 \<mapsto> Types_D.FrameCap False stack__camkes_stack_adder_0_control_1_adder_obj_id {Read, Write} 12 Fake None ,
                                         71 \<mapsto> Types_D.FrameCap False stack__camkes_stack_adder_0_control_2_adder_obj_id {Read, Write} 12 Fake None ,
@@ -749,7 +749,7 @@ definition pt_adder_group_bin_0003_caps :: "cdl_cap_map" where
                                         89 \<mapsto> Types_D.FrameCap False stack__camkes_stack_adder_0_fault_handler_2_adder_obj_id {Read, Write} 12 Fake None ,
                                         90 \<mapsto> Types_D.FrameCap False stack__camkes_stack_adder_0_fault_handler_3_adder_obj_id {Read, Write} 12 Fake None ,
                                         93 \<mapsto> Types_D.FrameCap False adder_frame__camkes_ipc_buffer_adder_0_fault_handler_id {Read, Write} 12 Fake None ,
-                                        95 \<mapsto> Types_D.FrameCap False s_data_0_obj_id {Read, Write, Grant} 12 Fake None \<comment> \<open>uncached\<close>]"
+                                        95 \<mapsto> Types_D.FrameCap False s_data_0_obj_id {Read, Write} 12 Fake None \<comment> \<open>uncached\<close> \<comment> \<open>execute_never\<close>]"
 
 definition pt_adder_group_bin_0003 :: "cdl_object" where
 "pt_adder_group_bin_0003 \<equiv> Types_D.PageTable \<lparr> cdl_page_table_caps = pt_adder_group_bin_0003_caps \<rparr>"
@@ -759,21 +759,21 @@ lemma pt_adder_group_bin_0003_object_slots:
   by (simp add: pt_adder_group_bin_0003_def object_slots_def)
 
 definition pt_client_group_bin_0000_caps :: "cdl_cap_map" where
-"pt_client_group_bin_0000_caps \<equiv> [16 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0000_id {Read, Write, Grant} 16 Fake None ,
-                                         32 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0001_id {Read, Write, Grant} 16 Fake None ,
-                                         48 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0003_id {Read, Write, Grant} 16 Fake None ,
-                                         64 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0004_id {Read, Write, Grant} 16 Fake None ,
-                                         80 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0029_id {Read, Write, Grant} 16 Fake None ,
-                                         96 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0008_id {Read, Write, Grant} 16 Fake None ,
-                                         112 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0032_id {Read, Write, Grant} 16 Fake None ,
-                                         128 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0010_id {Read, Write, Grant} 16 Fake None ,
-                                         144 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0033_id {Read, Write, Grant} 16 Fake None ,
-                                         160 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0012_id {Read, Write, Grant} 16 Fake None ,
-                                         176 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0034_id {Read, Write, Grant} 16 Fake None ,
-                                         192 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0014_id {Read, Write, Grant} 16 Fake None ,
-                                         208 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0035_id {Read, Write, Grant} 16 Fake None ,
-                                         224 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0016_id {Read, Write, Grant} 16 Fake None ,
-                                         240 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0036_id {Read, Write, Grant} 16 Fake None ]"
+"pt_client_group_bin_0000_caps \<equiv> [16 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0000_id {Read, Write} 16 Fake None ,
+                                         32 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0001_id {Read, Write} 16 Fake None ,
+                                         48 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0003_id {Read, Write} 16 Fake None ,
+                                         64 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0004_id {Read, Write} 16 Fake None ,
+                                         80 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0029_id {Read, Write} 16 Fake None ,
+                                         96 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0008_id {Read, Write} 16 Fake None ,
+                                         112 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0032_id {Read, Write} 16 Fake None ,
+                                         128 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0010_id {Read, Write} 16 Fake None ,
+                                         144 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0033_id {Read, Write} 16 Fake None ,
+                                         160 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0012_id {Read, Write} 16 Fake None ,
+                                         176 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0034_id {Read, Write} 16 Fake None ,
+                                         192 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0014_id {Read, Write} 16 Fake None ,
+                                         208 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0035_id {Read, Write} 16 Fake None ,
+                                         224 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0016_id {Read, Write} 16 Fake None ,
+                                         240 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0036_id {Read, Write} 16 Fake None ]"
 
 definition pt_client_group_bin_0000 :: "cdl_object" where
 "pt_client_group_bin_0000 \<equiv> Types_D.PageTable \<lparr> cdl_page_table_caps = pt_client_group_bin_0000_caps \<rparr>"
@@ -783,10 +783,10 @@ lemma pt_client_group_bin_0000_object_slots:
   by (simp add: pt_client_group_bin_0000_def object_slots_def)
 
 definition pt_client_group_bin_0003_caps :: "cdl_cap_map" where
-"pt_client_group_bin_0003_caps \<equiv> [0 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0018_id {Read, Write, Grant} 16 Fake None ,
-                                         16 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0037_id {Read, Write, Grant} 16 Fake None ,
-                                         32 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0020_id {Read, Write, Grant} 16 Fake None ,
-                                         48 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0002_id {Read, Write, Grant} 16 Fake None ,
+"pt_client_group_bin_0003_caps \<equiv> [0 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0018_id {Read, Write} 16 Fake None ,
+                                         16 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0037_id {Read, Write} 16 Fake None ,
+                                         32 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0020_id {Read, Write} 16 Fake None ,
+                                         48 \<mapsto> Types_D.FrameCap False frame_client_group_bin_0002_id {Read, Write} 16 Fake None ,
                                          65 \<mapsto> Types_D.FrameCap False stack__camkes_stack_client_0_control_0_client_obj_id {Read, Write} 12 Fake None ,
                                          66 \<mapsto> Types_D.FrameCap False stack__camkes_stack_client_0_control_1_client_obj_id {Read, Write} 12 Fake None ,
                                          67 \<mapsto> Types_D.FrameCap False stack__camkes_stack_client_0_control_2_client_obj_id {Read, Write} 12 Fake None ,
@@ -797,7 +797,7 @@ definition pt_client_group_bin_0003_caps :: "cdl_cap_map" where
                                          76 \<mapsto> Types_D.FrameCap False stack__camkes_stack_client_0_fault_handler_2_client_obj_id {Read, Write} 12 Fake None ,
                                          77 \<mapsto> Types_D.FrameCap False stack__camkes_stack_client_0_fault_handler_3_client_obj_id {Read, Write} 12 Fake None ,
                                          80 \<mapsto> Types_D.FrameCap False client_frame__camkes_ipc_buffer_client_0_fault_handler_id {Read, Write} 12 Fake None ,
-                                         82 \<mapsto> Types_D.FrameCap False s_data_0_obj_id {Read, Write, Grant} 12 Fake None \<comment> \<open>uncached\<close>]"
+                                         82 \<mapsto> Types_D.FrameCap False s_data_0_obj_id {Read, Write} 12 Fake None \<comment> \<open>uncached\<close> \<comment> \<open>execute_never\<close>]"
 
 definition pt_client_group_bin_0003 :: "cdl_object" where
 "pt_client_group_bin_0003 \<equiv> Types_D.PageTable \<lparr> cdl_page_table_caps = pt_client_group_bin_0003_caps \<rparr>"

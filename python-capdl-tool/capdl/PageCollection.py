@@ -86,7 +86,7 @@ class PageCollection(object):
                       page['size'])
         spec.add_object(frame)
         return Cap(frame, read=page['read'], write=page['write'],
-                   grant=page['execute'])
+                   executable=page['execute'])
 
     def get_spec(self, existing_frames={}):
         if self._spec is not None:

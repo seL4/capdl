@@ -254,12 +254,13 @@ printCap _ _ _ _ IRQControlCap = text "IrqControlCap"
 printCap _ irqNode _ _ (IRQHandlerCap id) =
     text "IrqHandlerCap" <+> num (fromJust (lookupElem id irqNode))
 printCap _ _ _ _ DomainCap = text "DomainCap"
-printCap ms _ _ real (FrameCap id rights asid cached _) = text "FrameCap" <+>
+printCap ms _ _ real (FrameCap id rights asid cached executable _) = text "FrameCap" <+>
     -- is_device flag, assumed always false. FIXME: add to model?
     text "False" <+>
     printID id <+> printRights rights <+> printFrameSize id ms <+>
     printReal real <+> printMaybeAsid asid <+>
-    text (if cached then "" else isaComment "uncached")
+    text (if cached then "" else isaComment "uncached") <+>
+    text (if executable then "" else isaComment "execute_never")
 printCap _ _ _ real (PTCap id asid) =
     text "PageTableCap" <+> printID id <+> printReal real <+>
     printMaybeAsid asid

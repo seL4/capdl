@@ -277,16 +277,15 @@ maybeNum t n = prettyParemNum t n
 
 maybeBadge = maybeNum "badge"
 
-prettyRight _ Read = text "R"
-prettyRight _ Write = text "W"
-prettyRight True Grant = text "X"
-prettyRight False Grant = text "G"
-prettyRight _ GrantReply = text "P"
+prettyRight Read = text "R"
+prettyRight Write = text "W"
+prettyRight Grant = text "G"
+prettyRight GrantReply = text "P"
 
-maybeRightsList _ [] = []
-maybeRightsList isFrame xs = [hcat (map (prettyRight isFrame) xs)]
+maybeRightsList [] = []
+maybeRightsList xs = [hcat (map prettyRight xs)]
 
-maybeRights isFrame r = maybeRightsList isFrame (Set.toList r)
+maybeRights r = maybeRightsList (Set.toList r)
 
 maybeGuard = maybeNum "guard"
 maybeGSize = maybeNum "guard_size"
@@ -312,17 +311,17 @@ maybeFrameMapping (Just mapping) = prettyFrameMapping mapping
 maybeCapParams :: Cap -> Doc
 maybeCapParams cap = case cap of
     EndpointCap _ badge rights ->
-        capParams (maybeBadge badge ++ maybeRights False rights)
+        capParams (maybeBadge badge ++ maybeRights rights)
     NotificationCap _ badge rights ->
-        capParams (maybeBadge badge ++ maybeRights False rights)
+        capParams (maybeBadge badge ++ maybeRights rights)
     ARMSMCCap _ badge ->
         capParams (maybeBadge badge)
     ReplyCap _ -> capParams [text "reply"]
     MasterReplyCap _ -> capParams [text "master_reply"]
     CNodeCap _ guard gsize ->
         capParams (maybeGuard guard ++ maybeGSize gsize)
-    FrameCap _ rights asid cached mapping -> capParams (maybeRights True rights ++ maybeAsid asid ++
-        (if cached then [] else [text "uncached"]) ++ maybeFrameMapping mapping)
+    FrameCap _ rights asid cached executable mapping -> capParams (maybeRights rights ++ maybeAsid asid ++
+        (if cached then [] else [text "uncached"]) ++ (if executable then [] else [text "execute_never"]) ++ maybeFrameMapping mapping)
     PTCap _ asid -> capParams (maybeAsid asid)
     PDCap _ asid -> capParams (maybeAsid asid)
     SchedControlCap core -> capParams (prettyCore core)
@@ -351,7 +350,7 @@ sameParams cap1 cap2 =
         b1 == b2
     ((CNodeCap _ g1 gs1), (CNodeCap _ g2 gs2)) ->
         g1 == g2 && gs1 == gs2
-    ((FrameCap _ r1 a1 c1 m1), (FrameCap _ r2 a2 c2 m2)) -> r1 == r2 && a1 == a2 && c1 == c2 && m1 == m2
+    ((FrameCap _ r1 a1 c1 e1 m1), (FrameCap _ r2 a2 c2 e2 m2)) -> r1 == r2 && a1 == a2 && c1 == c2 && e1 == e2 && m1 == m2
     ((PTCap _ a1), (PTCap _ a2)) -> a1 == a2
     ((PDCap _ a1), (PDCap _ a2)) -> a1 == a2
     _ -> True

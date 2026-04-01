@@ -20,19 +20,19 @@ objects {
     0: tcb
     1: ep (RWG)
     2: cnode (guard_size: 28)
-    3: frame[5] (RWX)
+    3: frame[5] (RW)
   }
   
   cnode2 {5: cnode (guard: 1, guard_size: 28)}
   
   pd1 {0: pt1}
   
-  pt1 {16: frame[0..5] (RWX)}
+  pt1 {16: frame[0..5] (RW)}
   
   tcb {
     0: cnode2 (guard_size: 28)
     1: pd1
-    4: frame[5] (RWX)
+    4: frame[5] (RW)
   }
   
 } cdt {
