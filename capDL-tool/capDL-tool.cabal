@@ -33,13 +33,16 @@ executable parse-capDL
                        -- Included libraries
                        array >=0.5 && <0.6,
                        base >= 4.16,
+                       bytestring >=0.10 && < 0.12,
                        containers >=0.6 && <0.7,
                        filepath >=1.4 && <1.5,
                        mtl >=2.2 && <2.3,
                        parsec >=3.1 && <3.2,
+                       text >=1.2 && <1.3,
                        unix >=2.7 && <3,
 
                        -- Other libraries
+                       aeson >=2 && <3,
                        base-compat == 0.12.*,
                        lens >= 4.15,
                        MissingH >=1.4 && <1.6,
@@ -51,9 +54,10 @@ executable parse-capDL
   other-modules:       CapDL.AST, CapDL.DumpParser, CapDL.MakeModel,
                        CapDL.Matrix, CapDL.Model, CapDL.Parser,
                        CapDL.ParserUtils, CapDL.PrintC, CapDL.PrintDot,
-                       CapDL.PrintIsabelle, CapDL.PrintModel,
+                       CapDL.PrintIsabelle, CapDL.PrintJSON, CapDL.PrintModel,
                        CapDL.PrintUtils, CapDL.PrintXml, CapDL.STCC,
                        CapDL.State
+
 
   default-language:    Haskell2010
 
