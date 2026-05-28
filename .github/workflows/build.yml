@@ -16,7 +16,7 @@ jobs:
     name: Language Spec PDF
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Install texlive and pandoc
       run: |
         sudo apt-get update
@@ -34,7 +34,7 @@ jobs:
         python-version: [ '3.9', '3.x' ]
       fail-fast: false
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
@@ -51,7 +51,7 @@ jobs:
     name: capDL-tool (ghc)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - run: |
         sudo apt-get update
         sudo apt-get install libxml2-utils
