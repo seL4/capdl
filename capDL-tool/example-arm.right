@@ -106,7 +106,7 @@ objects {
 }
 
 domains {
-  schedule: [(0, 10), (1, 10), (0, 0), (2, 2)]
+  schedule: [(0, 10 ticks), (1, 10 ticks), (0, 0), (2, 2 us), (0, 0)]
   domain_set_start: 3
   index_shift: 1
 }

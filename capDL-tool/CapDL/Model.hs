@@ -312,7 +312,25 @@ getUTCover = Map.findWithDefault []
 
 type CDT = Map CapRef CapRef
 
-type DomSchedule = [(Word, Word64)]
+-- seL4 sees the domain schedule in ticks, and represents the end marker
+-- as the value (0, 0), i.e. 0 ticks is the end marker.
+-- In the capDL model, as we also want to handle 'us' units as well as 'ticks',
+-- we also explicitly model the end marker. We thus enforce that the ticks/us
+-- values are always non-zero. One reason for this is our sanity checks around
+-- end markers benefit from being able to check this directly, and it does not
+-- matter what the '0' value units are.
+data DomScheduleDuration
+    = DomScheduleDurationTicks {
+          ticks :: Word64 }
+    | DomScheduleDurationUs {
+          us :: Word64 }
+    | DomScheduleDurationEnd
+    deriving (Show, Eq)
+
+-- pair of (domain, duration)
+type DomScheduleEntry = (Word, DomScheduleDuration)
+
+type DomSchedule = [DomScheduleEntry]
 
 --
 -- The state of the system.

@@ -158,7 +158,8 @@ in section [Modules](#modules).
                  | 'index_shift' ':' number
 
       sched_decl ::= 'schedule' ':' '[' sched_item (',' sched_item)* ','? ']'
-      sched_item ::= '(' number ',' number ')'
+      sched_unit ::= 'ticks' | 'us'
+      sched_item ::= '(' number ',' number sched_unit? ')'
 
 ### Modules
 
@@ -525,7 +526,8 @@ ASIDControlCap is specified by `asid_control` and IOSpaceMasterCap by
                  | 'index_shift' ':' number
 
       sched_decl ::= 'schedule' ':' '[' sched_item (',' sched_item)* ','? ']'
-      sched_item ::= '(' number ',' number ')'
+      sched_unit ::= 'ticks' | 'us'
+      sched_item ::= '(' number ',' number sched_unit? ')'
 
 The Domain schedule declaration is optional and only required for system
 initialisation, not for reasoning about capability distribution.
@@ -534,6 +536,17 @@ The domain schedule list is a list of pairs where the first component is
 the domain and the second component the duration. (0, 0) denotes a schedule
 end marker. At most one domain schedule declaration is accepted.
 See [RFC-20] for detail on domain schedule semantics.
+
+The duration is specified either in units of ticks or microseconds (us).
+Without a unit specifier, it defaults to ticks. This means schedule items
+can appear as `(0, 5)` (domain 0, 5 ticks), `(1, 7 ticks)` (domain 1, 7 ticks),
+or `(2, 2000 us)` (domain 2, 2000 us). On non-MCS, tick values are multiples
+of the KernelTimerTickMS value specified in the kernel build configuration.
+When specifying durations in microseconds, the initialiser enforces the values
+are exact multiples of the period between ticks. In contrast, on MCS configs,
+tick values correspond to a platform-specific frequency. Thus, when specifying
+microseconds on MCS, we instead guarantee that the us-to-tick conversion
+is accurate to the nearest tick, or if not possible, it fails.
 
 The optional `domain_set_start` value (0 if left out) denotes which item of the
 provided domain schedule the initialiser will switch to when initialiser

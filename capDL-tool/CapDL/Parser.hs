@@ -12,7 +12,6 @@ import Prelude ()
 import Prelude.Compat
 import CapDL.AST
 import CapDL.ParserUtils
-import Data.Word (Word64)
 
 import Text.ParserCombinators.Parsec
 
@@ -100,13 +99,18 @@ cap_decls = do
     reserved "caps"
     braces $ many (try cap_name_decl <|> try cap_decl)
 
-word_pair :: MapParser (Word, Word64)
-word_pair =
+dom_sched_entry :: MapParser DomainSchedEntryDecl
+dom_sched_entry =
     parens $ do
-        a <- number
+        domain <- number
         comma
-        b <- integer64
-        return (a, b)
+        duration <- integer64
+        unit <- (do reserved "ticks"
+                    return $ Just DomainSchedEntryUnitTicksDecl)
+                <|> (do reserved "us"
+                        return $ Just DomainSchedEntryUnitUsDecl)
+                <|> (do return Nothing)
+        return (domain, duration, unit)
 
 dom_content :: MapParser DomainDeclItem
 dom_content =
@@ -119,7 +123,7 @@ dom_content =
     do
         reserved "schedule"
         colon
-        fmap DomScheduleDecl $ brackets $ sepEndBy1 word_pair comma
+        fmap DomScheduleDecl $ brackets $ sepEndBy1 dom_sched_entry comma
     <|>
     do
         reserved "index_shift"
