@@ -13,6 +13,7 @@ from __future__ import absolute_import, division, print_function, \
 
 import abc
 
+from aenum import Enum
 import six
 from six.moves import range
 
@@ -350,3 +351,8 @@ def ctz(size_bytes):
         low = low >> 1
         low_bit += 1
     return low_bit
+
+
+class DomainDurationUnit(Enum):
+    Ticks = "ticks"
+    Us = "us"

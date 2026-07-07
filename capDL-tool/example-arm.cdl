@@ -144,7 +144,15 @@ cap_test {
 }
 
 domains {
-  schedule: [(0, 10), (1, 10), (0, 0), (2, 2)]
+  schedule: [
+    (0, 10),
+    (1, 10 ticks),
+    (0, 0),
+    (2, 2 us),
+    -- Canonical representation has no unit on the end markers, but we allow it
+    -- as a valid input.
+    (0, 0 us),
+  ]
   index_shift: 1
   domain_set_start: 3
 }

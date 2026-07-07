@@ -402,6 +402,21 @@ typedef struct {
     CDL_ObjID *children;
 } CDL_UntypedDerivation;
 
+typedef enum {
+    CDL_DomainSchedEntryKind_Ticks = 0,
+    CDL_DomainSchedEntryKind_Us,
+    CDL_DomainSchedEntryKind_End,
+} CDL_DomainSchedEntryKind_t;
+
+typedef struct {
+    /* kind of the schedentry: a ticks entry, us entry, or an end marker */
+    CDL_DomainSchedEntryKind_t kind;
+    /* 8-bit domain number */
+    uint8_t domain;
+    /* 56-bit duration */
+    uint64_t duration;
+} CDL_DomainSchedEntry;
+
 /* CapDLModel: is described by a map from ObjectIDs (array index) to Objects */
 typedef struct {
     seL4_Word num;
@@ -421,9 +436,9 @@ typedef struct {
     CDL_ObjID *asid_slots;
 
     /* Array of size domainScheduleLength where each entry consists of an
-       8-bit domain number (highest 8 bits) and 56 bit duration (low bits) in ticks.
+       domain and duration (in either ticks or us).
        NULL, if no domain schedule should be configured. */
-    uint64_t *domainSchedule;
+    CDL_DomainSchedEntry *domainSchedule;
 
     /* Length of the domain schedule array. Must be > 0 if domainSchedule is not NULL. */
     seL4_Word domainScheduleLength;

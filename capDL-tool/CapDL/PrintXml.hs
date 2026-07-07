@@ -10,7 +10,6 @@ import CapDL.PrintUtils
 
 import Prelude hiding ((<>))
 import Text.PrettyPrint
-import Data.Word (Word64)
 import Data.Maybe (fromMaybe)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -238,9 +237,14 @@ printCDT :: CDT -> Doc
 printCDT cdt =
     xmlSurround "cdt" [] $ vcat (map printCDTRelation (Map.toList cdt))
 
-printSchedItem :: (Word, Word64) -> Doc
+printSchedDuration :: DomScheduleDuration -> String
+printSchedDuration (DomScheduleDurationTicks ticks) = show ticks ++ " ticks"
+printSchedDuration (DomScheduleDurationUs us) = show us ++ " us"
+printSchedDuration (DomScheduleDurationEnd) = "0"
+
+printSchedItem :: (Word, DomScheduleDuration) -> Doc
 printSchedItem (dom, duration) =
-    text $ emptyTag "item" [("domain", show dom), ("duration", show duration)]
+    text $ emptyTag "item" [("domain", show dom), ("duration", printSchedDuration duration)]
 
 printDomSched :: Maybe DomSchedule -> Maybe Word -> Word -> Doc
 printDomSched Nothing _ _ = text ""

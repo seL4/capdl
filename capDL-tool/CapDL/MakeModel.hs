@@ -1013,9 +1013,15 @@ isDomIdxShiftDecl :: DomainDeclItem -> Bool
 isDomIdxShiftDecl (DomIdxShiftDecl _) = True
 isDomIdxShiftDecl _ = False
 
+getDomScheduleEntry :: DomainSchedEntryDecl -> DomScheduleEntry
+getDomScheduleEntry (dom, 0, _) = (dom, DomScheduleDurationEnd)
+getDomScheduleEntry (dom, duration, Just DomainSchedEntryUnitUsDecl) = (dom, DomScheduleDurationUs duration)
+getDomScheduleEntry (dom, duration, Just DomainSchedEntryUnitTicksDecl) = (dom, DomScheduleDurationTicks duration)
+getDomScheduleEntry (dom, duration, Nothing) = (dom, DomScheduleDurationTicks duration)
+
 getDomSchedule :: [DomainDeclItem] -> Maybe DomSchedule
 getDomSchedule [] = Nothing
-getDomSchedule [DomScheduleDecl sched] = Just sched
+getDomSchedule [DomScheduleDecl sched] = Just (map getDomScheduleEntry sched)
 getDomSchedule _ = error "Must declare at most one domains section"
 
 getDomStart :: [DomainDeclItem] -> Maybe Word
@@ -1028,16 +1034,18 @@ getDomIdxShift [] = 0
 getDomIdxShift [DomIdxShiftDecl shift] = shift
 getDomIdxShift _ = error "Must declare at most one domain index shift"
 
-checkDomainItem :: (Word, Word64) -> Bool
+checkDomainItem :: DomScheduleEntry -> Bool
 checkDomainItem (domain, duration) =
     let itemStr = "Domain schedule item " ++ show (domain, duration) ++ ": "
     in
-        if duration == 0 && domain /= 0
-        then error $ itemStr ++ "Duration cannot be zero for non-end-markers. End marker is (0, 0)."
+        if duration == DomScheduleDurationEnd && domain /= 0
+        then error $ itemStr ++ "Domain cannot be non-zero for duration 0. End marker is (0, 0)."
         else if domain > 255
         then error $ itemStr ++ "Domain must be in [0 .. 255]"
-        else if duration >= 2^56
-        then error $ itemStr ++ "Duration must be less than 2^56"
+        else if (case duration of
+            DomScheduleDurationTicks ticks -> ticks >= 2^56
+            _ -> False)
+        then error $ itemStr ++ "Duration (ticks) must be less than 2^56"
         else True
 
 checkDomains :: Model a -> Model a
@@ -1047,7 +1055,7 @@ checkDomains m@(Model _ _ _ _ _ (Just sched) dstart _)
                     show (length sched - 1) ++ "] for the given schedule."
     | not $ all checkDomainItem sched =
         error "Invalid domain schedule" -- actual error will be raised in checkDomainItem
-    | isJust dstart && sched !! fromIntegral (fromJust dstart) == (0, 0) =
+    | isJust dstart && (sched !! fromIntegral (fromJust dstart)) == (0, DomScheduleDurationEnd) =
         error $ "Start index (" ++ show (fromJust dstart) ++
                     ") must not point to the end marker (0, 0) in the schedule."
     | otherwise = m

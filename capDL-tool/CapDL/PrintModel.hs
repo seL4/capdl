@@ -12,7 +12,6 @@ import CapDL.PrintUtils
 import Prelude ()
 import Prelude.Compat hiding ((<>))
 import Text.PrettyPrint
-import Data.Word (Word64)
 import Data.List.Compat
 import qualified Data.Map as Map
 
@@ -205,11 +204,16 @@ prettyMappings (Model _ ms irqNode cdt untypedCovers _ _ _) =
     text "}" $+$
     text ""
 
-prettyWordPair :: (Word, Word64) -> Doc
-prettyWordPair (a,b) = parens (num a <> comma <+> integer (toInteger b))
+prettyScheduleEntry :: DomScheduleEntry -> Doc
+prettyScheduleEntry (domain, duration) =
+    let (value, unit) = case duration of
+            DomScheduleDurationTicks ticks -> (ticks, Just "ticks")
+            DomScheduleDurationUs us -> (us, Just "us")
+            DomScheduleDurationEnd -> (0, Nothing)
+    in parens (num domain <> comma <+> integer (toInteger value) <> text (maybe "" (\unit -> " " ++ unit) unit))
 
 prettySchedule :: DomSchedule -> Doc
-prettySchedule sched = fsep $ punctuate comma (map prettyWordPair sched)
+prettySchedule sched = fsep $ punctuate comma (map prettyScheduleEntry sched)
 
 prettyDomains :: Maybe DomSchedule -> Maybe Word -> Word -> Doc
 prettyDomains Nothing _ _ = mempty

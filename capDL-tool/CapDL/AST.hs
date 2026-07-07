@@ -201,9 +201,16 @@ data KODecl = KODecl {
     object :: KO
 } deriving (Show, Eq)
 
+data DomainSchedEntryUnitDecl
+    = DomainSchedEntryUnitTicksDecl
+    | DomainSchedEntryUnitUsDecl
+    deriving (Show, Eq)
+
+type DomainSchedEntryDecl = (Word, Word64, Maybe DomainSchedEntryUnitDecl)
+
 data DomainDeclItem
     = DomScheduleDecl {
-          domSchedule :: [(Word, Word64)] }
+          domSchedule :: [DomainSchedEntryDecl] }
     | DomStartDecl {
           domStart :: Maybe Word }
     | DomIdxShiftDecl {

@@ -2092,6 +2092,77 @@ static void mark_vspace_roots(CDL_Model *spec)
 }
 #endif
 
+#ifdef CONFIG_KERNEL_MCS
+
+#define US_IN_SECOND (uint64_t)1000000
+
+_Static_assert(sizeof(seL4_Time) == sizeof(uint64_t),
+               "Correctness of these calculations depends on this");
+
+static seL4_Time us_to_ticks(uint64_t duration_us)
+{
+#if defined(CONFIG_ARCH_ARM) || defined(CONFIG_ARCH_RISCV)
+    /* For ARM, AArch64, and RISC-V platforms the build system provides the
+     * timer frequency to us at build time, in Hertz */
+    uint64_t f = CONFIG_TIMER_FREQUENCY;
+
+    /**
+     * TODO: Formal correctness of this implementation.
+     *       https://github.com/seL4/capdl/issues/98
+     *
+     * The goal of this implementation is that the output ticks should be
+     * equal to the (round-nearest) of the convert input us. Else, it should
+     * fail.
+     */
+
+    ZF_LOGF_IF((duration_us / US_IN_SECOND) >= ((1ULL << 56) / f),
+               "Input us would overflow 64-bits or exceed 56-bit tick maximum");
+
+    uint64_t s = duration_us / US_IN_SECOND;
+    uint64_t us = duration_us % US_IN_SECOND;
+
+    /* The '+ US_IN_SECOND / 2' is to implement round-nearest behaviour */
+    uint64_t ticks = s * f + ((us * f + US_IN_SECOND / 2) / (US_IN_SECOND));
+    return (seL4_Time)ticks;
+
+#elif defined(CONFIG_ARCH_X86) || defined(CONFIG_ARCH_X86_64)
+    seL4_BootInfoHeader *tsc_freq_hdr = extended_bootinfo_table[SEL4_BOOTINFO_HEADER_X86_TSC_FREQ];
+    ZF_LOGF_IF(tsc_freq == NULL,
+               "Unable to determine timer frequency as no TSC frequency provided in bootinfo");
+    /* For x86 platforms, the timer frequency is provided in MHz by the bootinfo */
+    void *tsc_freq_mhz_addr = (void *)tsc_freq_hdr + sizeof(seL4_BootInfoHeader);
+    uint32_t tsc_freq_mhz = *(uint32_t *)tsc_freq_mhz_addr;
+
+    uint64_t ticks;
+    if (__builtin_mul_overflow(duration_us, tsc_freq_mhz, &ticks)) {
+        ZF_LOGF("Output would overflow when computing ticks for duration %ld us @ freq %d MHz", duration_us, tsc_freq_mhz);
+    }
+
+    return (seL4_Time)ticks;
+#else
+#error "Unknown architecture"
+#endif
+}
+
+#else /* CONFIG_KERNEL_MCS */
+
+static seL4_Time us_to_ticks(uint64_t duration_us)
+{
+    /* On non-MCS, 1 tick is equivalent to 1 TIMER_TICK_MS, or an integer multiple
+     * of 1 millisecond. */
+
+    uint64_t period_us = 1000ULL * CONFIG_TIMER_TICK_MS;
+    uint64_t ticks = duration_us / period_us;
+    uint64_t remainder = duration_us % period_us;
+    ZF_LOGF_IF(remainder != 0,
+               "domain schedule duration %lu is not an integer multiple of CONFIG_TIMER_TICK_MS (%d ms)\n",
+               duration_us, CONFIG_TIMER_TICK_MS);
+
+    return ticks;
+}
+
+#endif /* CONFIG_KERNEL_MCS */
+
 static void init_domains(CDL_Model *spec)
 {
     if (CONFIG_NUM_DOMAINS == 1 && spec->domainSchedule == NULL) {
@@ -2114,13 +2185,37 @@ static void init_domains(CDL_Model *spec)
     assert(spec->domainScheduleLength > 0);
 
     for (seL4_Word i = 0; i < spec->domainScheduleLength; i++) {
-        uint64_t entry = spec->domainSchedule[i];
-        /* avoid MASK macro, because it contains a word size guard */
-        uint64_t duration = entry & ((1ull << 56) - 1ull);
-        seL4_DomainSet_ScheduleConfigure(seL4_CapDomain,
-                                         i + spec->domainIndexShift,
-                                         entry >> 56, /* domain */
-                                         duration);
+        CDL_DomainSchedEntry entry = spec->domainSchedule[i];
+
+        ZF_LOGD("   Domain schedule entry[%lu]: domain %d duration: %llu %s",
+                i + spec->domainIndexShift, entry.domain, (unsigned long long)entry.duration,
+                (entry.kind == CDL_DomainSchedEntryKind_Us) ? "us" :
+                ((entry.kind == CDL_DomainSchedEntryKind_Ticks) ? "ticks" : "[end marker]"));
+
+        seL4_Time duration_ticks;
+        switch (entry.kind) {
+        case CDL_DomainSchedEntryKind_Ticks:
+            duration_ticks = (seL4_Time)entry.duration;
+            break;
+        case CDL_DomainSchedEntryKind_Us:
+            duration_ticks = us_to_ticks(entry.duration);
+            assert(duration_ticks != 0);
+            break;
+        case CDL_DomainSchedEntryKind_End:
+            assert(entry.duration == 0);
+            duration_ticks = 0;
+            break;
+        default:
+            assert(!"unreachable");
+        }
+
+        ZF_LOGD("                                      ticks: %lu", duration_ticks);
+
+        int error = seL4_DomainSet_ScheduleConfigure(seL4_CapDomain,
+                                                     i + spec->domainIndexShift,
+                                                     entry.domain,
+                                                     duration_ticks);
+        ZF_LOGF_IFERR(error, "");
     }
 }
 

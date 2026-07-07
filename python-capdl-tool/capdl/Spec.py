@@ -8,7 +8,7 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
 from .Object import IRQ, Object
-from .util import lookup_architecture
+from .util import lookup_architecture, DomainDurationUnit
 
 
 class Spec(object):
@@ -41,11 +41,15 @@ class Spec(object):
         assert isinstance(obj, Object)
         self.objs.add(obj)
 
-    def add_schedule_item(self, domain, duration):
-        self.schedule.append((domain, duration))
+    def add_schedule_item(self, domain, duration, duration_unit=DomainDurationUnit.Ticks):
+        assert isinstance(duration_unit, DomainDurationUnit)
+        self.schedule.append((domain, duration, duration_unit))
 
     def add_schedule(self, schedule):
-        self.schedule.extend(schedule)
+        # We iterate manually and do *schedule so that default arguments of
+        # add_schedule_item can be applied.
+        for schedule_item in schedule:
+            self.add_schedule_item(*schedule_item)
 
     def merge(self, other):
         assert isinstance(other, Spec)
@@ -65,7 +69,7 @@ class Spec(object):
     def show_schedule(self):
         if not self.schedule:
             return ''
-        items = ', '.join('(%d, %d)' % (d, t) for d, t in self.schedule)
+        items = ', '.join('(%d, %d %s)' % (d, t, u.value) for d, t, u in self.schedule)
         set_start = self.domain_set_start or 0
         return '\ndomains {\n' \
                '  schedule: [%s]\n' \

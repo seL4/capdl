@@ -23,7 +23,6 @@ import qualified Data.Map as Map
 import Data.Map (Map)
 import qualified Data.Set as Set
 import Data.Bits
-import Data.Word (Word64)
 import Numeric (showHex)
 import Text.PrettyPrint
 
@@ -507,16 +506,21 @@ showASIDPoolDerivations objs ms =
            joinBy ",\n" ["    " ++ idStr | idStr <- array] +++
        "},"
 
-showDomainScheduleItem :: (Word, Word64) -> String
+showDomainScheduleItem :: (Word, DomScheduleDuration) -> String
 showDomainScheduleItem (domain, duration) =
-    let dbits = 56
-        mask n = (1 `shiftL` n) - 1
-        entry = fromIntegral domain `shiftL` dbits .|. duration .&. mask dbits
-    in hex entry
+    let (value, unit) = case duration of
+            DomScheduleDurationTicks ticks -> (ticks, "CDL_DomainSchedEntryKind_Ticks")
+            DomScheduleDurationUs us -> (us, "CDL_DomainSchedEntryKind_Us")
+            DomScheduleDurationEnd -> (0, "CDL_DomainSchedEntryKind_End")
+    in "{" +++
+        ".kind = " ++ unit ++ "," +++
+        ".domain = " ++ (show domain) ++ "," +++
+        ".duration = " ++ (show value) +++
+        "}"
 
 showDomainSchedule :: DomSchedule -> String
 showDomainSchedule dsched =
-    "(uint64_t[]){" +++
+    "(CDL_DomainSchedEntry[]){" +++
     "    " ++ joinBy ", " (map showDomainScheduleItem dsched) +++
     "}"
 
