@@ -342,8 +342,8 @@ def ctz(size_bytes):
     Count trailing zeros in a python integer.
     The value must be greater than 0.
     """
-    assert(size_bytes > 0)
-    assert(isinstance(size_bytes, six.integer_types))
+    assert (size_bytes > 0)
+    assert (isinstance(size_bytes, six.integer_types))
     low = size_bytes & -size_bytes
     low_bit = -1
     while low:
