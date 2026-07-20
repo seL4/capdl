@@ -57,9 +57,22 @@ data Spec = Spec
     , untyped_covers :: [UntypedCover]
     } deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
+data DomainSchedDuration =
+      DomainSchedDurationTicks Word64
+    | DomainSchedDurationUs Word64
+    | DomainSchedDurationEndMarker
+    deriving (Eq, Show, Generic)
+
+instance ToJSON DomainSchedDuration where
+    toJSON = genericToJSON $ sumTypeOptions "DomainSchedDuration_"
+    toEncoding = genericToEncoding $ sumTypeOptions "DomainSchedDuration_"
+
+instance FromJSON DomainSchedDuration where
+    parseJSON = genericParseJSON $ sumTypeOptions "DomainSchedDuration_"
+
 data DomainSchedEntry = DomainSchedEntry
-    { id :: Word8
-    , time :: Word64
+    { domain :: Word8
+    , duration :: DomainSchedDuration
     } deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 data Range a = Range
@@ -371,10 +384,7 @@ translate :: C.ObjectSizeMap -> C.Model Word -> Spec
 translate objSizeMap (C.Model arch objMap irqNode _ coverMap optDomSchedule domStart domIdxShift) = Spec
     { objects
     , irqs
-    , domain_schedule = fmap (map (\(id, time) -> DomainSchedEntry
-        { id = fromIntegral id
-        , time
-        })) optDomSchedule
+    , domain_schedule = domainSchedule
     , domain_set_start = domStart
     , domain_idx_shift = Just domIdxShift
     , asid_slots = asidSlots
@@ -407,6 +417,14 @@ translate objSizeMap (C.Model arch objMap irqNode _ coverMap optDomSchedule domS
         [ (irq, translateId obj)
         | (irq, obj) <- M.toAscList irqNode
         ]
+
+    domainSchedule = fmap (map (\(domain, duration) -> DomainSchedEntry
+        { domain = fromIntegral domain
+        , duration = case duration of
+            C.DomScheduleDurationTicks ticks -> DomainSchedDurationTicks ticks
+            C.DomScheduleDurationUs us -> DomainSchedDurationUs us
+            C.DomScheduleDurationEnd -> DomainSchedDurationEndMarker
+        })) optDomSchedule
 
     asidSlots = assert (map fst table `isPrefixOf` [1..]) (map snd table)
       where
