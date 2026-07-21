@@ -2127,7 +2127,7 @@ static seL4_Time us_to_ticks(uint64_t duration_us)
 
 #elif defined(CONFIG_ARCH_X86) || defined(CONFIG_ARCH_X86_64)
     seL4_BootInfoHeader *tsc_freq_hdr = extended_bootinfo_table[SEL4_BOOTINFO_HEADER_X86_TSC_FREQ];
-    ZF_LOGF_IF(tsc_freq == NULL,
+    ZF_LOGF_IF(tsc_freq_hdr == NULL,
                "Unable to determine timer frequency as no TSC frequency provided in bootinfo");
     /* For x86 platforms, the timer frequency is provided in MHz by the bootinfo */
     void *tsc_freq_mhz_addr = (void *)tsc_freq_hdr + sizeof(seL4_BootInfoHeader);
