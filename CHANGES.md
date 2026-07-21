@@ -14,11 +14,28 @@
 
 ### Changes
 
+* Add support in `python-capdl-tool` for mapping caps into an address space at
+  arbitrary addresses, outside of the bounds of the ELF file.
+* Add experimental support for json output in `capDL-tool` for connecting to
+  the Rust loader. This output mode is currently largely untested and will not
+  work for all input specifications.
+* Add support for domain schedule units: microseconds (us) or ticks in all capDL
+  specification layers and loader. The loader will automatically convert
+  microseconds into ticks at boot time. This operation can fail: on non-MCS, the
+  time in microseconds has to be an exact multiple of CONFIG_TIMER_TICK_MS *
+  1000. On MCS, the kernel tick reflects the underlying timer frequency. The
+  loader guarantees a conversion that is accurate to the nearest tick value, or
+  failure otherwise. This can be ±1 timer period.
+
 
 ### Upgrade Notes
+
+* existing capDL specs should continue to work without change
+
 ---
 
 ## 0.5.0 2026-03-31
+
 Using seL4 version 15.0.0
 
 ### Changes
