@@ -14,6 +14,16 @@
 
 ### Changes
 
+
+### Upgrade Notes
+---
+
+## 0.6.0 2026-07-22
+
+Using seL4 version 16.0.0
+
+### Changes
+
 * Add support in `python-capdl-tool` for mapping caps into an address space at
   arbitrary addresses, outside of the bounds of the ELF file.
 * Add experimental support for json output in `capDL-tool` for connecting to
