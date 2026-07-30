@@ -8,9 +8,6 @@
 Various internal utility functions. Pay no mind to this file.
 """
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 import abc
 
 from aenum import Enum
