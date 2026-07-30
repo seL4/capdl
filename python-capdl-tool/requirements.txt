@@ -11,4 +11,3 @@ six
 sortedcontainers
 concurrencytest
 hypothesis
-future

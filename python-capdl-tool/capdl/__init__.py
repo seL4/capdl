@@ -4,9 +4,6 @@
 # SPDX-License-Identifier: BSD-2-Clause
 #
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from .Cap import Cap
 from .ELF import ELF
 from .Object import Frame, PageTable, PageDirectory, ASIDPool, CNode, Endpoint, \

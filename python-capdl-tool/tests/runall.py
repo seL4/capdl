@@ -10,8 +10,6 @@
 This script is a quick way to execute the tests for all capdl-python modules.
 """
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
 from concurrencytest import ConcurrentTestSuite, fork_for_tests
 
 import argparse

@@ -4,9 +4,6 @@
 # SPDX-License-Identifier: BSD-2-Clause
 #
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from .Object import IRQ, Object
 from .util import lookup_architecture, DomainDurationUnit
 
