@@ -8,7 +8,6 @@ import abc
 import collections
 import logging
 
-import six
 from sortedcontainers import SortedList, SortedSet, SortedDict
 
 from .Cap import Cap
@@ -426,7 +425,7 @@ class ASIDTableAllocator(object):
                                          (asid_pool.name, asid_pool.asid_high, asid_pool.asid_high - 1))
 
 
-class UntypedAllocator(six.with_metaclass(abc.ABCMeta, object)):
+class UntypedAllocator(abc.ABC):
     """
     An allocation interface for assigning objects to specific untypeds.
     Each untyped allocator implements its own policy.

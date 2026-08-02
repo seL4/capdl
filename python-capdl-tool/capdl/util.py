@@ -11,8 +11,6 @@ Various internal utility functions. Pay no mind to this file.
 import abc
 
 from aenum import Enum
-import six
-from six.moves import range
 
 from .Object import ObjectType, PageTable, PageDirectory, PML4, PDPT, PGD, PUD, get_object_size
 
@@ -86,7 +84,7 @@ def make_levels(levels):
     return levels[0]
 
 
-class Arch(six.with_metaclass(abc.ABCMeta, object)):
+class Arch(abc.ABC):
     def get_pages(self):
         level = self.vspace()
         pages = []
@@ -289,7 +287,7 @@ def last_level(level):
 
 
 def page_sizes(arch):
-    if isinstance(arch, six.string_types):
+    if isinstance(arch, str):
         arch = lookup_architecture(arch)
     list = [get_object_size(page) for page in arch.get_pages()]
     list.sort()
@@ -341,7 +339,7 @@ def ctz(size_bytes):
     The value must be greater than 0.
     """
     assert (size_bytes > 0)
-    assert (isinstance(size_bytes, six.integer_types))
+    assert (isinstance(size_bytes, int))
     low = size_bytes & -size_bytes
     low_bit = -1
     while low:
