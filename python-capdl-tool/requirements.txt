@@ -7,7 +7,6 @@
 aenum
 ordered-set
 pyelftools
-six
 sortedcontainers
 concurrencytest
 hypothesis

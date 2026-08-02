@@ -16,7 +16,6 @@ from .util import PAGE_SIZE, round_down, page_sizes
 from .PageCollection import PageCollection
 import os
 import re
-import six
 
 
 def _decode(data):
@@ -41,7 +40,7 @@ class ELF(object):
         parameter 'elf', or a stream to ELF data. 'name' is only used when
         generating CapDL from the ELF file.
         """
-        if isinstance(elf, six.string_types):
+        if isinstance(elf, str):
             f = open(elf, 'rb')
         else:
             f = elf

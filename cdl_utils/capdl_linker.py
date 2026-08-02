@@ -17,7 +17,6 @@ import logging
 import os
 import tempfile
 import yaml
-import six
 
 
 CSPACE_TEMPLATE_FILE = os.path.join(os.path.dirname(__file__), "templates/cspace.template.c")
