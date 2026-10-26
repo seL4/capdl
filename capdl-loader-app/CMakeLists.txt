@@ -80,6 +80,14 @@ config_option(
     "Build the loader to expect a statically allocated capDL spec." DEFAULT OFF
 )
 
+config_option(
+    CapDLImageRemap
+    CAPDL_IMAGE_REMAP
+    "Copy reserved frames for VM kernel and rootfs regions into VM cnode"
+    DEFAULT
+    OFF
+)
+
 add_config_library(capdl_loader_app "${configure_string}")
 
 # The capdl-loader-app requires outside configuration in order to build. To achieve this

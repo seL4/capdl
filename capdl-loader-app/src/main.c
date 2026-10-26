@@ -36,6 +36,10 @@
 #include <capdl_loader_app/platform_info.h>
 #endif
 
+#ifdef CONFIG_CAPDL_IMAGE_REMAP
+#include "capdl_image_remap.h"
+#endif
+
 #ifdef CONFIG_ARCH_RISCV
 #define seL4_PageDirIndexBits seL4_PageTableIndexBits
 #define PT_LEVEL_SLOT(vaddr, level) (((vaddr) >> ((seL4_PageTableIndexBits * (level-1)) + seL4_PageBits)) & MASK(seL4_PageTableIndexBits))
@@ -1918,6 +1922,66 @@ static void init_cspace(CDL_Model *spec)
     }
 }
 
+#ifdef CONFIG_CAPDL_IMAGE_REMAP
+static void share_remap_caps(seL4_BootInfo *bootinfo, CDL_Model *spec)
+{
+    /* lowest_mapped_vaddr calculation copied directly from init_copy_frame() */
+    unsigned int num_user_image_frames_reported =
+        bootinfo->userImageFrames.end - bootinfo->userImageFrames.start;
+    unsigned int num_user_image_frames_measured =
+        (ROUND_UP((uintptr_t)&_end, PAGE_SIZE_4K) -
+         (uintptr_t)&__executable_start) / PAGE_SIZE_4K;
+
+    if (num_user_image_frames_reported < num_user_image_frames_measured) {
+        ZF_LOGE("Too few frames caps in bootinfo to back user image");
+        return;
+    }
+
+    size_t additional_user_image_bytes =
+        (num_user_image_frames_reported - num_user_image_frames_measured) * PAGE_SIZE_4K;
+
+    if (additional_user_image_bytes > (uintptr_t)&__executable_start) {
+        ZF_LOGE("User image padding too high to fit before start symbol");
+        return;
+    }
+
+    uintptr_t lowest_mapped_vaddr =
+        (uintptr_t)&__executable_start - additional_user_image_bytes;
+
+    /* copy user image frame caps into dest vm cnode */
+    for (unsigned int i = 0; i < get_num_remap_vms(); i++)
+    {
+        unsigned int num_reserved_vm_image_frames =
+            ((uintptr_t)_vm_remap_image_symbols[i].end -
+            (uintptr_t)_vm_remap_image_symbols[i].start) / PAGE_SIZE_4K;
+
+        seL4_CPtr reserved_vm_image_frames_cap_start = bootinfo->userImageFrames.start +
+            (((uintptr_t)_vm_remap_image_symbols[i].start - lowest_mapped_vaddr) /
+            PAGE_SIZE_4K);
+
+        for (CDL_ObjID id = 0; id < spec->num; id++)
+        {
+            if (strcmp(CDL_Obj_Name(&spec->objects[id]), get_vm_cnode_name(i)) == 0)
+            {
+                printf("Copying reserved user image frame caps into %s\n",
+                    get_vm_cnode_name(i));
+
+                CDL_Object *vm_cnode = get_spec_object(spec, id);
+                for (unsigned int j = 0; j < num_reserved_vm_image_frames; j++)
+                {
+                    seL4_Word dest_slot = get_vm_remap_cnode_slot_start(i) + j;
+                    int ret = seL4_CNode_Copy(orig_caps(id), dest_slot, CDL_Obj_SizeBits(vm_cnode),
+                        seL4_CapInitThreadCNode, reserved_vm_image_frames_cap_start + j,
+                        seL4_WordBits, seL4_ReadWrite);
+                    ZF_LOGF_IF(ret, "Failed to add cap to %s slot %lu: %d",
+                        CDL_Obj_Name(vm_cnode), (unsigned long)dest_slot, ret);
+                }
+            }
+        }
+    }
+}
+#endif
+
 static void start_threads(CDL_Model *spec)
 {
     ZF_LOGD("Starting threads...");
@@ -2267,6 +2331,9 @@ static void init_system(CDL_Model *spec)
     init_tcbs(spec);
     init_cspace(spec);
     init_domains(spec);
+#ifdef CONFIG_CAPDL_IMAGE_REMAP
+    share_remap_caps(bootinfo, spec);
+#endif
     start_threads(spec);
 
     ZF_LOGD("%d of %d CSlots used (%.2LF%%)", get_free_slot(),
