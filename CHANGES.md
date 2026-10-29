@@ -14,6 +14,16 @@
 
 ### Changes
 
+
+### Upgrade Notes
+---
+
+## 0.6.1 2026-10-30
+
+Using seL4 version 17.0.0
+
+### Changes
+
 * Reduced Python dependencies
 
 ### Upgrade Notes
