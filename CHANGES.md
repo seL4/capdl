@@ -14,8 +14,13 @@
 
 ### Changes
 
+* Reduced Python dependencies
 
 ### Upgrade Notes
+
+This is a binary compatible version on the capDL side, existing capDL specs
+should continue to work without change.
+
 ---
 
 ## 0.6.0 2026-07-22
