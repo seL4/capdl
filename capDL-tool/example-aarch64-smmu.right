@@ -1,0 +1,23 @@
+arch aarch64
+
+objects {
+
+  sid_a = streamid (sid: 4)
+  sid_b = streamid (sid: 9)
+  sid_c = streamid (sid: 12)
+  smmu_cnode = cnode (4 bits)
+
+
+} caps {
+
+  smmu_cnode {
+    1: sid_a
+    2: sid_b
+    3: sid_c
+  }
+
+} cdt {
+
+} irq maps {
+
+}

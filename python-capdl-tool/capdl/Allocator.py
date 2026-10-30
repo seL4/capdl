@@ -163,9 +163,9 @@ class ObjectAllocator(object):
         elif type == ObjectType.seL4_RTReplyObject:
             o = RTReply(name)
         elif type == ObjectType.seL4_ARMSID:
-            o = StreamID(name)
+            o = StreamID(name, **kwargs)
         elif type == ObjectType.seL4_ARMCB:
-            o = ContextBank(name)
+            o = ContextBank(name, **kwargs)
         elif type == ObjectType.seL4_ARMSMC:
             o = SMC(name)
         else:
