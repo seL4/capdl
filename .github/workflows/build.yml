@@ -55,11 +55,17 @@ jobs:
     - run: |
         sudo apt-get update
         sudo apt-get install libxml2-utils
+    - name: Cache stack root (GHC + dependencies)
+      uses: actions/cache@v4
+      with:
+        path: ~/.stack
+        key: stack-${{ runner.os }}-${{ hashFiles('capDL-tool/stack.yaml.lock', 'capDL-tool/capDL-tool.cabal') }}
+        restore-keys: |
+          stack-${{ runner.os }}-
     - uses: haskell-actions/setup@v2
       with:
         enable-stack: true
-        stack-setup-ghc: true
-        ghc-version: 9.10.3
+        stack-no-global: true
     - name: Build and test
       run: |
         cd capDL-tool
