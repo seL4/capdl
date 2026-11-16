@@ -11,7 +11,8 @@ all: $(TARGET)
 
 .PHONY: tests
 tests: example-arm.test-OK example-ia32.test-OK example-aarch64.test-OK \
-       hello-dump.test-OK cap-dist-elf-simpleserver.test-OK camkes-adder-arm.test-OK \
+       example-aarch64-smmu.test-OK \
+	   hello-dump.test-OK cap-dist-elf-simpleserver.test-OK camkes-adder-arm.test-OK \
 			 camkes-adder-arm.test-thy-OK
 
 %.parse %.dot %.xml: %.cdl $(TARGET)
@@ -36,6 +37,7 @@ camkes-adder-arm.test-thy-OK: $(TARGET) camkes-adder-arm.cdl camkes-adder-arm.th
 # https://stackoverflow.com/questions/27090032
 .SECONDARY: example-arm.parse example-arm.dot example-arm.xml \
   example-ia32.parse example-ia32.dot example-ia32.xml \
+  example-aarch64-smmu.parse example-aarch64-smmu.dot example-aarch64-smmu.xml \
   hello-dump.parse hello-dump.dot hello-dump.xml \
   cap-dist-elf-simpleserver.parse cap-dist-elf-simpleserver.dot cap-dist-elf-simpleserver.xml \
   camkes-adder-arm.parse camkes-adder-arm.dot camkes-adder-arm.xml camkes-adder-arm.thy

@@ -214,7 +214,7 @@ data KernelObject a
         target :: Word }
 
 -- fake kernel objects for smmu
-    | ARMSID
+    | ARMSID { sidNumber :: Word }
     | ARMCB { bankNumber :: Maybe Word }
 
     | ARMSMC

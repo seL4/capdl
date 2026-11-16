@@ -19,3 +19,9 @@ Files:
   object_sizes/object_sizes.yaml
 Copyright: 2020, Data61, CSIRO (ABN 41 687 119 230)
 License: BSD-2-Clause
+
+Files:
+  VERSION
+  capDL-tool/example-aarch64-smmu.right
+Copyright: 2026, DornerWorks
+License: BSD-2-Clause
