@@ -7,7 +7,7 @@
 cmake_minimum_required(VERSION 3.16.0)
 
 function(BuildCapDLApplication)
-    cmake_parse_arguments(PARSE_ARGV 0 CAPDL_BUILD_APP "" "C_SPEC;OUTPUT" "ELF;DEPENDS")
+    cmake_parse_arguments(PARSE_ARGV 0 CAPDL_BUILD_APP "" "C_SPEC;OUTPUT" "ELF;REMAP;DEPENDS")
     if(NOT "${CAPDL_BUILD_APP_UNPARSED_ARGUMENTS}" STREQUAL "")
         message(FATAL_ERROR "Unknown arguments to BuildCapDLApplication")
     endif()
@@ -53,11 +53,19 @@ function(BuildCapDLApplication)
         )
     endif()
 
+    if(CapDLImageRemap)
+        set_source_files_properties(
+            ${CAPDL_BUILD_APP_REMAP}
+            PROPERTIES GENERATED TRUE EXTERNAL_OBJECT TRUE
+        )
+    endif()
+
     # Build the application
     add_executable(
         "${CAPDL_BUILD_APP_OUTPUT}" EXCLUDE_FROM_ALL
         $<TARGET_PROPERTY:capdl_app_properties,C_FILES> ${CAPDL_LOADER_APP_C_FILES}
         ${CAPDL_BUILD_APP_OUTPUT}_archive.o ${CAPDL_BUILD_APP_C_SPEC}
+        ${CAPDL_BUILD_APP_REMAP}
     )
 
     if(DEFINED platform_yaml)
